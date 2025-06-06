@@ -86,15 +86,12 @@ export default function AdminDashboard() {
               </div>
             </div>
             <h1 className="text-6xl font-black text-white mb-4">
-              Admin
+              DOAGuru
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">
                 {" "}
                 Dashboard
               </span>
             </h1>
-            <p className="text-slate-400 text-xl max-w-2xl mx-auto">
-              Manage your platform with powerful tools and intuitive controls
-            </p>
           </div>
 
           {/* Feature Grid */}
@@ -172,7 +169,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Footer stats */}
-          <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="text-3xl font-bold text-white mb-2">24/7</div>
               <div className="text-slate-400">System Monitoring</div>
@@ -185,7 +182,7 @@ export default function AdminDashboard() {
               <div className="text-3xl font-bold text-white mb-2">∞</div>
               <div className="text-slate-400">Scalability</div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
