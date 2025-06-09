@@ -265,4 +265,284 @@ exports.verifyOtpAndResetPassword = async (req, res) => {
   }
 };
 
-// Test API Forget Password & Verify OTP Last Work
+exports.insertServices = async (req, res) => {
+  const { services, category, editing_type, amount, selected } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  if (!services || !category || !editing_type || !amount) {
+    // selected is optional, so we don't check it
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "All fields are required." });
+  }
+
+  if (isNaN(amount)) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "Amount must be numbers.",
+    });
+  }
+
+  try {
+    db.query(
+      "INSERT INTO dm_calculator_services (services, category, editing_type, amount, selected, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+      [services, category, editing_type, amount, selected || "N/A", createdAt],
+      (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Database error" });
+        }
+
+        res.status(201).json({
+          status: "Success",
+          message: "Service added successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};
+
+exports.getServices = async (req, res) => {
+  try {
+    db.query(
+      "SELECT * FROM dm_calculator_services ORDER BY id DESC",
+      (err, results) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "DB error", error: err });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "Invalid user ID or password",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};
+
+exports.updateServices = async (req, res) => {
+  const { id } = req.params;
+  const { services, category, editing_type, amount, selected } = req.body;
+
+  if (!services || !category || !editing_type || !amount) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "All fields except 'selected' are required.",
+    });
+  }
+
+  try {
+    db.query(
+      "UPDATE dm_calculator_services SET services = ?, category = ?, editing_type = ?, amount = ?, selected = ? WHERE id = ?",
+      [services, category, editing_type, amount, selected || "N/A", id],
+      (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "DB error", error: err });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No service found with the given ID",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          message: "Service updated successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};
+
+exports.insertAdsServices = async (req, res) => {
+  const { ads_category, amt_range_start, amt_range_end, percentage } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  if (!ads_category || !amt_range_start || !amt_range_end || !percentage) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "All fields are required." });
+  }
+
+  if (isNaN(amt_range_start) || isNaN(amt_range_end) || isNaN(percentage)) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "Amount ranges and percentage must be numbers.",
+    });
+  }
+
+  try {
+    db.query(
+      "INSERT INTO dm_calculator_ads (ads_category, amt_range_start, amt_range_end, percentage, created_at) VALUES (?, ?, ?, ?, ?)",
+      [ads_category, amt_range_start, amt_range_end, percentage, createdAt],
+      (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Database error" });
+        }
+
+        res.status(201).json({
+          status: "Success",
+          message: "Ads Service added successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};
+
+exports.getAdsServices = async (req, res) => {
+  try {
+    db.query(
+      "SELECT * FROM dm_calculator_ads ORDER BY id DESC",
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No ads services found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};
+
+exports.updateAdsServices = async (req, res) => {
+  const { id } = req.params;
+  const { ads_category, amt_range_start, amt_range_end, percentage } = req.body;
+
+  if (!ads_category || !amt_range_start || !amt_range_end || !percentage) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "All fields are required." });
+  }
+
+  if (isNaN(amt_range_start) || isNaN(amt_range_end) || isNaN(percentage)) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "Amount ranges and percentage must be numbers.",
+    });
+  }
+
+  try {
+    db.query(
+      "UPDATE dm_calculator_ads SET ads_category = ?, amt_range_start = ?, amt_range_end = ?, percentage = ? WHERE id = ?",
+      [ads_category, amt_range_start, amt_range_end, percentage, id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+          });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No ad service found with the given ID",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          message: "Ads Service updated successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};
+
+exports.insertClientDetails = async (req, res) => {
+  const {
+    client_name,
+    client_organization,
+    email,
+    phone,
+    address,
+    dg_employee,
+  } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  if (
+    !client_name ||
+    !client_organization ||
+    !email ||
+    !phone ||
+    !address ||
+    !dg_employee
+  ) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "All fields are required." });
+  }
+
+  try {
+    db.query(
+      "INSERT INTO dm_calculator_client_details (client_name, client_organization, email, phone, address, dg_employee, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [
+        client_name,
+        client_organization,
+        email,
+        phone,
+        address,
+        dg_employee,
+        createdAt,
+      ],
+      (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Database error", error: err });
+        }
+
+        res.status(201).json({
+          status: "Success",
+          message: "Client added successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};

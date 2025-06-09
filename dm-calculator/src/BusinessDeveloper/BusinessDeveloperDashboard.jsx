@@ -11,12 +11,20 @@ import {
   Plus,
   Search,
   Filter,
+  LogOut,
 } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { clearUser } from "../redux/user/userSlice";
+import ClientDetails from "./ClientDetails";
 
 const BusinessDeveloperDashboard = () => {
   const [activeTab, setActiveTab] = useState("clients");
-  const [selectedClient, setSelectedClient] = useState(null);
+  // const [selectedClient, setSelectedClient] = useState(null);
   const [selectedService, setSelectedService] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // Sample data
   const clients = [
@@ -161,162 +169,162 @@ const BusinessDeveloperDashboard = () => {
     }
   };
 
-  const ClientDetails = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Client Details</h2>
-        <div className="flex gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search clients..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Add Client
-          </button>
-        </div>
-      </div>
+  // const ClientDetails = () => (
+  //   <div className="space-y-6">
+  //     <div className="flex justify-between items-center">
+  //       <h2 className="text-2xl font-bold text-gray-900">Client Details</h2>
+  //       <div className="flex gap-3">
+  //         <div className="relative">
+  //           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+  //           <input
+  //             type="text"
+  //             placeholder="Search clients..."
+  //             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  //           />
+  //         </div>
+  //         <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+  //           <Plus className="w-4 h-4" />
+  //           Add Client
+  //         </button>
+  //       </div>
+  //     </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">All Clients</h3>
-              <div className="space-y-4">
-                {clients.map((client) => (
-                  <div
-                    key={client.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      selectedClient?.id === client.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200"
-                    }`}
-                    onClick={() => setSelectedClient(client)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-900">
-                              {client.name}
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                              {client.contact}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4" />
-                            {client.email}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4" />
-                            {client.phone}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            {client.location}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            Last contact: {client.lastContact}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            client.status
-                          )}`}
-                        >
-                          {client.status}
-                        </span>
-                        <p className="text-lg font-bold text-gray-900 mt-2">
-                          {client.value}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+  //     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  //       <div className="lg:col-span-2">
+  //         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+  //           <div className="p-6">
+  //             <h3 className="text-lg font-semibold mb-4">All Clients</h3>
+  //             <div className="space-y-4">
+  //               {clients.map((client) => (
+  //                 <div
+  //                   key={client.id}
+  //                   className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+  //                     selectedClient?.id === client.id
+  //                       ? "border-blue-500 bg-blue-50"
+  //                       : "border-gray-200"
+  //                   }`}
+  //                   onClick={() => setSelectedClient(client)}
+  //                 >
+  //                   <div className="flex justify-between items-start">
+  //                     <div className="flex-1">
+  //                       <div className="flex items-center gap-3 mb-2">
+  //                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+  //                           <User className="w-5 h-5 text-white" />
+  //                         </div>
+  //                         <div>
+  //                           <h4 className="font-semibold text-gray-900">
+  //                             {client.name}
+  //                           </h4>
+  //                           <p className="text-sm text-gray-600">
+  //                             {client.contact}
+  //                           </p>
+  //                         </div>
+  //                       </div>
+  //                       <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+  //                         <div className="flex items-center gap-2">
+  //                           <Mail className="w-4 h-4" />
+  //                           {client.email}
+  //                         </div>
+  //                         <div className="flex items-center gap-2">
+  //                           <Phone className="w-4 h-4" />
+  //                           {client.phone}
+  //                         </div>
+  //                         <div className="flex items-center gap-2">
+  //                           <MapPin className="w-4 h-4" />
+  //                           {client.location}
+  //                         </div>
+  //                         <div className="flex items-center gap-2">
+  //                           <Calendar className="w-4 h-4" />
+  //                           Last contact: {client.lastContact}
+  //                         </div>
+  //                       </div>
+  //                     </div>
+  //                     <div className="text-right">
+  //                       <span
+  //                         className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+  //                           client.status
+  //                         )}`}
+  //                       >
+  //                         {client.status}
+  //                       </span>
+  //                       <p className="text-lg font-bold text-gray-900 mt-2">
+  //                         {client.value}
+  //                       </p>
+  //                     </div>
+  //                   </div>
+  //                 </div>
+  //               ))}
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
 
-        <div className="lg:col-span-1">
-          {selectedClient ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Client Profile</h3>
-                <div className="text-center mb-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <User className="w-10 h-10 text-white" />
-                  </div>
-                  <h4 className="font-bold text-xl text-gray-900">
-                    {selectedClient.name}
-                  </h4>
-                  <p className="text-gray-600">{selectedClient.contact}</p>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Mail className="w-5 h-5 text-gray-500" />
-                    <span className="text-sm">{selectedClient.email}</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Phone className="w-5 h-5 text-gray-500" />
-                    <span className="text-sm">{selectedClient.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <MapPin className="w-5 h-5 text-gray-500" />
-                    <span className="text-sm">{selectedClient.location}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium">Status:</span>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        selectedClient.status
-                      )}`}
-                    >
-                      {selectedClient.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium">Total Value:</span>
-                    <span className="font-bold text-lg">
-                      {selectedClient.value}
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-6 space-y-2">
-                  <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    Schedule Meeting
-                  </button>
-                  <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    Send Proposal
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="text-center text-gray-500">
-                <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>Select a client to view details</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  //       <div className="lg:col-span-1">
+  //         {selectedClient ? (
+  //           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+  //             <div className="p-6">
+  //               <h3 className="text-lg font-semibold mb-4">Client Profile</h3>
+  //               <div className="text-center mb-6">
+  //                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+  //                   <User className="w-10 h-10 text-white" />
+  //                 </div>
+  //                 <h4 className="font-bold text-xl text-gray-900">
+  //                   {selectedClient.name}
+  //                 </h4>
+  //                 <p className="text-gray-600">{selectedClient.contact}</p>
+  //               </div>
+  //               <div className="space-y-4">
+  //                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+  //                   <Mail className="w-5 h-5 text-gray-500" />
+  //                   <span className="text-sm">{selectedClient.email}</span>
+  //                 </div>
+  //                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+  //                   <Phone className="w-5 h-5 text-gray-500" />
+  //                   <span className="text-sm">{selectedClient.phone}</span>
+  //                 </div>
+  //                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+  //                   <MapPin className="w-5 h-5 text-gray-500" />
+  //                   <span className="text-sm">{selectedClient.location}</span>
+  //                 </div>
+  //                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+  //                   <span className="text-sm font-medium">Status:</span>
+  //                   <span
+  //                     className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+  //                       selectedClient.status
+  //                     )}`}
+  //                   >
+  //                     {selectedClient.status}
+  //                   </span>
+  //                 </div>
+  //                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+  //                   <span className="text-sm font-medium">Total Value:</span>
+  //                   <span className="font-bold text-lg">
+  //                     {selectedClient.value}
+  //                   </span>
+  //                 </div>
+  //               </div>
+  //               <div className="mt-6 space-y-2">
+  //                 <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+  //                   Schedule Meeting
+  //                 </button>
+  //                 <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+  //                   Send Proposal
+  //                 </button>
+  //               </div>
+  //             </div>
+  //           </div>
+  //         ) : (
+  //           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+  //             <div className="text-center text-gray-500">
+  //               <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
+  //               <p>Select a client to view details</p>
+  //             </div>
+  //           </div>
+  //         )}
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
 
   const SelectService = () => (
     <div className="space-y-6">
@@ -559,6 +567,29 @@ const BusinessDeveloperDashboard = () => {
     </div>
   );
 
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Logout!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/");
+        dispatch(clearUser());
+        Swal.fire({
+          title: "Logged Out!",
+          text: "You have successfully logged out.",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -582,6 +613,13 @@ const BusinessDeveloperDashboard = () => {
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                 <User className="w-5 h-5 text-white" />
               </div>
+              <button
+                onClick={() => handleLogout()}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
             </div>
           </div>
         </div>
