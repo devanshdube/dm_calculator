@@ -546,3 +546,177 @@ exports.insertClientDetails = async (req, res) => {
     res.status(500).json({ status: "Failure", message: "Server error", error });
   }
 };
+
+exports.getClientDetails = async (req, res) => {
+  try {
+    db.query(
+      "SELECT * FROM dm_calculator_client_details ORDER BY id DESC",
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No client details found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+exports.getClientsByEmployee = async (req, res) => {
+  const { employee } = req.params;
+
+  try {
+    db.query(
+      "SELECT * FROM dm_calculator_client_details WHERE dg_employee = ? ORDER BY id DESC",
+      [employee],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No clients found for this employee",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+exports.addServices = async (req, res) => {
+  const { service_name } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  if (!service_name) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "All fields are required." });
+  }
+
+  try {
+    db.query(
+      "INSERT INTO services (service_name, created_at) VALUES (?, ?)",
+      [service_name, createdAt],
+      (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Database error" });
+        }
+
+        res.status(201).json({
+          status: "Success",
+          message: "Service added successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};
+
+exports.addCategories = async (req, res) => {
+  const { service_id, category_name } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  if (!service_id || !category_name) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "Service ID and Category name required",
+    });
+  }
+
+  try {
+    db.query(
+      "INSERT INTO categories (service_id, category_name, created_at) VALUES (?, ?, ?)",
+      [service_id, category_name, createdAt],
+      (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Database error" });
+        }
+
+        res.status(201).json({
+          status: "Success",
+          message: "Category added successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};
+
+exports.addEditingTypes = async (req, res) => {
+  const { service_id, category_id, editing_type_name } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  if (!service_id || !category_id || !editing_type_name) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "All fields are required",
+    });
+  }
+
+  try {
+    db.query(
+      "INSERT INTO editing_types (service_id, category_id, editing_type_name, created_at) VALUES (?, ?, ?, ?)",
+      [service_id, category_id, editing_type_name, createdAt],
+      (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Database error" });
+        }
+
+        res.status(201).json({
+          status: "Success",
+          message: "Editing type added successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};

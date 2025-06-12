@@ -13,7 +13,7 @@ import {
   Filter,
   LogOut,
 } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
@@ -25,6 +25,8 @@ const BusinessDeveloperDashboard = () => {
   const [selectedService, setSelectedService] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { currentUser } = useSelector((state) => state.user);
+  const userName = currentUser?.name;
 
   // Sample data
   const clients = [
@@ -608,7 +610,7 @@ const BusinessDeveloperDashboard = () => {
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <div className="text-sm text-gray-600">Welcome back,</div>
-                <div className="font-semibold text-gray-900">Alex Johnson</div>
+                <div className="font-semibold text-gray-900">{userName}</div>
               </div>
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                 <User className="w-5 h-5 text-white" />

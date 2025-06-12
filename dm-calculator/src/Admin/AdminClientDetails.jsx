@@ -18,7 +18,7 @@ import axios from "axios";
 import ReactPaginate from "react-paginate";
 import styled from "styled-components";
 
-const ClientDetails = () => {
+const AdminClientDetails = () => {
   const baseURL = `http://localhost:5555`;
   // const navigate = useNavigate();
   // const dispatch = useDispatch();
@@ -114,7 +114,7 @@ const ClientDetails = () => {
   const getAllClients = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientsByEmployee/${employeeName}`,
+        `${baseURL}/auth/api/calculator/getClientDetails`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -137,12 +137,14 @@ const ClientDetails = () => {
     getAllClients();
   }, []);
 
-  console.log("getClients:", getClients);
+  //   console.log("getClients:", getClients);
 
   const filteredItems = getClients.filter((row) => {
     const matchesKeyword =
       (row?.client_name &&
         row.client_name.toLowerCase().includes(keyword.trim().toLowerCase())) ||
+      (row?.dg_employee &&
+        row.dg_employee.toLowerCase().includes(keyword.trim().toLowerCase())) ||
       (row?.client_organization &&
         row.client_organization
           .toLowerCase()
@@ -295,10 +297,10 @@ const ClientDetails = () => {
                                 <MapPin className="w-4 h-4" />
                                 {client.address}
                               </div>
-                              {/* <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4" />
-                              Last contact: {client.lastContact}
-                            </div> */}
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4" />
+                                Employee : {client.dg_employee}
+                              </div>
                             </div>
                           </div>
                           {/* <div className="text-right">
@@ -549,7 +551,7 @@ const ClientDetails = () => {
   );
 };
 
-export default ClientDetails;
+export default AdminClientDetails;
 const PaginationContainer = styled.div`
   .pagination {
     display: flex;

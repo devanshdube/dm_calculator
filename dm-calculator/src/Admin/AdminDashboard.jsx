@@ -1,190 +1,514 @@
+import React, { useState } from "react";
 import {
-  Users,
-  History,
-  Settings,
-  BarChart3,
-  Target,
-  Archive,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Plus,
+  Search,
+  Filter,
+  LogOut,
+  Briefcase,
+  ListChecks,
 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { clearUser } from "../redux/user/userSlice";
+import AdminClientDetails from "./AdminClientDetails";
+import AdminAddServices from "./AdminAddServices";
 
-const features = [
-  {
-    title: "Add BD",
-    description: "Create a new BD user",
-    path: "/admin/add-bd",
-    icon: Users,
-    color: "from-purple-500 to-pink-500",
-    bgPattern:
-      "radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%)",
-  },
-  {
-    title: "BD User History",
-    description: "View and manage BD user records",
-    path: "/admin/bd-history",
-    icon: History,
-    color: "from-blue-500 to-cyan-500",
-    bgPattern:
-      "radial-gradient(circle at 30% 70%, rgba(59, 130, 246, 0.3) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(6, 182, 212, 0.3) 0%, transparent 50%)",
-  },
-  {
-    title: "Add Services",
-    description: "Add services, categories, and editing types",
-    path: "/admin/services",
-    icon: Settings,
-    color: "from-emerald-500 to-teal-500",
-    bgPattern:
-      "radial-gradient(circle at 40% 60%, rgba(16, 185, 129, 0.3) 0%, transparent 50%), radial-gradient(circle at 60% 40%, rgba(20, 184, 166, 0.3) 0%, transparent 50%)",
-  },
-  {
-    title: "Service History",
-    description: "Track all added services",
-    path: "/admin/service-history",
-    icon: BarChart3,
-    color: "from-orange-500 to-red-500",
-    bgPattern:
-      "radial-gradient(circle at 25% 75%, rgba(249, 115, 22, 0.3) 0%, transparent 50%), radial-gradient(circle at 75% 25%, rgba(239, 68, 68, 0.3) 0%, transparent 50%)",
-  },
-  {
-    title: "Add Ads Settings",
-    description: "Configure ads category, amount & percentage",
-    path: "/admin/ads",
-    icon: Target,
-    color: "from-violet-500 to-purple-500",
-    bgPattern:
-      "radial-gradient(circle at 35% 65%, rgba(139, 92, 246, 0.3) 0%, transparent 50%), radial-gradient(circle at 65% 35%, rgba(147, 51, 234, 0.3) 0%, transparent 50%)",
-  },
-  {
-    title: "Ads Setting History",
-    description: "History of ads settings applied",
-    path: "/admin/ads-history",
-    icon: Archive,
-    color: "from-indigo-500 to-blue-500",
-    bgPattern:
-      "radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.3) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.3) 0%, transparent 50%)",
-  },
-];
+const AdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState("clients");
+  const [selectedService, setSelectedService] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { currentUser } = useSelector((state) => state.user);
+  const userName = currentUser?.name;
 
-export default function AdminDashboard() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-3/4 left-1/2 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+  // Sample data
+
+  const clients = [
+    {
+      id: 1,
+      name: "Acme Corporation",
+      contact: "John Smith",
+      email: "john@acme.com",
+      phone: "+1 (555) 123-4567",
+      location: "New York, NY",
+      status: "Active",
+      lastContact: "2024-06-05",
+      value: "$125,000",
+    },
+    {
+      id: 2,
+      name: "TechStart Inc",
+      contact: "Sarah Wilson",
+      email: "sarah@techstart.com",
+      phone: "+1 (555) 987-6543",
+      location: "San Francisco, CA",
+      status: "Prospect",
+      lastContact: "2024-06-03",
+      value: "$85,000",
+    },
+    {
+      id: 3,
+      name: "Global Solutions",
+      contact: "Mike Johnson",
+      email: "mike@globalsol.com",
+      phone: "+1 (555) 456-7890",
+      location: "Chicago, IL",
+      status: "Active",
+      lastContact: "2024-06-01",
+      value: "$200,000",
+    },
+  ];
+
+  const services = [
+    {
+      id: 1,
+      name: "Web Development",
+      price: "$5,000 - $25,000",
+      duration: "4-12 weeks",
+    },
+    {
+      id: 2,
+      name: "Mobile App Development",
+      price: "$10,000 - $50,000",
+      duration: "8-20 weeks",
+    },
+    {
+      id: 3,
+      name: "Digital Marketing",
+      price: "$2,000 - $10,000",
+      duration: "3-6 months",
+    },
+    {
+      id: 4,
+      name: "Brand Identity Design",
+      price: "$3,000 - $15,000",
+      duration: "3-8 weeks",
+    },
+    {
+      id: 5,
+      name: "E-commerce Solution",
+      price: "$8,000 - $35,000",
+      duration: "6-16 weeks",
+    },
+    {
+      id: 6,
+      name: "Consulting Services",
+      price: "$150 - $300/hour",
+      duration: "Ongoing",
+    },
+  ];
+
+  const history = [
+    {
+      id: 1,
+      date: "2024-06-05",
+      client: "Acme Corporation",
+      action: "Service Delivered",
+      service: "Web Development",
+      status: "Completed",
+      amount: "$15,000",
+    },
+    {
+      id: 2,
+      date: "2024-06-04",
+      client: "TechStart Inc",
+      action: "Proposal Sent",
+      service: "Mobile App Development",
+      status: "Pending",
+      amount: "$25,000",
+    },
+    {
+      id: 3,
+      date: "2024-06-03",
+      client: "Global Solutions",
+      action: "Contract Signed",
+      service: "Digital Marketing",
+      status: "Active",
+      amount: "$8,000",
+    },
+    {
+      id: 4,
+      date: "2024-06-02",
+      client: "Acme Corporation",
+      action: "Meeting Scheduled",
+      service: "Brand Identity Design",
+      status: "Scheduled",
+      amount: "$12,000",
+    },
+    {
+      id: 5,
+      date: "2024-06-01",
+      client: "TechStart Inc",
+      action: "Initial Contact",
+      service: "E-commerce Solution",
+      status: "Follow-up",
+      amount: "$30,000",
+    },
+  ];
+
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "prospect":
+        return "bg-blue-100 text-blue-800";
+      case "completed":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "scheduled":
+        return "bg-purple-100 text-purple-800";
+      case "follow-up":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const SelectService = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Select Service</h2>
+        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Add Service
+        </button>
       </div>
 
-      <div className="relative z-10 p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-16">
-            <div className="inline-block p-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 mb-6">
-              <div className="bg-slate-900 rounded-full px-8 py-2">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 text-sm font-semibold tracking-wider uppercase">
-                  Control Center
-                </span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {services.map((service) => (
+          <div
+            key={service.id}
+            className={`bg-white rounded-xl shadow-sm border-2 cursor-pointer transition-all hover:shadow-lg transform hover:-translate-y-1 ${
+              selectedService === service.name
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200"
+            }`}
+            onClick={() => setSelectedService(service.name)}
+          >
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-white" />
+                </div>
+                {selectedService === service.name && (
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                )}
+              </div>
+              <h3 className="font-bold text-lg text-gray-900 mb-2">
+                {service.name}
+              </h3>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Price:</span>
+                  <span>{service.price}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>{service.duration}</span>
+                </div>
               </div>
             </div>
-            <h1 className="text-6xl font-black text-white mb-4">
-              DOAGuru
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">
-                {" "}
-                Dashboard
-              </span>
-            </h1>
           </div>
+        ))}
+      </div>
 
-          {/* Feature Grid */}
-          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-            {features.map((feature, index) => {
-              const IconComponent = feature.icon;
-              return (
-                <div
-                  key={index}
-                  className="group relative overflow-hidden cursor-pointer"
-                  onClick={() => {
-                    // Replace with your navigation logic
-                    console.log(`Navigate to: ${feature.path}`);
-                  }}
-                >
-                  {/* Card */}
-                  <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 h-full transition-all duration-500 hover:scale-105 hover:border-white/20 hover:bg-white/10">
-                    {/* Background pattern */}
-                    <div
-                      className="absolute inset-0 opacity-50 rounded-3xl"
-                      style={{ background: feature.bgPattern }}
-                    ></div>
+      {selectedService && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold mb-4">Service Configuration</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Selected Service
+              </label>
+              <input
+                type="text"
+                value={selectedService}
+                readOnly
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Client
+              </label>
+              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Select Client</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Start Date
+              </label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Budget
+              </label>
+              <input
+                type="text"
+                placeholder="Enter budget"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Notes
+              </label>
+              <textarea
+                rows="3"
+                placeholder="Add any additional notes or requirements..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              ></textarea>
+            </div>
+          </div>
+          <div className="mt-6 flex gap-3">
+            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Create Proposal
+            </button>
+            <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+              Save Draft
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
-                    {/* Gradient overlay */}
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-3xl`}
-                    ></div>
+  const History = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">History</h2>
+        <div className="flex gap-3">
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <select className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option>All Activities</option>
+              <option>Completed</option>
+              <option>Pending</option>
+              <option>Active</option>
+            </select>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search history..."
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+      </div>
 
-                    {/* Content */}
-                    <div className="relative z-10">
-                      {/* Icon */}
-                      <div
-                        className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.color} mb-6 group-hover:scale-110 transition-transform duration-300`}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="p-6">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                    Date
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                    Client
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                    Action
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                    Service
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                    Status
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        {item.date}
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="font-medium text-gray-900">
+                        {item.client}
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="text-gray-700">{item.action}</div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="text-gray-700">{item.service}</div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          item.status
+                        )}`}
                       >
-                        <IconComponent className="w-8 h-8 text-white" />
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="font-bold text-gray-900">
+                        {item.amount}
                       </div>
-
-                      {/* Title */}
-                      <h2 className="text-2xl font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-pink-400 transition-all duration-300">
-                        {feature.title}
-                      </h2>
-
-                      {/* Description */}
-                      <p className="text-slate-300 leading-relaxed group-hover:text-slate-200 transition-colors duration-300">
-                        {feature.description}
-                      </p>
-
-                      {/* Arrow indicator */}
-                      <div className="mt-6 flex items-center text-slate-400 group-hover:text-white transition-colors duration-300">
-                        <span className="text-sm font-medium">Access now</span>
-                        <svg
-                          className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-
-                    {/* Shine effect */}
-                    <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
-                      <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+        </div>
+      </div>
 
-          {/* Footer stats */}
-          {/* <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">24/7</div>
-              <div className="text-slate-400">System Monitoring</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">99.9%</div>
-              <div className="text-slate-400">Uptime Guarantee</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">∞</div>
-              <div className="text-slate-400">Scalability</div>
-            </div>
-          </div> */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-600 mb-1">12</div>
+            <div className="text-sm text-gray-600">Total Clients</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-green-600 mb-1">8</div>
+            <div className="text-sm text-gray-600">Active Projects</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-purple-600 mb-1">$485K</div>
+            <div className="text-sm text-gray-600">Total Revenue</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-orange-600 mb-1">24</div>
+            <div className="text-sm text-gray-600">Completed Projects</div>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Logout!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/");
+        dispatch(clearUser());
+        Swal.fire({
+          title: "Logged Out!",
+          text: "You have successfully logged out.",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      }
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Control Panel
+              </h1>
+              {/* <p className="text-gray-600">Admin Dashboard</p> */}
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="text-sm text-gray-600">Welcome back,</div>
+                <div className="font-semibold text-gray-900">{userName}</div>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <button
+                onClick={() => handleLogout()}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Navigation Tabs */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex space-x-8">
+            {[
+              { id: "clients", label: "Client Details", icon: User },
+              { id: "services", label: "Select Service", icon: ListChecks },
+              { id: "AddServices", label: "Add Service", icon: CheckCircle },
+              { id: "history", label: "History", icon: Clock },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {activeTab === "clients" && <AdminClientDetails />}
+        {activeTab === "services" && <SelectService />}
+        {activeTab === "AddServices" && <AdminAddServices />}
+        {activeTab === "history" && <History />}
+      </main>
+    </div>
+  );
+};
+
+export default AdminDashboard;
