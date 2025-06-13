@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   User,
   Phone,
@@ -21,10 +21,13 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 import AdminClientDetails from "./AdminClientDetails";
 import AdminAddServices from "./AdminAddServices";
+import AdminServicesHistory from "./AdminServicesHistory";
+import AdminAdsCampign from "./AdminAdsCampign";
+import AdminCalculator from "./AdminCalculator";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("clients");
-  const [selectedService, setSelectedService] = useState("");
+  // const [selectedService, setSelectedService] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.user);
@@ -32,80 +35,80 @@ const AdminDashboard = () => {
 
   // Sample data
 
-  const clients = [
-    {
-      id: 1,
-      name: "Acme Corporation",
-      contact: "John Smith",
-      email: "john@acme.com",
-      phone: "+1 (555) 123-4567",
-      location: "New York, NY",
-      status: "Active",
-      lastContact: "2024-06-05",
-      value: "$125,000",
-    },
-    {
-      id: 2,
-      name: "TechStart Inc",
-      contact: "Sarah Wilson",
-      email: "sarah@techstart.com",
-      phone: "+1 (555) 987-6543",
-      location: "San Francisco, CA",
-      status: "Prospect",
-      lastContact: "2024-06-03",
-      value: "$85,000",
-    },
-    {
-      id: 3,
-      name: "Global Solutions",
-      contact: "Mike Johnson",
-      email: "mike@globalsol.com",
-      phone: "+1 (555) 456-7890",
-      location: "Chicago, IL",
-      status: "Active",
-      lastContact: "2024-06-01",
-      value: "$200,000",
-    },
-  ];
+  // const clients = [
+  //   {
+  //     id: 1,
+  //     name: "Acme Corporation",
+  //     contact: "John Smith",
+  //     email: "john@acme.com",
+  //     phone: "+1 (555) 123-4567",
+  //     location: "New York, NY",
+  //     status: "Active",
+  //     lastContact: "2024-06-05",
+  //     value: "$125,000",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "TechStart Inc",
+  //     contact: "Sarah Wilson",
+  //     email: "sarah@techstart.com",
+  //     phone: "+1 (555) 987-6543",
+  //     location: "San Francisco, CA",
+  //     status: "Prospect",
+  //     lastContact: "2024-06-03",
+  //     value: "$85,000",
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Global Solutions",
+  //     contact: "Mike Johnson",
+  //     email: "mike@globalsol.com",
+  //     phone: "+1 (555) 456-7890",
+  //     location: "Chicago, IL",
+  //     status: "Active",
+  //     lastContact: "2024-06-01",
+  //     value: "$200,000",
+  //   },
+  // ];
 
-  const services = [
-    {
-      id: 1,
-      name: "Web Development",
-      price: "$5,000 - $25,000",
-      duration: "4-12 weeks",
-    },
-    {
-      id: 2,
-      name: "Mobile App Development",
-      price: "$10,000 - $50,000",
-      duration: "8-20 weeks",
-    },
-    {
-      id: 3,
-      name: "Digital Marketing",
-      price: "$2,000 - $10,000",
-      duration: "3-6 months",
-    },
-    {
-      id: 4,
-      name: "Brand Identity Design",
-      price: "$3,000 - $15,000",
-      duration: "3-8 weeks",
-    },
-    {
-      id: 5,
-      name: "E-commerce Solution",
-      price: "$8,000 - $35,000",
-      duration: "6-16 weeks",
-    },
-    {
-      id: 6,
-      name: "Consulting Services",
-      price: "$150 - $300/hour",
-      duration: "Ongoing",
-    },
-  ];
+  // const services = [
+  //   {
+  //     id: 1,
+  //     name: "Web Development",
+  //     price: "$5,000 - $25,000",
+  //     duration: "4-12 weeks",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Mobile App Development",
+  //     price: "$10,000 - $50,000",
+  //     duration: "8-20 weeks",
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Digital Marketing",
+  //     price: "$2,000 - $10,000",
+  //     duration: "3-6 months",
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Brand Identity Design",
+  //     price: "$3,000 - $15,000",
+  //     duration: "3-8 weeks",
+  //   },
+  //   {
+  //     id: 5,
+  //     name: "E-commerce Solution",
+  //     price: "$8,000 - $35,000",
+  //     duration: "6-16 weeks",
+  //   },
+  //   {
+  //     id: 6,
+  //     name: "Consulting Services",
+  //     price: "$150 - $300/hour",
+  //     duration: "Ongoing",
+  //   },
+  // ];
 
   const history = [
     {
@@ -174,126 +177,126 @@ const AdminDashboard = () => {
     }
   };
 
-  const SelectService = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Select Service</h2>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Add Service
-        </button>
-      </div>
+  // const SelectService = () => (
+  //   <div className="space-y-6">
+  //     <div className="flex justify-between items-center">
+  //       <h2 className="text-2xl font-bold text-gray-900">Select Service</h2>
+  //       <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+  //         <Plus className="w-4 h-4" />
+  //         Add Service
+  //       </button>
+  //     </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map((service) => (
-          <div
-            key={service.id}
-            className={`bg-white rounded-xl shadow-sm border-2 cursor-pointer transition-all hover:shadow-lg transform hover:-translate-y-1 ${
-              selectedService === service.name
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200"
-            }`}
-            onClick={() => setSelectedService(service.name)}
-          >
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-white" />
-                </div>
-                {selectedService === service.name && (
-                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-4 h-4 text-white" />
-                  </div>
-                )}
-              </div>
-              <h3 className="font-bold text-lg text-gray-900 mb-2">
-                {service.name}
-              </h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Price:</span>
-                  <span>{service.price}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>{service.duration}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+  //     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  //       {services.map((service) => (
+  //         <div
+  //           key={service.id}
+  //           className={`bg-white rounded-xl shadow-sm border-2 cursor-pointer transition-all hover:shadow-lg transform hover:-translate-y-1 ${
+  //             selectedService === service.name
+  //               ? "border-blue-500 bg-blue-50"
+  //               : "border-gray-200"
+  //           }`}
+  //           onClick={() => setSelectedService(service.name)}
+  //         >
+  //           <div className="p-6">
+  //             <div className="flex items-start justify-between mb-4">
+  //               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+  //                 <CheckCircle className="w-6 h-6 text-white" />
+  //               </div>
+  //               {selectedService === service.name && (
+  //                 <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+  //                   <CheckCircle className="w-4 h-4 text-white" />
+  //                 </div>
+  //               )}
+  //             </div>
+  //             <h3 className="font-bold text-lg text-gray-900 mb-2">
+  //               {service.name}
+  //             </h3>
+  //             <div className="space-y-2 text-sm text-gray-600">
+  //               <div className="flex items-center gap-2">
+  //                 <span className="font-medium">Price:</span>
+  //                 <span>{service.price}</span>
+  //               </div>
+  //               <div className="flex items-center gap-2">
+  //                 <Clock className="w-4 h-4" />
+  //                 <span>{service.duration}</span>
+  //               </div>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       ))}
+  //     </div>
 
-      {selectedService && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold mb-4">Service Configuration</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Selected Service
-              </label>
-              <input
-                type="text"
-                value={selectedService}
-                readOnly
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Client
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Select Client</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start Date
-              </label>
-              <input
-                type="date"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Budget
-              </label>
-              <input
-                type="text"
-                placeholder="Enter budget"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notes
-              </label>
-              <textarea
-                rows="3"
-                placeholder="Add any additional notes or requirements..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              ></textarea>
-            </div>
-          </div>
-          <div className="mt-6 flex gap-3">
-            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Create Proposal
-            </button>
-            <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-              Save Draft
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  //     {selectedService && (
+  //       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+  //         <h3 className="text-lg font-semibold mb-4">Service Configuration</h3>
+  //         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  //           <div>
+  //             <label className="block text-sm font-medium text-gray-700 mb-2">
+  //               Selected Service
+  //             </label>
+  //             <input
+  //               type="text"
+  //               value={selectedService}
+  //               readOnly
+  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+  //             />
+  //           </div>
+  //           <div>
+  //             <label className="block text-sm font-medium text-gray-700 mb-2">
+  //               Client
+  //             </label>
+  //             <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+  //               <option value="">Select Client</option>
+  //               {clients.map((client) => (
+  //                 <option key={client.id} value={client.id}>
+  //                   {client.name}
+  //                 </option>
+  //               ))}
+  //             </select>
+  //           </div>
+  //           <div>
+  //             <label className="block text-sm font-medium text-gray-700 mb-2">
+  //               Start Date
+  //             </label>
+  //             <input
+  //               type="date"
+  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  //             />
+  //           </div>
+  //           <div>
+  //             <label className="block text-sm font-medium text-gray-700 mb-2">
+  //               Budget
+  //             </label>
+  //             <input
+  //               type="text"
+  //               placeholder="Enter budget"
+  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  //             />
+  //           </div>
+  //           <div className="md:col-span-2">
+  //             <label className="block text-sm font-medium text-gray-700 mb-2">
+  //               Notes
+  //             </label>
+  //             <textarea
+  //               rows="3"
+  //               placeholder="Add any additional notes or requirements..."
+  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  //             ></textarea>
+  //           </div>
+  //         </div>
+  //         <div className="mt-6 flex gap-3">
+  //           <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+  //             Create Proposal
+  //           </button>
+  //           <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+  //             Save Draft
+  //           </button>
+  //         </div>
+  //       </div>
+  //     )}
+  //   </div>
+  // );
 
   const History = () => (
     <div className="space-y-6">
@@ -415,6 +418,18 @@ const AdminDashboard = () => {
     </div>
   );
 
+  useEffect(() => {
+    const savedTab = localStorage.getItem("activeTab");
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
+  }, []);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    localStorage.setItem("activeTab", tabId);
+  };
+
   const handleLogout = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -476,15 +491,29 @@ const AdminDashboard = () => {
           <div className="flex space-x-8">
             {[
               { id: "clients", label: "Client Details", icon: User },
-              { id: "services", label: "Select Service", icon: ListChecks },
-              { id: "AddServices", label: "Add Service", icon: CheckCircle },
+              { id: "services", label: "Calculate Service", icon: ListChecks },
+              {
+                id: "AddADSCamp",
+                label: "Add Ads campaigns",
+                icon: CheckCircle,
+              },
+              {
+                id: "AddServices",
+                label: "Add Graphic Services",
+                icon: CheckCircle,
+              },
+              {
+                id: "servicehistory",
+                label: "Graphic Service History",
+                icon: Clock,
+              },
               { id: "history", label: "History", icon: Clock },
             ].map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
                       ? "border-blue-500 text-blue-600"
@@ -503,8 +532,10 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {activeTab === "clients" && <AdminClientDetails />}
-        {activeTab === "services" && <SelectService />}
+        {activeTab === "services" && <AdminCalculator />}
+        {activeTab === "AddADSCamp" && <AdminAdsCampign />}
         {activeTab === "AddServices" && <AdminAddServices />}
+        {activeTab === "servicehistory" && <AdminServicesHistory />}
         {activeTab === "history" && <History />}
       </main>
     </div>

@@ -169,60 +169,6 @@ const AdminClientDetails = () => {
 
   const showApiData = filterPagination();
 
-  // const clients = [
-  //   {
-  //     id: 1,
-  //     name: "Acme Corporation",
-  //     contact: "John Smith",
-  //     email: "john@acme.com",
-  //     phone: "+1 (555) 123-4567",
-  //     location: "New York, NY",
-  //     status: "Active",
-  //     lastContact: "2024-06-05",
-  //     value: "$125,000",
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "TechStart Inc",
-  //     contact: "Sarah Wilson",
-  //     email: "sarah@techstart.com",
-  //     phone: "+1 (555) 987-6543",
-  //     location: "San Francisco, CA",
-  //     status: "Prospect",
-  //     lastContact: "2024-06-03",
-  //     value: "$85,000",
-  //   },
-  //   {
-  //     id: 3,
-  //     name: "Global Solutions",
-  //     contact: "Mike Johnson",
-  //     email: "mike@globalsol.com",
-  //     phone: "+1 (555) 456-7890",
-  //     location: "Chicago, IL",
-  //     status: "Active",
-  //     lastContact: "2024-06-01",
-  //     value: "$200,000",
-  //   },
-  // ];
-
-  // const getStatusColor = (status) => {
-  //   switch (status.toLowerCase()) {
-  //     case "active":
-  //       return "bg-green-100 text-green-800";
-  //     case "prospect":
-  //       return "bg-blue-100 text-blue-800";
-  //     case "completed":
-  //       return "bg-green-100 text-green-800";
-  //     case "pending":
-  //       return "bg-yellow-100 text-yellow-800";
-  //     case "scheduled":
-  //       return "bg-purple-100 text-purple-800";
-  //     case "follow-up":
-  //       return "bg-orange-100 text-orange-800";
-  //     default:
-  //       return "bg-gray-100 text-gray-800";
-  //   }
-  // };
   return (
     <>
       <div className="space-y-6">

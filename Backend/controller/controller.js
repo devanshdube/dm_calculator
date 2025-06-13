@@ -386,10 +386,15 @@ exports.insertAdsServices = async (req, res) => {
       .json({ status: "Failure", message: "All fields are required." });
   }
 
-  if (isNaN(amt_range_start) || isNaN(amt_range_end) || isNaN(percentage)) {
+  if (
+    isNaN(amt_range_start) ||
+    (amt_range_end !== "Above" && isNaN(amt_range_end)) ||
+    isNaN(percentage)
+  ) {
     return res.status(400).json({
       status: "Failure",
-      message: "Amount ranges and percentage must be numbers.",
+      message:
+        "Amount ranges must be numbers or 'Above', and percentage must be a number.",
     });
   }
 
@@ -407,36 +412,6 @@ exports.insertAdsServices = async (req, res) => {
         res.status(201).json({
           status: "Success",
           message: "Ads Service added successfully",
-        });
-      }
-    );
-  } catch (error) {
-    res.status(500).json({ status: "Failure", message: "Server error", error });
-  }
-};
-
-exports.getAdsServices = async (req, res) => {
-  try {
-    db.query(
-      "SELECT * FROM dm_calculator_ads ORDER BY id DESC",
-      (err, results) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error",
-          });
-        }
-
-        if (results.length === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No ads services found",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          data: results,
         });
       }
     );
@@ -688,11 +663,11 @@ exports.addCategories = async (req, res) => {
 };
 
 exports.addEditingTypes = async (req, res) => {
-  const { service_id, category_id, editing_type_name } = req.body;
+  const { service_id, category_id, editing_type_name, amount } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  if (!service_id || !category_id || !editing_type_name) {
+  if (!service_id || !category_id || !editing_type_name || !amount) {
     return res.status(400).json({
       status: "Failure",
       message: "All fields are required",
@@ -701,8 +676,8 @@ exports.addEditingTypes = async (req, res) => {
 
   try {
     db.query(
-      "INSERT INTO editing_types (service_id, category_id, editing_type_name, created_at) VALUES (?, ?, ?, ?)",
-      [service_id, category_id, editing_type_name, createdAt],
+      "INSERT INTO editing_types (service_id, category_id, editing_type_name, amount, created_at) VALUES (?, ?, ?, ?, ?)",
+      [service_id, category_id, editing_type_name, amount, createdAt],
       (err, result) => {
         if (err) {
           return res

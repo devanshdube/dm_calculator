@@ -119,6 +119,7 @@ exports.getAllServiceData = (req, res) => {
       c.category_name,
       e.editing_type_id,
       e.editing_type_name,
+      e.amount,
       s.created_at AS service_created_at,
       c.created_at AS category_created_at,
       e.created_at AS editing_type_created_at
@@ -141,4 +142,34 @@ exports.getAllServiceData = (req, res) => {
       data: results,
     });
   });
+};
+
+exports.getAdsServices = async (req, res) => {
+  try {
+    db.query(
+      "SELECT * FROM dm_calculator_ads ORDER BY id DESC",
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No ads services found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
 };
