@@ -1,605 +1,306 @@
-// import React, { useState } from "react";
-
-// const services = [
-//   {
-//     name: "Video Services",
-//     categories: [
-//       {
-//         title: "Reels (up to 30 sec)",
-//         options: [
-//           { type: "Basic Editing", price: 500 },
-//           { type: "Standard Editing", price: 800 },
-//           { type: "Advanced Editing (VFX)", price: 1200 },
-//         ],
-//       },
-//       {
-//         title: "Premium Video (31 sec - 2 min)",
-//         options: [
-//           { type: "Basic Editing", price: 800 },
-//           { type: "Standard Editing", price: 1200 },
-//           { type: "Advanced Editing (VFX)", price: 1800 },
-//         ],
-//       },
-//       {
-//         title: "Shorts (up to 10 sec)",
-//         options: [
-//           { type: "Basic Editing", price: 300 },
-//           { type: "Standard Editing", price: 500 },
-//           { type: "Advanced Editing (VFX)", price: 700 },
-//         ],
-//       },
-//     ],
-//   },
-//   {
-//     name: "Graphics Design",
-//     categories: [
-//       { title: "Banner/Poster Design", price: 200 },
-//       { title: "Carousel", price: 300 },
-//     ],
-//   },
-//   {
-//     name: "Video Shoot",
-//     categories: [
-//       { title: "Camera Shoot (15 min - 1 Hr)", price: 1000 },
-//       { title: "Mobile Shoot (15 min - 1 Hr)", price: 600 },
-//     ],
-//   },
-//   {
-//     name: "Ad Budget",
-//     categories: [
-//       { title: "Meta Ad Budget", price: 0 },
-//       { title: "Google Ad Budget", price: 0 },
-//     ],
-//   },
-//   {
-//     name: "SEO",
-//     categories: [{ title: "Lead Generation SEO", price: 1500 }],
-//   },
-//   {
-//     name: "GMB",
-//     categories: [{ title: "LOCAL SEO", price: 1000 }],
-//   },
-// ];
-
-// const AdminCalculator = () => {
-//   const [quantities, setQuantities] = useState({});
-
-//   const handleQuantityChange = (key, value) => {
-//     setQuantities((prev) => ({
-//       ...prev,
-//       [key]: Number(value),
-//     }));
-//   };
-
-//   const getTotal = () => {
-//     let total = 0;
-//     Object.keys(quantities).forEach((key) => {
-//       const [price] = key.split("_").slice(-1);
-//       const qty = quantities[key];
-//       total += parseFloat(price) * qty;
-//     });
-//     return total;
-//   };
-
-//   return (
-//     <div className="p-6 max-w-5xl mx-auto">
-//       <h1 className="text-3xl font-bold mb-6 text-center">
-//         Service Budget Calculator
-//       </h1>
-//       {services.map((service, i) => (
-//         <div key={i} className="mb-8 border-b pb-4">
-//           <h2 className="text-2xl font-semibold text-blue-700 mb-2">
-//             {service.name}
-//           </h2>
-//           {service.categories.map((cat, j) => (
-//             <div key={j} className="ml-4 mb-4">
-//               <h3 className="font-semibold text-lg text-gray-700">
-//                 {cat.title}
-//               </h3>
-//               {"options" in cat ? (
-//                 cat.options.map((opt, k) => {
-//                   const key = `${cat.title}_${opt.type}_${opt.price}`;
-//                   return (
-//                     <div key={k} className="flex items-center gap-4 ml-4 mt-2">
-//                       <span className="w-64">{opt.type}</span>
-//                       <span className="w-24">₹{opt.price}</span>
-//                       <input
-//                         type="number"
-//                         min="0"
-//                         className="border rounded px-2 py-1 w-24"
-//                         value={quantities[key] || ""}
-//                         onChange={(e) =>
-//                           handleQuantityChange(key, e.target.value)
-//                         }
-//                         placeholder="Qty"
-//                       />
-//                     </div>
-//                   );
-//                 })
-//               ) : (
-//                 <div className="flex items-center gap-4 ml-4 mt-2">
-//                   <span className="w-64">{cat.title}</span>
-//                   <span className="w-24">₹{cat.price}</span>
-//                   <input
-//                     type="number"
-//                     min="0"
-//                     className="border rounded px-2 py-1 w-24"
-//                     value={quantities[`${cat.title}_${cat.price}`] || ""}
-//                     onChange={(e) =>
-//                       handleQuantityChange(
-//                         `${cat.title}_${cat.price}`,
-//                         e.target.value
-//                       )
-//                     }
-//                     placeholder="Qty"
-//                   />
-//                 </div>
-//               )}
-//             </div>
-//           ))}
-//         </div>
-//       ))}
-
-//       <div className="mt-10 text-2xl font-bold text-right">
-//         Total Budget: ₹{getTotal()}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AdminCalculator;
-// ========================================================================================================
-
-// CORRECT CODE FINE CODE
-
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-
-// const AdminCalculator = () => {
-//   const [structuredData, setStructuredData] = useState({});
-//   const [quantities, setQuantities] = useState({});
-//   const [openService, setOpenService] = useState(null);
-
-//   useEffect(() => {
-//     axios
-//       .get("http://localhost:5555/auth/api/calculator/api/services/details/all")
-//       .then((res) => {
-//         const raw = res.data.data;
-//         const structured = {};
-
-//         raw.forEach((item) => {
-//           const { service_name, category_name, editing_type_name, amount } =
-//             item;
-
-//           // 👇 FILTERING LOGIC
-//           if (service_name === "Social Media Optimization") return;
-
-//           if (
-//             service_name === "Graphics Design" &&
-//             category_name === "Static Graphics" &&
-//             editing_type_name === "Thumbnail Creation"
-//           ) {
-//             return;
-//           }
-
-//           if (!structured[service_name]) structured[service_name] = {};
-//           if (!structured[service_name][category_name])
-//             structured[service_name][category_name] = [];
-
-//           structured[service_name][category_name].push({
-//             editing_type_name,
-//             amount: parseFloat(amount),
-//           });
-//         });
-
-//         setStructuredData(structured);
-//       });
-//   }, []);
-
-//   const handleChange = (key, qty) => {
-//     setQuantities((prev) => ({
-//       ...prev,
-//       [key]: Number(qty),
-//     }));
-//   };
-
-//   const calculateTotal = () => {
-//     return Object.entries(quantities).reduce((acc, [key, qty]) => {
-//       const amount = parseFloat(key.split("_").pop());
-//       return acc + qty * amount;
-//     }, 0);
-//   };
-
-//   return (
-//     <div className="p-6 max-w-5xl mx-auto">
-//       <h2 className="text-3xl font-bold mb-6 text-center">
-//         📋 Service Budget Calculator
-//       </h2>
-
-//       <div className="space-y-4">
-//         {Object.entries(structuredData).map(([serviceName, categories]) => (
-//           <div key={serviceName} className="bg-white shadow rounded">
-//             <button
-//               onClick={() =>
-//                 setOpenService(openService === serviceName ? null : serviceName)
-//               }
-//               className="w-full text-left px-4 py-3 font-semibold text-lg bg-blue-100 hover:bg-blue-200 rounded-t"
-//             >
-//               {serviceName}
-//             </button>
-
-//             {openService === serviceName && (
-//               <div className="p-4 space-y-4">
-//                 {Object.entries(categories).map(
-//                   ([categoryName, editingTypes]) => (
-//                     <div key={categoryName}>
-//                       <h4 className="font-semibold text-gray-700 mb-2">
-//                         {categoryName}
-//                       </h4>
-//                       {editingTypes.map((et, idx) => {
-//                         const key = `${serviceName}_${categoryName}_${et.editing_type_name}_${et.amount}`;
-//                         return (
-//                           <div
-//                             key={idx}
-//                             className="flex items-center gap-4 mb-2 ml-4"
-//                           >
-//                             <span className="w-64">{et.editing_type_name}</span>
-//                             <span className="w-24 text-green-600 font-medium">
-//                               ₹{et.amount}
-//                             </span>
-//                             <input
-//                               type="number"
-//                               min="0"
-//                               className="border px-2 py-1 w-24 rounded"
-//                               placeholder="Qty"
-//                               value={quantities[key] || ""}
-//                               onChange={(e) =>
-//                                 handleChange(key, e.target.value)
-//                               }
-//                             />
-//                           </div>
-//                         );
-//                       })}
-//                     </div>
-//                   )
-//                 )}
-//               </div>
-//             )}
-//           </div>
-//         ))}
-//       </div>
-
-//       <div className="text-right text-2xl font-bold mt-8">
-//         Total Budget: ₹{calculateTotal()}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AdminCalculator;
-
-// *********************************************************************************************************
-
-// CORRECT CODE FINE CODE
-
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-
-// const AdminCalculator = () => {
-//   const [structuredData, setStructuredData] = useState({});
-//   const [quantities, setQuantities] = useState({});
-
-//   useEffect(() => {
-//     axios
-//       .get("http://localhost:5555/auth/api/calculator/api/services/details/all")
-//       .then((res) => {
-//         const raw = res.data.data;
-//         const structured = {};
-
-//         raw.forEach((item) => {
-//           const { service_name, category_name, editing_type_name, amount } =
-//             item;
-
-//           if (!structured[service_name]) structured[service_name] = {};
-//           if (!structured[service_name][category_name])
-//             structured[service_name][category_name] = [];
-
-//           structured[service_name][category_name].push({
-//             editing_type_name,
-//             amount: parseFloat(amount),
-//           });
-//         });
-
-//         setStructuredData(structured);
-//       });
-//   }, []);
-
-//   const handleChange = (key, qty) => {
-//     setQuantities((prev) => ({
-//       ...prev,
-//       [key]: Number(qty),
-//     }));
-//   };
-
-//   const calculateTotal = () => {
-//     return Object.entries(quantities).reduce((acc, [key, qty]) => {
-//       const amount = parseFloat(key.split("_").pop());
-//       return acc + qty * amount;
-//     }, 0);
-//   };
-
-//   return (
-//     <div className="p-6 max-w-6xl mx-auto">
-//       <h2 className="text-3xl font-bold mb-6 text-center">
-//         Service Budget Calculator
-//       </h2>
-
-//       {Object.entries(structuredData).map(([serviceName, categories]) => (
-//         <div key={serviceName} className="mb-8 border-b pb-4">
-//           <h3 className="text-2xl font-semibold text-blue-700 mb-2">
-//             {serviceName}
-//           </h3>
-//           {Object.entries(categories).map(([categoryName, editingTypes]) => (
-//             <div key={categoryName} className="ml-4 mb-4">
-//               <h4 className="font-semibold text-lg text-gray-800">
-//                 {categoryName}
-//               </h4>
-//               {editingTypes.map((et, idx) => {
-//                 const key = `${serviceName}_${categoryName}_${et.editing_type_name}_${et.amount}`;
-//                 return (
-//                   <div key={idx} className="flex items-center gap-4 ml-4 mt-2">
-//                     <span className="w-64">{et.editing_type_name}</span>
-//                     <span className="w-24">₹{et.amount}</span>
-//                     <input
-//                       type="number"
-//                       min="0"
-//                       className="border px-2 py-1 w-24 rounded"
-//                       placeholder="Qty"
-//                       value={quantities[key] || ""}
-//                       onChange={(e) => handleChange(key, e.target.value)}
-//                     />
-//                   </div>
-//                 );
-//               })}
-//             </div>
-//           ))}
-//         </div>
-//       ))}
-
-//       <div className="text-right text-2xl font-bold mt-10">
-//         Total Budget: ₹{calculateTotal()}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AdminCalculator;
-
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
+
+const OPTIONAL_SERVICES = [
+  {
+    service: "Social Media Optimization",
+    category: "Organic Page Optimization",
+    editing_type: "Content Posting",
+    amount: 400,
+  },
+  {
+    service: "Graphics Design",
+    category: "Static Graphics",
+    editing_type: "Thumbnail Creation",
+    amount: 300,
+  },
+];
 
 const AdminCalculator = () => {
-  const [structuredData, setStructuredData] = useState({});
-  const [quantities, setQuantities] = useState({});
-  const [openService, setOpenService] = useState(null);
-
-  // Ads Budget
-  const [adsData, setAdsData] = useState([]);
+  const baseURL = `http://localhost:5555`;
+  const [data, setData] = useState([]);
+  const [selectedService, setSelectedService] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [enteredAmount, setEnteredAmount] = useState("");
-  const [adsResult, setAdsResult] = useState(null);
+  const [selectedEditingType, setSelectedEditingType] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [includeContentPosting, setIncludeContentPosting] = useState(false);
+  const [includeThumbnailCreation, setIncludeThumbnailCreation] =
+    useState(false);
 
-  // Fetch Services
+  const [total, setTotal] = useState(0);
+
+  console.log(
+    selectedService,
+    selectedCategory,
+    selectedEditingType,
+    quantity,
+    includeContentPosting,
+    includeThumbnailCreation,
+    total
+  );
+
   useEffect(() => {
     axios
-      .get("http://localhost:5555/auth/api/calculator/api/services/details/all")
+      .get(`${baseURL}/auth/api/calculator/services/category/editing`)
       .then((res) => {
-        const raw = res.data.data;
-        const structured = {};
-
-        raw.forEach((item) => {
-          const { service_name, category_name, editing_type_name, amount } =
-            item;
-
-          if (service_name === "Social Media Optimization") return;
-
-          if (
-            service_name === "Graphics Design" &&
-            category_name === "Static Graphics" &&
-            editing_type_name === "Thumbnail Creation"
-          ) {
-            return;
-          }
-
-          if (!structured[service_name]) structured[service_name] = {};
-          if (!structured[service_name][category_name])
-            structured[service_name][category_name] = [];
-
-          structured[service_name][category_name].push({
-            editing_type_name,
-            amount: parseFloat(amount),
-          });
-        });
-
-        setStructuredData(structured);
-      });
-
-    // Fetch Ads Budget Ranges
-    axios
-      .get("http://localhost:5555/auth/api/calculator/getAdsServices")
-      .then((res) => {
-        setAdsData(res.data.data);
-      });
+        const filtered = filterOptionalServices(res.data.data);
+        setData(filtered);
+      })
+      .catch((err) => console.error(err));
   }, []);
 
-  const handleChange = (key, qty) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [key]: Number(qty),
-    }));
+  const filterOptionalServices = (services) => {
+    return services
+      .map((service) => {
+        const filteredCategories = service.categories
+          .map((category) => {
+            const filteredEditing = category.editing_types.filter((editing) => {
+              return !OPTIONAL_SERVICES.some(
+                (opt) =>
+                  opt.service === service.service_name &&
+                  opt.category === category.category_name &&
+                  opt.editing_type === editing.editing_type_name
+              );
+            });
+            return { ...category, editing_types: filteredEditing };
+          })
+          .filter((cat) => cat.editing_types.length > 0);
+
+        return { ...service, categories: filteredCategories };
+      })
+      .filter((service) => service.categories.length > 0);
   };
 
-  const calculateTotal = () => {
-    return Object.entries(quantities).reduce((acc, [key, qty]) => {
-      const amount = parseFloat(key.split("_").pop());
-      return acc + qty * amount;
-    }, 0);
-  };
+  // const handleCalculate = () => {
+  //   if (!selectedEditingType) return;
+  //   let baseAmount = selectedEditingType.amount * quantity;
+  //   if (includeOptional) {
+  //     baseAmount += OPTIONAL_SERVICES.reduce((sum, s) => sum + s.amount, 0);
+  //   }
+  //   setTotal(baseAmount);
+  // };
 
-  const calculateAdsCost = () => {
-    if (!enteredAmount || !selectedCategory) {
-      setAdsResult(null);
-      return;
+  // const handleCalculate = () => {
+  //   if (!selectedEditingType) return;
+
+  //   let baseAmount = selectedEditingType.amount * quantity;
+
+  //   if (includeContentPosting) {
+  //     baseAmount += OPTIONAL_SERVICES[0].amount; // Content Posting
+  //   }
+  //   if (includeThumbnailCreation) {
+  //     baseAmount += OPTIONAL_SERVICES[1].amount; // Thumbnail Creation
+  //   }
+
+  //   setTotal(baseAmount);
+  // };
+
+  const getSelectedService = data.find(
+    (s) => s.service_name === selectedService
+  );
+  const getSelectedCategory = getSelectedService?.categories.find(
+    (c) => c.category_name === selectedCategory
+  );
+
+  const handleSave = () => {
+    if (!selectedEditingType) return;
+
+    let baseAmount = selectedEditingType.amount * quantity;
+
+    if (includeContentPosting) {
+      baseAmount += OPTIONAL_SERVICES[0].amount; // Content Posting
+    }
+    if (includeThumbnailCreation) {
+      baseAmount += OPTIONAL_SERVICES[1].amount; // Thumbnail Creation
     }
 
-    const amount = parseFloat(enteredAmount);
-    const matched = adsData
-      .filter((ad) => ad.ads_category === selectedCategory)
-      .find((range) => {
-        const start = parseInt(range.amt_range_start);
-        const end =
-          range.amt_range_end === "Above"
-            ? Infinity
-            : parseInt(range.amt_range_end);
-        return amount >= start && amount <= end;
-      });
+    setTotal(baseAmount);
 
-    if (matched) {
-      const percent = parseFloat(matched.percentage);
-      const charge = (amount * percent) / 100;
-      const total = amount + charge;
+    const payload = {
+      service_name: selectedService,
+      category_name: selectedCategory,
+      editing_type_name: selectedEditingType.editing_type_name,
+      editing_type_amount: selectedEditingType.amount,
+      quantity,
+      include_content_posting: includeContentPosting,
+      include_thumbnail_creation: includeThumbnailCreation,
+      total_amount: baseAmount,
+    };
 
-      setAdsResult({
-        percent,
-        charge,
-        total,
-        entered: amount,
+    axios
+      .post(`${baseURL}/auth/api/calculator/saveCalculatorData`, payload)
+      .then((res) => {
+        if (res.data.status === "Success") {
+          Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: "Saved Successfully!",
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("Save error:", err);
       });
-    } else {
-      setAdsResult(null);
-    }
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6 text-center">
-        📋 Service Budget Calculator
-      </h2>
+    <>
+      <div className="max-w-xl mx-auto p-6 space-y-4">
+        <h2 className="text-2xl font-bold text-gray-800">
+          🧮 Service Calculator
+        </h2>
 
-      {/* Service Section */}
-      <div className="space-y-4">
-        {Object.entries(structuredData).map(([serviceName, categories]) => (
-          <div key={serviceName} className="bg-white shadow rounded">
-            <button
-              onClick={() =>
-                setOpenService(openService === serviceName ? null : serviceName)
-              }
-              className="w-full text-left px-4 py-3 font-semibold text-lg bg-blue-100 hover:bg-blue-200 rounded-t"
-            >
-              {serviceName}
-            </button>
-
-            {openService === serviceName && (
-              <div className="p-4 space-y-4">
-                {Object.entries(categories).map(
-                  ([categoryName, editingTypes]) => (
-                    <div key={categoryName}>
-                      <h4 className="font-semibold text-gray-700 mb-2">
-                        {categoryName}
-                      </h4>
-                      {editingTypes.map((et, idx) => {
-                        const key = `${serviceName}_${categoryName}_${et.editing_type_name}_${et.amount}`;
-                        return (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-4 mb-2 ml-4"
-                          >
-                            <span className="w-64">{et.editing_type_name}</span>
-                            <span className="w-24 text-green-600 font-medium">
-                              ₹{et.amount}
-                            </span>
-                            <input
-                              type="number"
-                              min="0"
-                              className="border px-2 py-1 w-24 rounded"
-                              placeholder="Qty"
-                              value={quantities[key] || ""}
-                              onChange={(e) =>
-                                handleChange(key, e.target.value)
-                              }
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Ads Campaign Section */}
-      <div className="mt-10 bg-white p-6 rounded shadow">
-        <h3 className="text-2xl font-semibold mb-4">📢 Ads Campaign Budget</h3>
-        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div>
+          <label className="block font-medium">Select Service</label>
           <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border px-3 py-2 rounded w-full sm:w-1/2"
+            className="w-full p-2 border rounded"
+            value={selectedService}
+            onChange={(e) => {
+              setSelectedService(e.target.value);
+              setSelectedCategory("");
+              setSelectedEditingType(null);
+            }}
           >
-            <option value="">-- Select Ads Category --</option>
-            {[...new Set(adsData.map((item) => item.ads_category))].map(
-              (cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              )
-            )}
+            <option value="">-- Choose Service --</option>
+            {data.map((service) => (
+              <option key={service.service_id} value={service.service_name}>
+                {service.service_name}
+              </option>
+            ))}
           </select>
+        </div>
 
+        {getSelectedService && (
+          <div>
+            <label className="block font-medium">Select Category</label>
+            <select
+              className="w-full p-2 border rounded"
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setSelectedEditingType(null);
+              }}
+            >
+              <option value="">-- Choose Category --</option>
+              {getSelectedService.categories.map((category) => (
+                <option
+                  key={category.category_id}
+                  value={category.category_name}
+                >
+                  {category.category_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {getSelectedCategory && (
+          <div>
+            <label className="block font-medium">Select Editing Type</label>
+            <select
+              className="w-full p-2 border rounded"
+              value={selectedEditingType?.editing_type_id || ""}
+              onChange={(e) => {
+                const edit = getSelectedCategory.editing_types.find(
+                  (et) => et.editing_type_id === parseInt(e.target.value)
+                );
+                setSelectedEditingType(edit);
+              }}
+            >
+              <option value="">-- Choose Editing Type --</option>
+              {getSelectedCategory.editing_types.map((edit) => (
+                <option key={edit.editing_type_id} value={edit.editing_type_id}>
+                  {edit.editing_type_name} - ₹{edit.amount}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div>
+          <label className="block font-medium">Quantity</label>
           <input
             type="number"
-            placeholder="Enter Budget Amount"
-            value={enteredAmount}
-            onChange={(e) => setEnteredAmount(e.target.value)}
-            className="border px-3 py-2 rounded w-full sm:w-1/2"
+            className="w-full p-2 border rounded"
+            min={1}
+            value={quantity}
+            onChange={(e) => setQuantity(parseInt(e.target.value))}
           />
         </div>
 
+        <div className="space-y-4">
+          <div>
+            <label className="block font-medium">
+              Include Content Posting?
+            </label>
+            <div className="flex gap-4 mt-2">
+              <button
+                className={`px-4 py-2 rounded ${
+                  includeContentPosting
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-200"
+                }`}
+                onClick={() => setIncludeContentPosting(true)}
+              >
+                YES
+              </button>
+              <button
+                className={`px-4 py-2 rounded ${
+                  !includeContentPosting
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-200"
+                }`}
+                onClick={() => setIncludeContentPosting(false)}
+              >
+                NO
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-medium">
+              Include Thumbnail Creation?
+            </label>
+            <div className="flex gap-4 mt-2">
+              <button
+                className={`px-4 py-2 rounded ${
+                  includeThumbnailCreation
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-200"
+                }`}
+                onClick={() => setIncludeThumbnailCreation(true)}
+              >
+                YES
+              </button>
+              <button
+                className={`px-4 py-2 rounded ${
+                  !includeThumbnailCreation
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-200"
+                }`}
+                onClick={() => setIncludeThumbnailCreation(false)}
+              >
+                NO
+              </button>
+            </div>
+          </div>
+        </div>
+
         <button
-          onClick={calculateAdsCost}
-          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          className="w-full bg-blue-600 text-white p-2 rounded mt-4"
+          onClick={handleSave}
         >
-          Calculate Ads Budget
+          Calculate Total
         </button>
 
-        {adsResult && (
-          <div className="mt-4 border-t pt-4 text-lg space-y-1">
-            <p>📊 Percentage: {adsResult.percent}%</p>
-            <p>💼 Entered Amount: ₹{adsResult.entered}</p>
-            <p>💸 Agency Charge: ₹{adsResult.charge}</p>
-            <p className="font-bold text-green-700 text-xl mt-2">
-              🧾 Total Ads Cost: ₹{adsResult.total}
-            </p>
+        {total > 0 && (
+          <div className="text-xl font-semibold text-center text-green-700 mt-4">
+            Total Amount: ₹{total}
           </div>
         )}
       </div>
-
-      {/* Final Total */}
-      <div className="text-right text-2xl font-bold mt-8">
-        Total Services: ₹{calculateTotal()}
-        <br />
-        Total Ads Budget: ₹{adsResult?.total || 0}
-        <br />
-        <span className="text-blue-800">
-          Grand Total: ₹{calculateTotal() + (adsResult?.total || 0)}
-        </span>
-      </div>
-    </div>
+    </>
   );
 };
 

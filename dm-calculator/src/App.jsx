@@ -10,14 +10,8 @@ import {
 } from "react-router-dom";
 import styled from "styled-components";
 const Login = lazy(() => import("./Screens/Login"));
-// import AdminDashboard from "./Admin/AdminDashboard";
-// import AdminDashboard2 from "./Admin/AdminDashboard2";
-// import BusinessDeveloperDashboard from "./BusinessDeveloper/BusinessDeveloperDashboard";
-const AdminDashboard = lazy(() => import("./Admin/AdminDashboard"));
-const BusinessDeveloperDashboard = lazy(() =>
-  import("./BusinessDeveloper/BusinessDeveloperDashboard")
-);
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+const AdminRouter = lazy(() => import("./Routers/AdminRouter"));
+const BDRouter = lazy(() => import("./Routers/BDRouter"));
 
 function App() {
   const { currentUser } = useSelector((state) => state.user);
@@ -27,8 +21,6 @@ function App() {
   useEffect(() => {
     if (currentUser?.role) {
       setUserRole(currentUser.role);
-
-      // Redirect based on role if currently on login page
       if (location.pathname === "/") {
         if (currentUser.role === "Owner") {
           navigate("/admin/dashboard");
@@ -38,6 +30,8 @@ function App() {
       }
     }
   }, [currentUser, location.pathname, navigate]);
+  console.log(userRole);
+
   return (
     <>
       <Wrapper>
@@ -59,32 +53,25 @@ function App() {
             <Route path="/" element={<Login />} />
 
             <Route
-              path="/BD/dashboard"
+              path="/BD/*"
               element={
-                currentUser?.role === "BD" ? (
-                  <BusinessDeveloperDashboard />
-                ) : (
-                  <Navigate to="/" />
-                )
+                currentUser?.role === "BD" ? <BDRouter /> : <Navigate to="/" />
               }
             />
 
             <Route
-              path="/admin/dashboard"
+              path="/admin/*"
               element={
                 currentUser?.role === "Owner" ? (
-                  <AdminDashboard />
+                  <AdminRouter />
                 ) : (
                   <Navigate to="/" />
                 )
               }
             />
           </Routes>
-          {/* {user === "Owner" && <AdminDashboard />}
-          {user === "BD" && <BusinessDeveloperDashboard />} */}
         </Suspense>
       </Wrapper>
-      {/* <Route path="/admin/2/dashboard" element={<AdminDashboard2 />} /> */}
     </>
   );
 }
@@ -176,3 +163,25 @@ const Wrapper = styled.div`
     }
   }
 `;
+
+// <Route
+//             path="/BD/dashboard"
+//             element={
+//               currentUser?.role === "BD" ? (
+//                 <BusinessDeveloperDashboard />
+//               ) : (
+//                 <Navigate to="/" />
+//               )
+//             }
+//           />
+
+//           <Route
+//             path="/admin/dashboard"
+//             element={
+//               currentUser?.role === "Owner" ? (
+//                 <AdminDashboard />
+//               ) : (
+//                 <Navigate to="/" />
+//               )
+//             }
+//           />

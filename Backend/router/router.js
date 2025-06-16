@@ -14,6 +14,8 @@ const {
   addServices,
   addCategories,
   addEditingTypes,
+  saveCalculatorData,
+  saveAdsCampaign,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -21,6 +23,7 @@ const {
   getAddEditingTypes,
   getAllServiceData,
   getAdsServices,
+  getAllServiceDatas,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -50,6 +53,8 @@ router.get("/getClientsByEmployee/:employee", getClientsByEmployee);
 router.post("/addServices", addServices);
 router.post("/addCategories", addCategories);
 router.post("/addEditingTypes", addEditingTypes);
+router.post("/saveCalculatorData", saveCalculatorData);
+router.post("/saveAdsCampaign", saveAdsCampaign);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", getAddServices);
@@ -57,6 +62,7 @@ router.get("/categories/:service_id", getAddCategories);
 router.get("/getAddEditingTypes/:service/:category", getAddEditingTypes);
 router.get("/api/services/details/all", getAllServiceData);
 router.get("/getAdsServices", getAdsServices);
+router.get("/services/category/editing", getAllServiceDatas);
 // ---->  Get all routes END <----
 
 // ---->  DELETE all routes START <----

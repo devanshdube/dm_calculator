@@ -49,7 +49,7 @@ export default function Login() {
         const user = response.data.user;
         const token = response.data.token;
         dispatch(setUser({ user, token }));
-        console.log(user);
+        // console.log(user);
       } else {
         setLoading(false);
         Swal.fire({
@@ -69,7 +69,7 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
-    console.log("Login attempt:", { email, password });
+    // console.log("Login attempt:", { email, password });
   };
 
   return (

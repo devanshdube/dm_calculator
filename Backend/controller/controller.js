@@ -695,3 +695,91 @@ exports.addEditingTypes = async (req, res) => {
     res.status(500).json({ status: "Failure", message: "Server error", error });
   }
 };
+
+exports.saveCalculatorData = (req, res) => {
+  const {
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+  } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    INSERT INTO calculator_transactions (
+      client_id,
+      service_name,
+      category_name,
+      editing_type_name,
+      editing_type_amount,
+      quantity,
+      include_content_posting,
+      include_thumbnail_creation,
+      total_amount,
+      created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    createdAt,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Insert Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res.status(200).json({ status: "Success", message: "Saved successfully" });
+  });
+};
+
+exports.saveAdsCampaign = async (req, res) => {
+  const adsItems = req.body.adsItems;
+
+  if (!Array.isArray(adsItems) || adsItems.length === 0) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "No data provided." });
+  }
+
+  const insertValues = adsItems.map((item) => [
+    item.id,
+    item.category,
+    item.amount,
+    item.percent,
+    item.charge,
+    item.total,
+  ]);
+
+  const sql = `
+    INSERT INTO ads_campaign_details 
+    (unique_id, category, amount, percent, charge, total) 
+    VALUES ?
+  `;
+
+  db.query(sql, [insertValues], (err, result) => {
+    if (err) {
+      console.error("DB Error:", err);
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Database error." });
+    }
+    res.status(200).json({ status: "Success", message: "Ads campaign saved." });
+  });
+};

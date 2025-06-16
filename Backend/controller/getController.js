@@ -173,3 +173,83 @@ exports.getAdsServices = async (req, res) => {
     res.status(500).json({ status: "Failure", message: "Server error", error });
   }
 };
+
+exports.getAllServiceDatas = (req, res) => {
+  const query = `
+    SELECT 
+      s.service_id,
+      s.service_name,
+      c.category_id,
+      c.category_name,
+      e.editing_type_id,
+      e.editing_type_name,
+      e.amount,
+      s.created_at AS service_created_at,
+      c.created_at AS category_created_at,
+      e.created_at AS editing_type_created_at
+    FROM services s
+    LEFT JOIN categories c ON s.service_id = c.service_id
+    LEFT JOIN editing_types e ON c.category_id = e.category_id
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching joined data:", err);
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Failed to fetch data" });
+    }
+
+    const groupedData = [];
+    // console.log(`204 ${groupedData}`);
+    // console.log(`205 ${results}`);
+
+    results.forEach((row) => {
+      let service = groupedData.find((s) => s.service_id === row.service_id);
+      // console.log(`210 ${service}`);
+
+      if (!service) {
+        service = {
+          service_id: row.service_id,
+          service_name: row.service_name,
+          service_created_at: row.service_created_at,
+          categories: [],
+        };
+        groupedData.push(service);
+        // console.log(`220 ${groupedData}`);
+      }
+
+      // console.log(`224 ${groupedData}`);
+      // console.log(`225 ${service}`);
+
+      let category = service.categories.find(
+        (c) => c.category_id === row.category_id
+      );
+      // console.log(`230 ${category}`);
+      if (!category && row.category_id) {
+        category = {
+          category_id: row.category_id,
+          category_name: row.category_name,
+          category_created_at: row.category_created_at,
+          editing_types: [],
+        };
+        service.categories.push(category);
+        // console.log(`239 ${category}`);
+      }
+
+      if (row.editing_type_id) {
+        category.editing_types.push({
+          editing_type_id: row.editing_type_id,
+          editing_type_name: row.editing_type_name,
+          amount: row.amount,
+          editing_type_created_at: row.editing_type_created_at,
+        });
+      }
+    });
+
+    res.json({
+      status: "Success",
+      data: groupedData,
+    });
+  });
+};

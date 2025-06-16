@@ -17,10 +17,14 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import ReactPaginate from "react-paginate";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+// import { useLocation } from "react-router-dom";
+import AdminCalculator from "./AdminCalculator";
 
 const AdminClientDetails = () => {
   const baseURL = `http://localhost:5555`;
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
+  // const location = useLocation();
   // const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const employeeName = currentUser?.name;
@@ -335,11 +339,17 @@ const AdminClientDetails = () => {
                     </div> */}
                   </div>
                   <div className="mt-6 space-y-2">
-                    <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                      Schedule Meeting
+                    <button
+                      onClick={() => navigate("/admin/calculator")}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Create Service Proposal
                     </button>
-                    <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                      Send Proposal
+                    <button
+                      onClick={() => navigate("/admin/Adscalculator")}
+                      className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Create Ads Proposal
                     </button>
                   </div>
                 </div>

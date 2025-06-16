@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, useEffect, useState } from "react";
 import {
   User,
   Phone,
@@ -19,11 +19,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
-import AdminClientDetails from "./AdminClientDetails";
-import AdminAddServices from "./AdminAddServices";
-import AdminServicesHistory from "./AdminServicesHistory";
-import AdminAdsCampign from "./AdminAdsCampign";
-import AdminCalculator from "./AdminCalculator";
+const AdminClientDetails = lazy(() => import("./AdminClientDetails"));
+const AdminAddServices = lazy(() => import("./AdminAddServices"));
+const AdminServicesHistory = lazy(() => import("./AdminServicesHistory"));
+const AdminAdsCampign = lazy(() => import("./AdminAdsCampign"));
+// const AdminCalculator = lazy(() => import("./AdminCalculator"));
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("clients");
@@ -491,7 +491,7 @@ const AdminDashboard = () => {
           <div className="flex space-x-8">
             {[
               { id: "clients", label: "Client Details", icon: User },
-              { id: "services", label: "Calculate Service", icon: ListChecks },
+              // { id: "services", label: "Calculate Service", icon: ListChecks },
               {
                 id: "AddADSCamp",
                 label: "Add Ads campaigns",
@@ -532,7 +532,7 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {activeTab === "clients" && <AdminClientDetails />}
-        {activeTab === "services" && <AdminCalculator />}
+        {/* {activeTab === "services" && <AdminCalculator />} */}
         {activeTab === "AddADSCamp" && <AdminAdsCampign />}
         {activeTab === "AddServices" && <AdminAddServices />}
         {activeTab === "servicehistory" && <AdminServicesHistory />}
