@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
 const AdsCampaignCalculator = () => {
+  const { id } = useParams();
   const [adsData, setAdsData] = useState([]);
-
   const [enteredAmount, setEnteredAmount] = useState({});
   const [adsItems, setAdsItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   console.log(adsItems);
+  console.log(id);
 
   // Fetch ads data from API
   useEffect(() => {
@@ -226,6 +228,7 @@ const AdsCampaignCalculator = () => {
           const total = roundCurrency(amount + charge);
 
           results.push({
+            client_id: id,
             id: generateUniqueId(),
             category,
             amount: roundCurrency(amount),
@@ -272,152 +275,280 @@ const AdsCampaignCalculator = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h3 className="text-3xl font-bold mb-6 text-center text-blue-600">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-4xl bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 space-y-8 text-white">
+        <h3 className="text-3xl font-bold text-center text-white">
           📢 Ads Campaign Budget Calculator
         </h3>
 
-        {/* Loading State */}
         {loading && (
-          <div className="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded">
-            <div className="flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700 mr-2"></div>
+          <div className="p-4 rounded-lg bg-blue-600/20 text-blue-300 border border-blue-500">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin h-4 w-4 border-2 border-t-white rounded-full"></div>
               Loading ads data...
             </div>
           </div>
         )}
 
-        {/* Error Display */}
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="p-4 rounded-lg bg-red-600/20 text-red-300 border border-red-500">
             <strong>Error:</strong> {error}
           </div>
         )}
 
-        {/* Input Section */}
         {!loading && adsData.length > 0 && (
-          <div className="space-y-4 mb-6">
-            <h4 className="text-xl font-semibold mb-4">Enter Budget Amounts</h4>
+          <div className="space-y-4">
+            <h4 className="text-xl font-semibold">Enter Budget Amounts</h4>
             {categories.map((category) => (
               <div
                 key={category}
-                className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-gray-50 rounded"
+                className="bg-white/10 backdrop-blur rounded-lg p-4 flex flex-col sm:flex-row items-center gap-4"
               >
-                <label className="sm:w-48 font-medium text-gray-700">
-                  {category}
-                </label>
-                <div className="flex-1">
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="Enter Budget Amount (₹)"
-                    value={enteredAmount[category] || ""}
-                    onChange={(e) =>
-                      handleAmountChange(category, e.target.value)
-                    }
-                    className="border border-gray-300 px-4 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                <label className="sm:w-48 font-medium">{category}</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Enter Amount (₹)"
+                  value={enteredAmount[category] || ""}
+                  onChange={(e) => handleAmountChange(category, e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
               </div>
             ))}
           </div>
         )}
 
-        {/* Action Buttons */}
         {!loading && adsData.length > 0 && (
-          <div className="flex gap-4 mb-6">
+          <div className="flex flex-wrap gap-4">
             <button
               onClick={handleCalculateAndSave}
               disabled={loading || Object.keys(enteredAmount).length === 0}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition disabled:bg-gray-400"
             >
-              {loading ? "Calculating..." : "Calculate Ads Budget"}
+              {loading ? "Calculating..." : "Calculate & Save"}
             </button>
             <button
               onClick={clearAll}
-              className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+              className="px-6 py-3 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-semibold transition"
             >
               Clear All
             </button>
           </div>
         )}
 
-        {/* Results Section */}
         {adsItems.length > 0 && (
-          <div className="mt-8 border-t pt-6">
-            <h4 className="text-xl font-semibold mb-4">Budget Breakdown</h4>
-            <div className="grid gap-4">
-              {adsItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg border"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="text-lg font-semibold text-blue-700 mb-2">
-                        📢 {item.category}
+          <div className="space-y-4">
+            <h4 className="text-xl font-semibold">📋 Budget Breakdown</h4>
+            {adsItems.map((item) => (
+              <div
+                key={item.id}
+                className="bg-gradient-to-r from-blue-900/30 to-green-900/30 border border-white/10 p-4 rounded-lg"
+              >
+                <div className="flex justify-between items-start gap-4">
+                  <div>
+                    <h5 className="text-lg font-semibold text-blue-300 mb-2">
+                      📢 {item.category}
+                    </h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                      <p>
+                        💼 Budget:{" "}
+                        <span className="font-medium text-white">
+                          ₹{item.amount.toLocaleString()}
+                        </span>
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-                        <p>
-                          💼 Budget:{" "}
-                          <span className="font-medium">
-                            ₹{item.amount.toLocaleString()}
-                          </span>
-                        </p>
-                        <p>
-                          📊 Charge ({item.percent}%):{" "}
-                          <span className="font-medium">
-                            ₹{item.charge.toLocaleString()}
-                          </span>
-                        </p>
-                        <p className="font-bold text-green-700">
-                          🧾 Total: ₹{item.total.toLocaleString()}
-                        </p>
-                      </div>
+                      <p>
+                        📊 Charge ({item.percent}%):{" "}
+                        <span className="font-medium text-white">
+                          ₹{item.charge.toLocaleString()}
+                        </span>
+                      </p>
+                      <p className="font-bold text-green-300">
+                        🧾 Total: ₹{item.total.toLocaleString()}
+                      </p>
                     </div>
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      className="ml-4 text-red-500 hover:text-red-700 text-xl"
-                      title="Remove this item"
-                    >
-                      ×
-                    </button>
                   </div>
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    className="text-red-400 hover:text-red-600 text-xl"
+                  >
+                    ×
+                  </button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* Total Section */}
         {adsItems.length > 0 && (
-          <div className="mt-8 border-t pt-6">
-            <div className="bg-green-100 p-6 rounded-lg text-center">
-              <h4 className="text-2xl font-bold text-green-800 mb-2">
-                💰 Total Ads Budget
-              </h4>
-              <p className="text-4xl font-bold text-green-600">
-                ₹{totalAdsCost.toLocaleString()}
-              </p>
-            </div>
+          <div className="text-center bg-green-800/30 p-6 rounded-lg border border-green-600">
+            <h4 className="text-xl font-bold text-green-300 mb-2">
+              💰 Total Ads Budget
+            </h4>
+            <p className="text-4xl font-extrabold text-green-400">
+              ₹{totalAdsCost.toLocaleString()}
+            </p>
           </div>
         )}
 
-        {/* No Results Message */}
         {!loading &&
           adsItems.length === 0 &&
           Object.keys(enteredAmount).length > 0 && (
-            <div className="mt-8 text-center text-gray-500">
-              <p>
-                Enter amounts and click "Calculate Ads Budget" to see results.
-              </p>
+            <div className="text-center text-gray-400">
+              Enter amounts and click "Calculate & Save" to see results.
             </div>
           )}
       </div>
     </div>
   );
+
+  // return (
+  //   <div className="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
+  //     <div className="bg-white p-6 rounded-lg shadow-lg">
+  //       <h3 className="text-3xl font-bold mb-6 text-center text-blue-600">
+  //         📢 Ads Campaign Budget Calculator
+  //       </h3>
+
+  //       {/* Loading State */}
+  //       {loading && (
+  //         <div className="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded">
+  //           <div className="flex items-center">
+  //             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700 mr-2"></div>
+  //             Loading ads data...
+  //           </div>
+  //         </div>
+  //       )}
+
+  //       {/* Error Display */}
+  //       {error && (
+  //         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+  //           <strong>Error:</strong> {error}
+  //         </div>
+  //       )}
+
+  //       {/* Input Section */}
+  //       {!loading && adsData.length > 0 && (
+  //         <div className="space-y-4 mb-6">
+  //           <h4 className="text-xl font-semibold mb-4">Enter Budget Amounts</h4>
+  //           {categories.map((category) => (
+  //             <div
+  //               key={category}
+  //               className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-gray-50 rounded"
+  //             >
+  //               <label className="sm:w-48 font-medium text-gray-700">
+  //                 {category}
+  //               </label>
+  //               <div className="flex-1">
+  //                 <input
+  //                   type="number"
+  //                   min="0"
+  //                   step="0.01"
+  //                   placeholder="Enter Budget Amount (₹)"
+  //                   value={enteredAmount[category] || ""}
+  //                   onChange={(e) =>
+  //                     handleAmountChange(category, e.target.value)
+  //                   }
+  //                   className="border border-gray-300 px-4 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+  //                 />
+  //               </div>
+  //             </div>
+  //           ))}
+  //         </div>
+  //       )}
+
+  //       {/* Action Buttons */}
+  //       {!loading && adsData.length > 0 && (
+  //         <div className="flex gap-4 mb-6">
+  //           <button
+  //             onClick={handleCalculateAndSave}
+  //             disabled={loading || Object.keys(enteredAmount).length === 0}
+  //             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+  //           >
+  //             {loading ? "Calculating..." : "Calculate Ads Budget"}
+  //           </button>
+  //           <button
+  //             onClick={clearAll}
+  //             className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+  //           >
+  //             Clear All
+  //           </button>
+  //         </div>
+  //       )}
+
+  //       {/* Results Section */}
+  //       {adsItems.length > 0 && (
+  //         <div className="mt-8 border-t pt-6">
+  //           <h4 className="text-xl font-semibold mb-4">Budget Breakdown</h4>
+  //           <div className="grid gap-4">
+  //             {adsItems.map((item) => (
+  //               <div
+  //                 key={item.id}
+  //                 className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg border"
+  //               >
+  //                 <div className="flex justify-between items-start">
+  //                   <div className="flex-1">
+  //                     <p className="text-lg font-semibold text-blue-700 mb-2">
+  //                       📢 {item.category}
+  //                     </p>
+  //                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+  //                       <p>
+  //                         💼 Budget:{" "}
+  //                         <span className="font-medium">
+  //                           ₹{item.amount.toLocaleString()}
+  //                         </span>
+  //                       </p>
+  //                       <p>
+  //                         📊 Charge ({item.percent}%):{" "}
+  //                         <span className="font-medium">
+  //                           ₹{item.charge.toLocaleString()}
+  //                         </span>
+  //                       </p>
+  //                       <p className="font-bold text-green-700">
+  //                         🧾 Total: ₹{item.total.toLocaleString()}
+  //                       </p>
+  //                     </div>
+  //                   </div>
+  //                   <button
+  //                     onClick={() => removeItem(item.id)}
+  //                     className="ml-4 text-red-500 hover:text-red-700 text-xl"
+  //                     title="Remove this item"
+  //                   >
+  //                     ×
+  //                   </button>
+  //                 </div>
+  //               </div>
+  //             ))}
+  //           </div>
+  //         </div>
+  //       )}
+
+  //       {/* Total Section */}
+  //       {adsItems.length > 0 && (
+  //         <div className="mt-8 border-t pt-6">
+  //           <div className="bg-green-100 p-6 rounded-lg text-center">
+  //             <h4 className="text-2xl font-bold text-green-800 mb-2">
+  //               💰 Total Ads Budget
+  //             </h4>
+  //             <p className="text-4xl font-bold text-green-600">
+  //               ₹{totalAdsCost.toLocaleString()}
+  //             </p>
+  //           </div>
+  //         </div>
+  //       )}
+
+  //       {/* No Results Message */}
+  //       {!loading &&
+  //         adsItems.length === 0 &&
+  //         Object.keys(enteredAmount).length > 0 && (
+  //           <div className="mt-8 text-center text-gray-500">
+  //             <p>
+  //               Enter amounts and click "Calculate Ads Budget" to see results.
+  //             </p>
+  //           </div>
+  //         )}
+  //     </div>
+  //   </div>
+  // );
 };
 
 export default AdsCampaignCalculator;

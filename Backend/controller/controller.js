@@ -752,6 +752,8 @@ exports.saveCalculatorData = (req, res) => {
 exports.saveAdsCampaign = async (req, res) => {
   const adsItems = req.body.adsItems;
 
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
   if (!Array.isArray(adsItems) || adsItems.length === 0) {
     return res
       .status(400)
@@ -759,17 +761,19 @@ exports.saveAdsCampaign = async (req, res) => {
   }
 
   const insertValues = adsItems.map((item) => [
+    item.client_id,
     item.id,
     item.category,
     item.amount,
     item.percent,
     item.charge,
     item.total,
+    createdAt,
   ]);
 
   const sql = `
     INSERT INTO ads_campaign_details 
-    (unique_id, category, amount, percent, charge, total) 
+    (	client_id, unique_id, category, amount, percent, charge, total, created_at) 
     VALUES ?
   `;
 

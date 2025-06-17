@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 // import { useSelector } from "react-redux";
 import styled from "styled-components";
 import AdsCampaignCalculator from "../Admin/AdsCampaignCalculator";
+import ServicesLanding from "../Admin/ServicesLanding";
 
 const AdminDashboard = lazy(() => import("../Admin/AdminDashboard"));
 const AdminCalculator = lazy(() => import("../Admin/AdminCalculator"));
@@ -24,8 +25,12 @@ const AdminRouter = () => {
         >
           <Routes>
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="calculator" element={<AdminCalculator />} />
-            <Route path="Adscalculator" element={<AdsCampaignCalculator />} />
+            <Route path="calculator/:id" element={<AdminCalculator />} />
+            <Route
+              path="Adscalculator/:id"
+              element={<AdsCampaignCalculator />}
+            />
+            <Route path="ServicesLanding/:id" element={<ServicesLanding />} />
           </Routes>
         </Suspense>
       </Wrapper>

@@ -37,6 +37,8 @@ const AdminClientDetails = () => {
     address: "",
     dg_employee: employeeName,
   });
+  console.log(selectedClient);
+
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [getClients, setGetClients] = useState([]);
@@ -340,16 +342,12 @@ const AdminClientDetails = () => {
                   </div>
                   <div className="mt-6 space-y-2">
                     <button
-                      onClick={() => navigate("/admin/calculator")}
+                      onClick={() =>
+                        navigate(`/admin/ServicesLanding/${selectedClient.id}`)
+                      }
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                      Create Service Proposal
-                    </button>
-                    <button
-                      onClick={() => navigate("/admin/Adscalculator")}
-                      className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      Create Ads Proposal
+                      Create Proposal
                     </button>
                   </div>
                 </div>
