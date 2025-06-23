@@ -175,6 +175,11 @@ const AdminClientDetails = () => {
 
   const showApiData = filterPagination();
 
+  const handleCreateProposal = () => {
+    const proposalId = Date.now(); // generates unique number based on current time
+    navigate(`/admin/ServicesLanding/${selectedClient.id}/${proposalId}`);
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -342,9 +347,10 @@ const AdminClientDetails = () => {
                   </div>
                   <div className="mt-6 space-y-2">
                     <button
-                      onClick={() =>
-                        navigate(`/admin/ServicesLanding/${selectedClient.id}`)
-                      }
+                      // onClick={() =>
+                      //   navigate(`/admin/ServicesLanding/${selectedClient.id}`)
+                      // }
+                      onClick={handleCreateProposal}
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       Create Proposal

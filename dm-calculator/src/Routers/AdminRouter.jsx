@@ -25,12 +25,18 @@ const AdminRouter = () => {
         >
           <Routes>
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="calculator/:id" element={<AdminCalculator />} />
             <Route
-              path="Adscalculator/:id"
+              path="calculator/:id/:proposalId"
+              element={<AdminCalculator />}
+            />
+            <Route
+              path="Adscalculator/:id/:proposalId"
               element={<AdsCampaignCalculator />}
             />
-            <Route path="ServicesLanding/:id" element={<ServicesLanding />} />
+            <Route
+              path="ServicesLanding/:id/:proposalId"
+              element={<ServicesLanding />}
+            />
           </Routes>
         </Suspense>
       </Wrapper>

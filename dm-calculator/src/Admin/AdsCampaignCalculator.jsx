@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import axios from "axios";
 
 const AdsCampaignCalculator = () => {
-  const { id } = useParams();
+  const baseURL = `http://localhost:5555`;
+  const { id, proposalId } = useParams();
+  const { currentUser } = useSelector((state) => state.user);
+  const userName = currentUser?.name;
   const [adsData, setAdsData] = useState([]);
   const [enteredAmount, setEnteredAmount] = useState({});
   const [adsItems, setAdsItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [getData, setGetData] = useState([]);
 
   console.log(adsItems);
-  console.log(id);
+  console.log(id, proposalId);
 
   // Fetch ads data from API
   useEffect(() => {
@@ -228,6 +234,7 @@ const AdsCampaignCalculator = () => {
           const total = roundCurrency(amount + charge);
 
           results.push({
+            txn_id: proposalId,
             client_id: id,
             id: generateUniqueId(),
             category,
@@ -235,6 +242,7 @@ const AdsCampaignCalculator = () => {
             percent,
             charge,
             total,
+            employee: userName,
           });
         } else {
           setError(
@@ -243,7 +251,6 @@ const AdsCampaignCalculator = () => {
         }
       });
 
-      // Save to DB only if results are found
       if (results.length > 0) {
         setAdsItems(results); // update state
         const response = await fetch(
@@ -259,6 +266,7 @@ const AdsCampaignCalculator = () => {
 
         const result = await response.json();
         if (result.status === "Success") {
+          fetchData();
           alert("Ads campaign calculated and saved successfully!");
         } else {
           alert("Failed to save: " + result.message);
@@ -274,132 +282,187 @@ const AdsCampaignCalculator = () => {
     }
   };
 
+  const fetchData = async () => {
+    if (!id || !proposalId) return;
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getByIDAdsCampaignDetails/${proposalId}/${id}`
+      );
+      if (res.data.status === "Success") {
+        console.log(res.data);
+        setGetData(res.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [id, proposalId]);
+
+  console.log(getData);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 space-y-8 text-white">
-        <h3 className="text-3xl font-bold text-center text-white">
-          📢 Ads Campaign Budget Calculator
-        </h3>
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-4xl bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 space-y-8 text-white">
+          <h3 className="text-3xl font-bold text-center text-white">
+            📢 Ads Campaign Budget Calculator
+          </h3>
 
-        {loading && (
-          <div className="p-4 rounded-lg bg-blue-600/20 text-blue-300 border border-blue-500">
-            <div className="flex items-center gap-2">
-              <div className="animate-spin h-4 w-4 border-2 border-t-white rounded-full"></div>
-              Loading ads data...
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="p-4 rounded-lg bg-red-600/20 text-red-300 border border-red-500">
-            <strong>Error:</strong> {error}
-          </div>
-        )}
-
-        {!loading && adsData.length > 0 && (
-          <div className="space-y-4">
-            <h4 className="text-xl font-semibold">Enter Budget Amounts</h4>
-            {categories.map((category) => (
-              <div
-                key={category}
-                className="bg-white/10 backdrop-blur rounded-lg p-4 flex flex-col sm:flex-row items-center gap-4"
-              >
-                <label className="sm:w-48 font-medium">{category}</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="Enter Amount (₹)"
-                  value={enteredAmount[category] || ""}
-                  onChange={(e) => handleAmountChange(category, e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
+          {loading && (
+            <div className="p-4 rounded-lg bg-blue-600/20 text-blue-300 border border-blue-500">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin h-4 w-4 border-2 border-t-white rounded-full"></div>
+                Loading ads data...
               </div>
-            ))}
-          </div>
-        )}
-
-        {!loading && adsData.length > 0 && (
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={handleCalculateAndSave}
-              disabled={loading || Object.keys(enteredAmount).length === 0}
-              className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition disabled:bg-gray-400"
-            >
-              {loading ? "Calculating..." : "Calculate & Save"}
-            </button>
-            <button
-              onClick={clearAll}
-              className="px-6 py-3 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-semibold transition"
-            >
-              Clear All
-            </button>
-          </div>
-        )}
-
-        {adsItems.length > 0 && (
-          <div className="space-y-4">
-            <h4 className="text-xl font-semibold">📋 Budget Breakdown</h4>
-            {adsItems.map((item) => (
-              <div
-                key={item.id}
-                className="bg-gradient-to-r from-blue-900/30 to-green-900/30 border border-white/10 p-4 rounded-lg"
-              >
-                <div className="flex justify-between items-start gap-4">
-                  <div>
-                    <h5 className="text-lg font-semibold text-blue-300 mb-2">
-                      📢 {item.category}
-                    </h5>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-                      <p>
-                        💼 Budget:{" "}
-                        <span className="font-medium text-white">
-                          ₹{item.amount.toLocaleString()}
-                        </span>
-                      </p>
-                      <p>
-                        📊 Charge ({item.percent}%):{" "}
-                        <span className="font-medium text-white">
-                          ₹{item.charge.toLocaleString()}
-                        </span>
-                      </p>
-                      <p className="font-bold text-green-300">
-                        🧾 Total: ₹{item.total.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="text-red-400 hover:text-red-600 text-xl"
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {adsItems.length > 0 && (
-          <div className="text-center bg-green-800/30 p-6 rounded-lg border border-green-600">
-            <h4 className="text-xl font-bold text-green-300 mb-2">
-              💰 Total Ads Budget
-            </h4>
-            <p className="text-4xl font-extrabold text-green-400">
-              ₹{totalAdsCost.toLocaleString()}
-            </p>
-          </div>
-        )}
-
-        {!loading &&
-          adsItems.length === 0 &&
-          Object.keys(enteredAmount).length > 0 && (
-            <div className="text-center text-gray-400">
-              Enter amounts and click "Calculate & Save" to see results.
             </div>
           )}
+
+          {error && (
+            <div className="p-4 rounded-lg bg-red-600/20 text-red-300 border border-red-500">
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+
+          {!loading && adsData.length > 0 && (
+            <div className="space-y-4">
+              <h4 className="text-xl font-semibold">Enter Budget Amounts</h4>
+              {categories.map((category) => (
+                <div
+                  key={category}
+                  className="bg-white/10 backdrop-blur rounded-lg p-4 flex flex-col sm:flex-row items-center gap-4"
+                >
+                  <label className="sm:w-48 font-medium">{category}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="Enter Amount (₹)"
+                    value={enteredAmount[category] || ""}
+                    onChange={(e) =>
+                      handleAmountChange(category, e.target.value)
+                    }
+                    className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loading && adsData.length > 0 && (
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={handleCalculateAndSave}
+                disabled={loading || Object.keys(enteredAmount).length === 0}
+                className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition disabled:bg-gray-400"
+              >
+                {loading ? "Calculating..." : "Calculate & Save"}
+              </button>
+              <button
+                onClick={clearAll}
+                className="px-6 py-3 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-semibold transition"
+              >
+                Clear All
+              </button>
+            </div>
+          )}
+
+          {adsItems.length > 0 && (
+            <div className="space-y-4">
+              <h4 className="text-xl font-semibold">📋 Budget Breakdown</h4>
+              {adsItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-gradient-to-r from-blue-900/30 to-green-900/30 border border-white/10 p-4 rounded-lg"
+                >
+                  <div className="flex justify-between items-start gap-4">
+                    <div>
+                      <h5 className="text-lg font-semibold text-blue-300 mb-2">
+                        📢 {item.category}
+                      </h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                        <p>
+                          💼 Budget:{" "}
+                          <span className="font-medium text-white">
+                            ₹{item.amount.toLocaleString()}
+                          </span>
+                        </p>
+                        <p>
+                          📊 Charge ({item.percent}%):{" "}
+                          <span className="font-medium text-white">
+                            ₹{item.charge.toLocaleString()}
+                          </span>
+                        </p>
+                        <p className="font-bold text-green-300">
+                          🧾 Total: ₹{item.total.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeItem(item.id)}
+                      className="text-red-400 hover:text-red-600 text-xl"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {adsItems.length > 0 && (
+            <div className="text-center bg-green-800/30 p-6 rounded-lg border border-green-600">
+              <h4 className="text-xl font-bold text-green-300 mb-2">
+                💰 Total Ads Budget
+              </h4>
+              <p className="text-4xl font-extrabold text-green-400">
+                ₹{totalAdsCost.toLocaleString()}
+              </p>
+            </div>
+          )}
+
+          {!loading &&
+            adsItems.length === 0 &&
+            Object.keys(enteredAmount).length > 0 && (
+              <div className="text-center text-gray-400">
+                Enter amounts and click "Calculate & Save" to see results.
+              </div>
+            )}
+          {getData.length > 0 && (
+            <div className="mt-10 space-y-4">
+              <h3 className="text-xl font-bold text-white">
+                🧾 Previously Saved Campaigns
+              </h3>
+              {getData.map((item, index) => (
+                <div
+                  key={index}
+                  className="p-4 bg-white/10 border border-white/10 rounded-xl text-white"
+                >
+                  <div className="flex flex-wrap justify-between">
+                    <p>
+                      📢 <strong>{item.category}</strong>
+                    </p>
+                    <p>
+                      💰 Budget: ₹{parseFloat(item.amount).toLocaleString()}
+                    </p>
+                    <p>
+                      📊 Charge: ₹{parseFloat(item.charge).toLocaleString()} (
+                      {item.percent}%)
+                    </p>
+                    <p>🧾 Total: ₹{parseFloat(item.total).toLocaleString()}</p>
+                    <p className="text-sm text-white/60">
+                      🕒 {new Date(item.created_at).toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 
   // return (

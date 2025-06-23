@@ -698,6 +698,7 @@ exports.addEditingTypes = async (req, res) => {
 
 exports.saveCalculatorData = (req, res) => {
   const {
+    txn_id,
     client_id,
     service_name,
     category_name,
@@ -707,12 +708,14 @@ exports.saveCalculatorData = (req, res) => {
     include_content_posting,
     include_thumbnail_creation,
     total_amount,
+    employee,
   } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
   const query = `
     INSERT INTO calculator_transactions (
+    	txn_id,
       client_id,
       service_name,
       category_name,
@@ -722,11 +725,13 @@ exports.saveCalculatorData = (req, res) => {
       include_content_posting,
       include_thumbnail_creation,
       total_amount,
+      employee,
       created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
+    txn_id,
     client_id,
     service_name,
     category_name,
@@ -736,6 +741,7 @@ exports.saveCalculatorData = (req, res) => {
     include_content_posting,
     include_thumbnail_creation,
     total_amount,
+    employee,
     createdAt,
   ];
 
@@ -761,6 +767,7 @@ exports.saveAdsCampaign = async (req, res) => {
   }
 
   const insertValues = adsItems.map((item) => [
+    item.txn_id,
     item.client_id,
     item.id,
     item.category,
@@ -768,12 +775,13 @@ exports.saveAdsCampaign = async (req, res) => {
     item.percent,
     item.charge,
     item.total,
+    item.employee,
     createdAt,
   ]);
 
   const sql = `
     INSERT INTO ads_campaign_details 
-    (	client_id, unique_id, category, amount, percent, charge, total, created_at) 
+    (	txn_id, client_id, unique_id, category, amount, percent, charge, total, employee, created_at) 
     VALUES ?
   `;
 

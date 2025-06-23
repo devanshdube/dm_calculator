@@ -253,3 +253,111 @@ exports.getAllServiceDatas = (req, res) => {
     });
   });
 };
+
+exports.getCalculatorTransactions = async (req, res) => {
+  try {
+    db.query("SELECT * FROM calculator_transactions", (err, results) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
+        });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No services found",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        data: results,
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+exports.getByIDCalculatorTransactions = async (req, res) => {
+  const { txn_id, client_id } = req.params;
+
+  try {
+    db.query(
+      "SELECT * FROM calculator_transactions WHERE txn_id = ? AND client_id = ?",
+      [txn_id, client_id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No calculator transactions found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+exports.getByIDAdsCampaignDetails = async (req, res) => {
+  const { txn_id, client_id } = req.params;
+
+  try {
+    db.query(
+      "SELECT * FROM ads_campaign_details WHERE txn_id = ? AND client_id = ?",
+      [txn_id, client_id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No calculator transactions found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};

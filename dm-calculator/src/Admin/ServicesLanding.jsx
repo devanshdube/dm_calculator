@@ -19,7 +19,9 @@ import { useParams } from "react-router-dom";
 
 export default function ServicesLanding() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id, proposalId } = useParams();
+
+  console.log(id, proposalId);
 
   //   const [hoveredCard, setHoveredCard] = useState(null);
 
@@ -238,7 +240,7 @@ export default function ServicesLanding() {
                     {/* CTA Button */}
                     <button
                       onClick={() => {
-                        navigate(`${service.navigation}/${id}`);
+                        navigate(`${service.navigation}/${id}/${proposalId}`);
                       }}
                       className={`
                       w-full mt-6 py-4 px-6 rounded-2xl font-semibold text-white

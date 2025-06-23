@@ -99,3 +99,41 @@ exports.deleteAdsServices = async (req, res) => {
     });
   }
 };
+
+exports.deleteAdsCampaignDetails = async (req, res) => {
+  const { txn_id, client_id } = req.params;
+
+  try {
+    db.query(
+      "DELETE FROM ads_campaign_details WHERE txn_id = ? AND client_id = ?",
+      [txn_id, client_id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error while deleting",
+            error: err,
+          });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No campaign data found to delete",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          message: "Campaign details deleted successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
