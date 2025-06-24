@@ -27,6 +27,7 @@ const {
   getCalculatorTransactions,
   getByIDCalculatorTransactions,
   getByIDAdsCampaignDetails,
+  getClientDetailsById,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -34,6 +35,8 @@ const {
   deleteEditingType,
   deleteAdsServices,
   deleteAdsCampaignDetails,
+  deleteAdsCampaignEntryById,
+  deleteGraphicEntryById,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -76,6 +79,8 @@ router.get(
   "/getByIDAdsCampaignDetails/:txn_id/:client_id",
   getByIDAdsCampaignDetails
 );
+router.get("/getClientDetailsById/:id", getClientDetailsById);
+
 // ---->  Get all routes END <----
 
 // ---->  DELETE all routes START <----
@@ -87,7 +92,8 @@ router.delete(
   "/deleteAdsCampaignDetails/:txn_id/:client_id",
   deleteAdsCampaignDetails
 );
-
+router.delete("/deleteAdsCampaignEntryById/:id", deleteAdsCampaignEntryById);
+router.delete("/deleteGraphicEntryById/:id", deleteGraphicEntryById);
 // ---->  DELETE all routes END <----
 
 // ---->  UPDATE all routes START <----

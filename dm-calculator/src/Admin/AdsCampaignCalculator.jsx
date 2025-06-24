@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 const AdsCampaignCalculator = () => {
   const baseURL = `http://localhost:5555`;
@@ -14,7 +16,7 @@ const AdsCampaignCalculator = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [getData, setGetData] = useState([]);
-
+  const navigate = useNavigate();
   console.log(adsItems);
   console.log(id, proposalId);
 
@@ -303,6 +305,53 @@ const AdsCampaignCalculator = () => {
 
   console.log(getData);
 
+  const handleDelete = async (entryId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this entry?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteAdsCampaignEntryById/${entryId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+        setGetData((prev) => prev.filter((item) => item.id !== entryId));
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Entry has been deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: result.message || "Failed to delete entry.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "An error occurred while deleting entry.",
+      });
+    }
+  };
+
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex items-center justify-center p-4">
@@ -310,6 +359,13 @@ const AdsCampaignCalculator = () => {
           <h3 className="text-3xl font-bold text-center text-white">
             📢 Ads Campaign Budget Calculator
           </h3>
+
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+          >
+            ← Go Back
+          </button>
 
           {loading && (
             <div className="p-4 rounded-lg bg-blue-600/20 text-blue-300 border border-blue-500">
@@ -452,9 +508,15 @@ const AdsCampaignCalculator = () => {
                       {item.percent}%)
                     </p>
                     <p>🧾 Total: ₹{parseFloat(item.total).toLocaleString()}</p>
-                    <p className="text-sm text-white/60">
+                    {/* <p className="text-sm text-white/60">
                       🕒 {new Date(item.created_at).toLocaleString("en-IN")}
-                    </p>
+                    </p> */}
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white text-lg rounded-full w-8 h-8 flex items-center justify-center"
+                    >
+                      ×
+                    </button>
                   </div>
                 </div>
               ))}

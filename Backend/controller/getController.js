@@ -361,3 +361,41 @@ exports.getByIDAdsCampaignDetails = async (req, res) => {
     });
   }
 };
+
+exports.getClientDetailsById = async (req, res) => {
+  const clientId = req.params.id;
+
+  try {
+    db.query(
+      "SELECT * FROM dm_calculator_client_details WHERE id = ?",
+      [clientId],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "Client not found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results[0],
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};

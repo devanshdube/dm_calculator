@@ -1,5 +1,5 @@
 // import React, { useState } from "react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Palette,
   Megaphone,
@@ -11,57 +11,29 @@ import {
   ArrowLeft,
   DollarSign,
   Package,
-  Clock,
-  CheckCircle,
+  IndianRupee,
+  User,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 
 export default function ServicesLanding() {
+  const baseURL = `http://localhost:5555`;
   const navigate = useNavigate();
   const { id, proposalId } = useParams();
+  const [getData, setGetData] = useState([]);
+  const [getAdsData, setGetAdsData] = useState([]);
+  const [clientData, setClientData] = useState([]);
 
   console.log(id, proposalId);
 
   //   const [hoveredCard, setHoveredCard] = useState(null);
 
-  // Sample data
-  const totalAmount = 15750.0;
-  const clientOrders = [
-    {
-      id: 1,
-      service: "Logo Design",
-      client: "TechCorp",
-      amount: 2500,
-      status: "completed",
-    },
-    {
-      id: 2,
-      service: "SEO Campaign",
-      client: "StartupXYZ",
-      amount: 4200,
-      status: "in-progress",
-    },
-    {
-      id: 3,
-      service: "Google Ads",
-      client: "RetailCo",
-      amount: 3800,
-      status: "pending",
-    },
-    {
-      id: 4,
-      service: "Brand Identity",
-      client: "FoodieApp",
-      amount: 5250,
-      status: "completed",
-    },
-  ];
-
   const services = [
     {
       id: 1,
-      title: "Graphic Services",
+      title: "Graphic & SEO Services",
       subtitle: "Visual Storytelling",
       description:
         "Transform your brand with stunning visuals that captivate and convert. From logos to complete brand identities.",
@@ -74,6 +46,7 @@ export default function ServicesLanding() {
         "Brand Identity",
         "Print Materials",
         "Digital Graphics",
+        "SEO Services",
       ],
     },
     {
@@ -93,24 +66,100 @@ export default function ServicesLanding() {
         "Analytics & ROI",
       ],
     },
-    {
-      id: 3,
-      title: "SEO Services",
-      subtitle: "Organic Visibility",
-      description:
-        "Dominate search results with comprehensive SEO strategies that boost your online presence and drive organic traffic.",
-      icon: Search,
-      gradient: "from-gray-600 to-slate-700",
-      bgPattern: "bg-gradient-to-br from-gray-50 to-slate-50",
-      navigation: "#",
-      features: [
-        "Keyword Research",
-        "On-Page SEO",
-        "Link Building",
-        "Technical SEO",
-      ],
-    },
+    // {
+    //   id: 3,
+    //   title: "SEO Services",
+    //   subtitle: "Organic Visibility",
+    //   description:
+    //     "Dominate search results with comprehensive SEO strategies that boost your online presence and drive organic traffic.",
+    //   icon: Search,
+    //   gradient: "from-gray-600 to-slate-700",
+    //   bgPattern: "bg-gradient-to-br from-gray-50 to-slate-50",
+    //   navigation: "#",
+    //   features: [
+    //     "Keyword Research",
+    //     "On-Page SEO",
+    //     "Link Building",
+    //     "Technical SEO",
+    //   ],
+    // },
   ];
+
+  const fetchClient = async () => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getClientDetailsById/${id}`
+      );
+      if (res.data.status === "Success") {
+        console.log(res.data.data);
+        setClientData(res.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  console.log(clientData);
+  const clientName = clientData.client_name;
+
+  const fetchData = async () => {
+    if (!id || !proposalId) return;
+    try {
+      const { data } = await axios.get(
+        `${baseURL}/auth/api/calculator/getByIDCalculatorTransactions/${proposalId}/${id}`
+      );
+      console.log(data.data);
+      setGetData(data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchAdsData = async () => {
+    if (!id || !proposalId) return;
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getByIDAdsCampaignDetails/${proposalId}/${id}`
+      );
+      if (res.data.status === "Success") {
+        console.log(res.data);
+        setGetAdsData(res.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchClient();
+    fetchData();
+    fetchAdsData();
+  }, [id, proposalId]);
+
+  // Table Total Amount
+
+  const grandTotal = getData.reduce(
+    (acc, order) => acc + parseFloat(order.total_amount || 0),
+    0
+  );
+
+  const grandAdsTotal = getAdsData.reduce(
+    (acc, order) => acc + parseFloat(order.total || 0),
+    0
+  );
+
+  // Table Total Amount
+
+  const graphLength = getData.length;
+
+  const adsCampLength = getAdsData.length;
+
+  const finalLength = graphLength + adsCampLength;
+
+  // Grand Total Amount
+
+  const totalAmount = grandTotal + grandAdsTotal;
+  console.log(totalAmount);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -144,25 +193,42 @@ export default function ServicesLanding() {
           </button>
 
           {/* Top Stats Row */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            {/* Total Amount Card */}
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            {/* Total Amount */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-green-700 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-white" />
+                  <IndianRupee className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <p className="text-white/60 text-sm font-medium">
-                    Total Revenue
+                    Total Amount
                   </p>
                   <p className="text-3xl font-bold text-white">
-                    ${totalAmount.toLocaleString()}
+                    ₹{totalAmount.toLocaleString()}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Quick Stats */}
+            {/* Client Name */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 flex items-center justify-start">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                  <User className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-white/60 text-sm font-medium">
+                    Client Name
+                  </p>
+                  <p className="text-3xl font-bold text-white">
+                    {clientName ? clientName : "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Active Orders */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-slate-700 rounded-xl flex items-center justify-center">
@@ -170,11 +236,9 @@ export default function ServicesLanding() {
                 </div>
                 <div>
                   <p className="text-white/60 text-sm font-medium">
-                    Active Orders
+                    Total Orders
                   </p>
-                  <p className="text-3xl font-bold text-white">
-                    {clientOrders.length}
-                  </p>
+                  <p className="text-3xl font-bold text-white">{finalLength}</p>
                 </div>
               </div>
             </div>
@@ -182,7 +246,7 @@ export default function ServicesLanding() {
         </div>
 
         {/* Services Grid */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-12">
+        <div className="grid md:grid-cols-2 gap-8 max-w-7xl mx-auto mb-12">
           {services.map((service) => {
             const IconComponent = service.icon;
             return (
@@ -278,48 +342,91 @@ export default function ServicesLanding() {
         </div>
 
         {/* Client Orders */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Recent Client Orders
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-4">
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Recent Client Graphic & SEO Orders
+            </span>
+            <span className="text-lg font-semibold text-green-400">
+              Grand Total: ₹{grandTotal.toLocaleString()}
+            </span>
           </h3>
-          <div className="space-y-3">
-            {clientOrders.map((order) => (
-              <div
-                key={order.id}
-                className="flex items-center justify-between p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/15 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      order.status === "completed"
-                        ? "bg-green-500"
-                        : order.status === "in-progress"
-                        ? "bg-yellow-500"
-                        : "bg-blue-500"
-                    }`}
-                  ></div>
-                  <div>
-                    <p className="font-semibold text-white">{order.service}</p>
-                    <p className="text-sm text-white/60">{order.client}</p>
-                  </div>
-                </div>
-                <div className="text-right flex items-center gap-3">
-                  <span className="font-bold text-white">
-                    ${order.amount.toLocaleString()}
-                  </span>
-                  {order.status === "completed" && (
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                  )}
-                  {order.status === "in-progress" && (
-                    <Clock className="w-4 h-4 text-yellow-500" />
-                  )}
-                  {order.status === "pending" && (
-                    <Clock className="w-4 h-4 text-blue-500" />
-                  )}
-                </div>
-              </div>
-            ))}
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto text-left text-sm text-white">
+              <thead className="text-white/70 border-b border-white/20">
+                <tr>
+                  <th className="p-3">Index</th>
+                  <th className="p-3">Date</th>
+                  <th className="p-3">Service</th>
+                  <th className="p-3">Category</th>
+                  <th className="p-3">Editing Type</th>
+                  <th className="p-3">Qty</th>
+                  <th className="p-3">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {getData.map((order, index) => (
+                  <tr
+                    key={order.id}
+                    className="hover:bg-white/10 border-b border-white/10 transition-colors"
+                  >
+                    <td className="p-3">{index + 1}</td>
+                    <td className="p-3">{order.created_at}</td>
+                    <td className="p-3">{order.service_name}</td>
+                    <td className="p-3">{order.category_name}</td>
+                    <td className="p-3">{order.editing_type_name}</td>
+                    <td className="p-3">{order.quantity}</td>
+                    <td className="p-3">{order.total_amount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Recent Client Campaigns Orders
+            </span>
+            <span className="text-lg font-semibold text-green-400">
+              Grand Total: ₹{grandAdsTotal.toLocaleString()}
+            </span>
+          </h3>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto text-left text-sm text-white">
+              <thead className="text-white/70 border-b border-white/20">
+                <tr>
+                  <th className="p-3">Index</th>
+                  <th className="p-3">Date</th>
+                  <th className="p-3">Service</th>
+                  <th className="p-3">Amt</th>
+                  <th className="p-3">%</th>
+                  <th className="p-3">Charge</th>
+                  <th className="p-3">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {getAdsData.map((order, index) => (
+                  <tr
+                    key={order.id}
+                    className="hover:bg-white/10 border-b border-white/10 transition-colors"
+                  >
+                    <td className="p-3">{index + 1}</td>
+                    <td className="p-3">{order.created_at}</td>
+                    <td className="p-3">{order.category}</td>
+                    <td className="p-3">{order.amount}</td>
+                    <td className="p-3">{order.percent}</td>
+                    <td className="p-3">{order.charge}</td>
+                    <td className="p-3">{order.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

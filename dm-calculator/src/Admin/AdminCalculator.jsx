@@ -17,6 +17,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const OPTIONAL_SERVICES = [
   {
@@ -56,6 +57,7 @@ const AdminCalculator = () => {
     }, {})
   );
   const [total, setTotal] = useState(0);
+  const navigate = useNavigate();
   console.log(id, proposalId);
 
   useEffect(() => {
@@ -190,13 +192,66 @@ const AdminCalculator = () => {
 
   console.log(getData);
 
+  const handleDelete = async (entryId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this entry?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteGraphicEntryById/${entryId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+        setGetData((prev) => prev.filter((item) => item.id !== entryId));
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Entry has been deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: result.message || "Failed to delete entry.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "An error occurred while deleting entry.",
+      });
+    }
+  };
+
   return (
     <>
-      <div className=" flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white p-6">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white p-6">
         <div className="w-full max-w-2xl bg-white/10 backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
           <h2 className="text-3xl font-bold text-white text-center mb-6">
             🧮 Service Calculator
           </h2>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+          >
+            ← Go Back
+          </button>
 
           <div>
             <label className="block font-semibold mb-1">Select Service</label>
@@ -335,69 +390,103 @@ const AdminCalculator = () => {
               Total Amount: ₹{total}
             </div>
           )}
-        </div>
-      </div>
-      {/* Client Orders */}
-      <div className=" bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
-        <div className="relative z-10 container mx-auto px-6 py-4">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Recent Client Orders
-            </h3>
-            <div className="space-y-3">
-              {getData.map((order) => (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/15 transition-colors"
-                >
-                  {/* <div className="flex items-center gap-4">
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    <div>
-                      <p className="font-semibold text-white">
-                        {order.service_name} - {order.category_name}
-                      </p>
-                      <p className="text-sm text-white/60">
-                        Editing: {order.editing_type_name} × {order.quantity}
-                      </p>
-                      <p className="text-sm text-white/40">
-                        Client ID: {order.client_id}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right flex items-center gap-3">
-                    <span className="font-bold text-white">
-                      ₹{parseFloat(order.total_amount).toLocaleString()}
-                    </span>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                  </div> */}
-                  <div className="flex flex-wrap gap-6 text-white items-center">
-                    <div className="flex items-center gap-1">
-                      <Megaphone className="w-4 h-4 text-yellow-400" />
-                      <span className="font-medium">
+          {/* Client Orders */}
+
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <Package className="w-5 h-5" />
+            Recent Client Orders
+          </h3>
+          <div className="space-y-4">
+            {getData.map((order) => (
+              <div
+                key={order.id}
+                className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
+                  {/* Left Section: Info */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 font-semibold text-lg">
+                      <Megaphone className="w-5 h-5 text-yellow-400" />
+                      <span>
                         {order.service_name} → {order.category_name}
                       </span>
                     </div>
-                    <div className="text-sm">
+                    <div className="text-lg text-white/80">
                       🎬 {order.editing_type_name} × {order.quantity}
                     </div>
-                    <div className="text-xs italic text-white/70">
-                      {order.include_content_posting === "1" &&
-                        "📢 Content Posting"}
-                      {order.include_thumbnail_creation === "1" &&
-                        " 🖼 Thumbnail Creation"}
-                    </div>
-                    <div className="text-xs text-white/50">
+                    {(order.include_content_posting === "1" ||
+                      order.include_thumbnail_creation === "1") && (
+                      <div className="text-base text-white/60 italic">
+                        {order.include_content_posting === "1" &&
+                          "📢 Content Posting "}
+                        {order.include_thumbnail_creation === "1" &&
+                          "🖼 Thumbnail Creation"}
+                      </div>
+                    )}
+                    {/* <div className="text-xs text-white/50">
                       🕒 {new Date(order.created_at).toLocaleString("en-IN")}
-                    </div>
-                    <div className="ml-auto text-green-400 font-bold text-lg">
+                    </div> */}
+                  </div>
+
+                  {/* Right Section: Amount + Delete */}
+                  <div className="flex items-center gap-4">
+                    <div className="text-green-400 font-bold text-xl">
                       ₹{parseFloat(order.total_amount).toLocaleString()}
                     </div>
+                    <button
+                      onClick={() => handleDelete(order.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                      title="Delete"
+                    >
+                      ×
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+
+          {/* <div className="space-y-3">
+            {getData.map((order) => (
+              <div
+                key={order.id}
+                className="flex items-center justify-between p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/15 transition-colors"
+              >
+                <div className="flex flex-wrap gap-6 text-white items-center">
+                  <div className="flex items-center gap-1">
+                    <Megaphone className="w-4 h-4 text-yellow-400" />
+                    <span className="font-medium">
+                      {order.service_name} → {order.category_name}
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    🎬 {order.editing_type_name} × {order.quantity}
+                  </div>
+                  <div className="text-xs italic text-white/70">
+                    {order.include_content_posting === "1" &&
+                      "📢 Content Posting"}
+                    {order.include_thumbnail_creation === "1" &&
+                      " 🖼 Thumbnail Creation"}
+                  </div>
+                  <div className="text-xs text-white/50">
+                    🕒 {new Date(order.created_at).toLocaleString("en-IN")}
+                  </div>
+                  <div className="ml-auto text-green-400 font-bold text-lg">
+                    <div className="text-green-400 font-bold text-lg">
+                      ₹{parseFloat(order.total_amount).toLocaleString()}
+                    </div>
+                    <button
+                      onClick={() => handleDelete(order.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold"
+                      title="Delete"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div> */}
         </div>
       </div>
     </>
