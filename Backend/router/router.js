@@ -3,9 +3,9 @@ const {
   register,
   login,
   forgotPassword,
-  insertServices,
-  getServices,
-  updateServices,
+  // insertServices,
+  // getServices,
+  // updateServices,
   insertAdsServices,
   updateAdsServices,
   insertClientDetails,
@@ -28,6 +28,8 @@ const {
   getByIDCalculatorTransactions,
   getByIDAdsCampaignDetails,
   getClientDetailsById,
+  getClientTxnHistory,
+  getClientServiceHistory,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -49,9 +51,9 @@ const router = express.Router();
 router.post("/register", register);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
-router.post("/insertServices", insertServices);
-router.get("/getServices", getServices);
-router.put("/updateServices/:id", updateServices);
+// router.post("/insertServices", insertServices);
+// router.get("/getServices", getServices);
+// router.put("/updateServices/:id", updateServices);
 router.post("/insertAdsServices", insertAdsServices);
 router.put("/updateAdsServices/:id", updateAdsServices);
 router.post("/insertClientDetails", insertClientDetails);
@@ -80,6 +82,11 @@ router.get(
   getByIDAdsCampaignDetails
 );
 router.get("/getClientDetailsById/:id", getClientDetailsById);
+router.get("/getClientTxnHistory/:client_id", getClientTxnHistory);
+router.get(
+  "/getClientServiceHistory/:client_id/:txn_id",
+  getClientServiceHistory
+);
 
 // ---->  Get all routes END <----
 
