@@ -2,11 +2,15 @@ import React, { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 // import { useSelector } from "react-redux";
 import styled from "styled-components";
-import AdsCampaignCalculator from "../Admin/AdsCampaignCalculator";
-import ServicesLanding from "../Admin/ServicesLanding";
+import Quotation from "../Admin/Quotation";
 
 const AdminDashboard = lazy(() => import("../Admin/AdminDashboard"));
 const AdminCalculator = lazy(() => import("../Admin/AdminCalculator"));
+const AdsCampaignCalculator = lazy(() =>
+  import("../Admin/AdsCampaignCalculator")
+);
+const ServicesLanding = lazy(() => import("../Admin/ServicesLanding"));
+const History = lazy(() => import("../Admin/History"));
 
 const AdminRouter = () => {
   // const { currentUser } = useSelector((state) => state.user);
@@ -37,6 +41,8 @@ const AdminRouter = () => {
               path="ServicesLanding/:id/:proposalId"
               element={<ServicesLanding />}
             />
+            <Route path="client/service/history/:id" element={<History />} />
+            <Route path="quotation/:id/:txn_id" element={<Quotation />} />
           </Routes>
         </Suspense>
       </Wrapper>

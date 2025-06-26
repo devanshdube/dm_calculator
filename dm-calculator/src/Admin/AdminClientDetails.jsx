@@ -355,6 +355,16 @@ const AdminClientDetails = () => {
                     >
                       Create Proposal
                     </button>
+                    <button
+                      onClick={() =>
+                        navigate(
+                          `/admin/client/service/history/${selectedClient.id}`
+                        )
+                      }
+                      className="w-full px-4 py-2 bg-white text-blue-600 dark:text-sky-400 rounded-lg hover:bg-sky-300 transition-colors border-2 border-dashed border-sky-300 hover:text-white"
+                    >
+                      Proposal History
+                    </button>
                   </div>
                 </div>
               </div>

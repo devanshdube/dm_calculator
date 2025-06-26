@@ -434,6 +434,54 @@ exports.getClientTxnHistory = async (req, res) => {
   });
 };
 
+// exports.getClientServiceHistory = async (req, res) => {
+//   const { client_id, txn_id } = req.params;
+
+//   const query = `
+//     SELECT
+//       'Graphic Service' AS service_type,
+//       ct.txn_id,
+//       ct.created_at,
+//       ct.service_name,
+//       ct.category_name,
+//       ct.editing_type_name,
+//       ct.editing_type_amount,
+//       ct.quantity,
+//       ct.total_amount
+//     FROM calculator_transactions ct
+//     WHERE ct.txn_id = ? AND ct.client_id = ?
+
+//     UNION
+
+//     SELECT
+//       'Ads Campaign' AS service_type,
+//       ad.txn_id,
+//       ad.created_at,
+//       NULL AS service_name,
+//       ad.category,
+//       NULL AS editing_type_name,
+//       NULL AS editing_type_amount,
+//       NULL AS quantity,
+//       ad.total
+//     FROM ads_campaign_details ad
+//     WHERE ad.txn_id = ? AND ad.client_id = ?
+//   `;
+
+//   db.query(query, [txn_id, client_id, txn_id, client_id], (err, result) => {
+//     if (err) {
+//       return res
+//         .status(500)
+//         .json({ status: "Failure", message: "Database error", error: err });
+//     }
+
+//     res.status(200).json({
+//       status: "Success",
+//       message: "Client service history fetched successfully",
+//       data: result,
+//     });
+//   });
+// };
+
 exports.getClientServiceHistory = async (req, res) => {
   const { client_id, txn_id } = req.params;
 
@@ -447,7 +495,10 @@ exports.getClientServiceHistory = async (req, res) => {
       ct.editing_type_name,
       ct.editing_type_amount,
       ct.quantity,
-      ct.total_amount
+      ct.total_amount,
+      NULL AS amount,
+      NULL AS percent,
+      NULL AS charge
     FROM calculator_transactions ct
     WHERE ct.txn_id = ? AND ct.client_id = ?
 
@@ -458,11 +509,14 @@ exports.getClientServiceHistory = async (req, res) => {
       ad.txn_id,
       ad.created_at,
       NULL AS service_name,
-      ad.category,
+      ad.category AS category_name,
       NULL AS editing_type_name,
       NULL AS editing_type_amount,
       NULL AS quantity,
-      ad.total
+      ad.total AS total_amount,
+      ad.amount,
+      ad.percent,
+      ad.charge
     FROM ads_campaign_details ad
     WHERE ad.txn_id = ? AND ad.client_id = ?
   `;
