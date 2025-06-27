@@ -4,6 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import moment from "moment";
+import ReactPaginate from "react-paginate";
+import styled from "styled-components";
+import { useDispatch, useSelector } from "react-redux";
+import { clearUser } from "../redux/user/userSlice";
+import Swal from "sweetalert2";
 
 const History = () => {
   const baseURL = `http://localhost:5555`;
@@ -11,12 +16,23 @@ const History = () => {
   const [fetchServices, setFetchServices] = useState([]);
   const [clientData, setClientData] = useState([]);
   const { id } = useParams();
+  const { token } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const [keyword, setKeyword] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const clientPerPage = 5;
   console.log(id);
 
   const fetchAllClientServices = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientTxnHistory/${id}`
+        `${baseURL}/auth/api/calculator/getClientTxnHistory/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (res.data.status === "Success") {
         console.log(res.data);
@@ -24,6 +40,19 @@ const History = () => {
       }
     } catch (error) {
       console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
   console.log(fetchServices);
@@ -31,7 +60,13 @@ const History = () => {
   const fetchClient = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientDetailsById/${id}`
+        `${baseURL}/auth/api/calculator/getClientDetailsById/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (res.data.status === "Success") {
         console.log(res.data.data);
@@ -39,6 +74,19 @@ const History = () => {
       }
     } catch (error) {
       console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
 
@@ -50,6 +98,28 @@ const History = () => {
     fetchClient();
     fetchAllClientServices();
   }, []);
+
+  const filteredItems = fetchServices.filter((row) => {
+    const matchesKeyword =
+      row?.txn_id &&
+      row.txn_id.toLowerCase().includes(keyword.trim().toLowerCase());
+
+    return matchesKeyword;
+  });
+
+  const totalPages = Math.ceil(filteredItems.length / clientPerPage);
+
+  const filterPagination = () => {
+    const startIndex = currentPage * clientPerPage;
+    const endIndex = startIndex + clientPerPage;
+    return filteredItems?.slice(startIndex, endIndex);
+  };
+
+  const handlePageChange = ({ selected }) => {
+    setCurrentPage(selected);
+  };
+
+  const showApiData = filterPagination();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -89,8 +159,13 @@ const History = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-hover:text-cyan-400 transition-colors" />
               <input
                 type="text"
+                value={keyword}
                 placeholder="Search history..."
                 className="w-full sm:w-auto pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 backdrop-blur-sm hover:bg-gray-700/50 transition-all text-sm"
+                onChange={(e) => {
+                  setKeyword(e.target.value);
+                  setCurrentPage(0);
+                }}
               />
             </div>
           </div>
@@ -127,8 +202,8 @@ const History = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {fetchServices.length > 0 ? (
-                    fetchServices.map((item, index) => (
+                  {showApiData.length > 0 ? (
+                    showApiData.map((item, index) => (
                       <tr
                         key={item.id}
                         className="border-b border-gray-700/30 hover:bg-gray-700/20 transition-all duration-300 group"
@@ -186,6 +261,20 @@ const History = () => {
             </div>
           </div>
         </div>
+        <PaginationContainer>
+          <ReactPaginate
+            previousLabel={"Previous"}
+            nextLabel={"Next"}
+            breakLabel={"..."}
+            pageCount={totalPages}
+            marginPagesDisplayed={2}
+            pageRangeDisplayed={5}
+            onPageChange={handlePageChange}
+            containerClassName={"pagination"}
+            activeClassName={"active"}
+            forcePage={currentPage}
+          />
+        </PaginationContainer>
 
         {/* Stats Section */}
         {/* <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl p-8">
@@ -227,3 +316,89 @@ const History = () => {
 };
 
 export default History;
+const PaginationContainer = styled.div`
+  .pagination {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    list-style: none;
+    border-radius: 5px;
+  }
+
+  .pagination li {
+    margin: 0 5px;
+  }
+
+  .pagination li a {
+    display: block;
+    padding: 8px 16px;
+    border: 1px solid #e6ecf1;
+    color: #a73418;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 5px;
+    box-shadow: 0px 0px 1px #000;
+    font-size: 14px; /* Default font size */
+  }
+
+  .pagination li.active a {
+    background-color: #fef9c3;
+    color: #d7a548;
+    border: 1px solid #fef9c3;
+  }
+
+  .pagination li.disabled a {
+    color: #166556;
+    cursor: not-allowed;
+    background-color: #dcfce7;
+    border: 1px solid #dcfce7;
+  }
+
+  .pagination li a:hover:not(.active) {
+    background-color: #dcfce7;
+    color: #166556;
+  }
+
+  /* Responsive adjustments for smaller screens */
+  @media (max-width: 768px) {
+    .pagination {
+      padding: 5px;
+      flex-wrap: wrap;
+    }
+
+    .pagination li {
+      margin: 2px;
+    }
+
+    .pagination li a {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .pagination {
+      padding: 5px;
+    }
+
+    .pagination li {
+      margin: 2px;
+    }
+
+    .pagination li a {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+
+    /* Hide the previous and next labels for extra-small screens */
+    .pagination li:first-child a::before {
+      content: "«";
+      margin-right: 5px;
+    }
+
+    .pagination li:last-child a::after {
+      content: "»";
+      margin-left: 5px;
+    }
+  }
+`;

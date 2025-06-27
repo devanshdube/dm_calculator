@@ -16,6 +16,7 @@ const {
   addEditingTypes,
   saveCalculatorData,
   saveAdsCampaign,
+  registerBD,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -46,9 +47,12 @@ const {
   updateEditingType,
 } = require("../controller/updateController");
 
+const authenticateToken = require("../middleware/authenticateToken");
+
 const router = express.Router();
 
 router.post("/register", register);
+router.post("/registerBD", authenticateToken, registerBD);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 // router.post("/insertServices", insertServices);
@@ -66,25 +70,36 @@ router.post("/saveCalculatorData", saveCalculatorData);
 router.post("/saveAdsCampaign", saveAdsCampaign);
 
 // ---->  Get all routes START <----
-router.get("/getAddServices", getAddServices);
+router.get("/getAddServices", authenticateToken, getAddServices);
 router.get("/categories/:service_id", getAddCategories);
 router.get("/getAddEditingTypes/:service/:category", getAddEditingTypes);
-router.get("/api/services/details/all", getAllServiceData);
-router.get("/getAdsServices", getAdsServices);
+router.get("/api/services/details/all", authenticateToken, getAllServiceData);
+router.get("/getAdsServices", authenticateToken, getAdsServices);
 router.get("/services/category/editing", getAllServiceDatas);
 router.get("/getCalculatorTransactions", getCalculatorTransactions);
 router.get(
   "/getByIDCalculatorTransactions/:txn_id/:client_id",
+  authenticateToken,
   getByIDCalculatorTransactions
 );
 router.get(
   "/getByIDAdsCampaignDetails/:txn_id/:client_id",
+  authenticateToken,
   getByIDAdsCampaignDetails
 );
-router.get("/getClientDetailsById/:id", getClientDetailsById);
-router.get("/getClientTxnHistory/:client_id", getClientTxnHistory);
+router.get(
+  "/getClientDetailsById/:id",
+  authenticateToken,
+  getClientDetailsById
+);
+router.get(
+  "/getClientTxnHistory/:client_id",
+  authenticateToken,
+  getClientTxnHistory
+);
 router.get(
   "/getClientServiceHistory/:client_id/:txn_id",
+  authenticateToken,
   getClientServiceHistory
 );
 

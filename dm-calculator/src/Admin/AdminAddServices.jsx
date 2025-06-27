@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { useDispatch, useSelector } from "react-redux";
+import { clearUser } from "../redux/user/userSlice";
+import { useNavigate } from "react-router-dom";
 
 const AdminAddServices = () => {
   const baseURL = "http://localhost:5555";
+  const { token } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [serviceName, setServiceName] = useState("");
   const [categoryName, setCategoryName] = useState("");
   const [editingTypeName, setEditingTypeName] = useState("");
   const [editingTypeAmount, setEditingTypeAmount] = useState("");
-
   const [services, setServices] = useState([]);
   const [selectedServiceId, setSelectedServiceId] = useState("");
-
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
 
@@ -25,25 +29,62 @@ const AdminAddServices = () => {
   const fetchServices = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getAddServices`
+        `${baseURL}/auth/api/calculator/getAddServices`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setServices(res.data.data);
-    } catch (err) {
-      console.log("Error fetching services:", err);
-
+    } catch (error) {
+      console.log("Error fetching services:", error);
       Swal.fire("Error", "Failed to fetch services", "error");
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
 
   const fetchCategories = async (service_id) => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/categories/${service_id}`
+        `${baseURL}/auth/api/calculator/categories/${service_id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setCategories(res.data.data);
-    } catch (err) {
-      console.log("Error fetching categories:", err);
+    } catch (error) {
+      console.log("Error fetching categories:", error);
       // Swal.fire("Error", "Failed to fetch categories", "error");
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
 
@@ -126,7 +167,7 @@ const AdminAddServices = () => {
     <>
       <div className="max-w-4xl mx-auto p-6 space-y-10">
         <div className="lg:col-span-2 space-y-10">
-          <h2 className="text-3xl font-bold text-center text-gray-800">
+          <h2 className="text-3xl font-bold text-center text-gray-300">
             🎛️ Graphic Service Management Panel
           </h2>
 

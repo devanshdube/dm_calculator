@@ -71,6 +71,74 @@ exports.register = async (req, res) => {
   }
 };
 
+exports.registerBD = async (req, res) => {
+  const { employee_name, employee_email, employee_password } = req.body;
+
+  const employee_role = "BD"; // 🔐 Forcefully assign role as BD
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  if (!employee_name || !employee_email || !employee_password) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "All fields are required.",
+    });
+  }
+
+  try {
+    db.query(
+      "SELECT * FROM dm_calculator_employees WHERE employee_email = ? OR employee_name = ?",
+      [employee_email, employee_name],
+      async (err, results) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Database error", error: err });
+        }
+
+        if (results.length > 0) {
+          return res.status(409).json({
+            status: "Failure",
+            message: "DOAGuru User already registered.",
+          });
+        }
+
+        const hashedPassword = await bcrypt.hash(employee_password, 10);
+
+        db.query(
+          "INSERT INTO dm_calculator_employees (employee_name, employee_role, employee_email, employee_password, created_at) VALUES (?, ?, ?, ?, ?)",
+          [
+            employee_name,
+            employee_role, // 👈 This will always be 'BD'
+            employee_email,
+            hashedPassword,
+            createdAt,
+          ],
+          (err, result) => {
+            if (err) {
+              return res.status(500).json({
+                status: "Failure",
+                message: "DB error",
+                error: err,
+              });
+            }
+
+            res.status(201).json({
+              status: "Success",
+              message: "DOAGuru User registered Successfully",
+            });
+          }
+        );
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
 exports.login = async (req, res) => {
   const { employee_email, employee_password } = req.body;
   const JWT_SECRET = process.env.JWT_SECRET;
@@ -113,12 +181,23 @@ exports.login = async (req, res) => {
       }
 
       const payload = {
+        id: user.id,
         name: user.employee_name,
         role: user.employee_role,
         email: user.employee_email,
       };
 
-      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
+      // const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" });
+
+      const token = jwt.sign(
+        {
+          id: user.id,
+          name: user.employee_name,
+          role: user.employee_role,
+        },
+        JWT_SECRET,
+        { expiresIn: "1h" }
+      );
 
       return res.json({
         status: "Success",
@@ -430,7 +509,12 @@ exports.updateAdsServices = async (req, res) => {
       .json({ status: "Failure", message: "All fields are required." });
   }
 
-  if (isNaN(amt_range_start) || isNaN(amt_range_end) || isNaN(percentage)) {
+  // if (isNaN(amt_range_start) || isNaN(amt_range_end) || isNaN(percentage)) {
+  if (
+    isNaN(amt_range_start) ||
+    (amt_range_end !== "Above" && isNaN(amt_range_end)) ||
+    isNaN(percentage)
+  ) {
     return res.status(400).json({
       status: "Failure",
       message: "Amount ranges and percentage must be numbers.",

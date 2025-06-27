@@ -3,6 +3,10 @@ import axios from "axios";
 import { Calendar, Search, Filter } from "lucide-react";
 import ReactPaginate from "react-paginate";
 import styled from "styled-components";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { clearUser } from "../redux/user/userSlice";
 
 const AdminServicesHistory = () => {
   const baseURL = "http://localhost:5555";
@@ -10,11 +14,21 @@ const AdminServicesHistory = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const clientPerPage = 7;
   const [serviceData, setServiceData] = useState([]);
+  const { currentUser, token } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  console.log(currentUser);
+  console.log(token);
 
   const fetchData = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/api/services/details/all`
+        `${baseURL}/auth/api/calculator/api/services/details/all`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (res.data.status === "Success") {
         console.log(res.data.data);
@@ -22,6 +36,19 @@ const AdminServicesHistory = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
 
@@ -98,7 +125,7 @@ const AdminServicesHistory = () => {
     <>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Services History</h2>
+          <h2 className="text-2xl font-bold text-gray-300">Services History</h2>
           <div className="flex gap-3">
             {/* <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />

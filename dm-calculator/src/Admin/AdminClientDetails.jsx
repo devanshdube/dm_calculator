@@ -10,22 +10,19 @@ import {
   X,
   Building,
 } from "lucide-react";
-// import { useDispatch, useSelector } from "react-redux";
-import { useSelector } from "react-redux";
-// import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
 import ReactPaginate from "react-paginate";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
-// import { useLocation } from "react-router-dom";
 import AdminCalculator from "./AdminCalculator";
+import { clearUser } from "../redux/user/userSlice";
 
 const AdminClientDetails = () => {
   const baseURL = `http://localhost:5555`;
   const navigate = useNavigate();
-  // const location = useLocation();
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const employeeName = currentUser?.name;
   const [selectedClient, setSelectedClient] = useState(null);
@@ -124,7 +121,6 @@ const AdminClientDetails = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
           },
         }
       );
@@ -136,6 +132,19 @@ const AdminClientDetails = () => {
         title: "Error",
         text: "Failed to fetch clients. Please try again.",
       });
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
 
@@ -182,7 +191,7 @@ const AdminClientDetails = () => {
 
   return (
     <>
-      <div className="space-y-6">
+      {/* <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-900">Client Details</h2>
           <div className="flex gap-3">
@@ -207,9 +216,38 @@ const AdminClientDetails = () => {
               Add Client
             </button>
           </div>
+        </div> */}
+      <div className="p-4 md:p-6 space-y-6 bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <h2 className="text-3xl font-semibold text-gray-800">
+            Client Details
+          </h2>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="search"
+                value={keyword}
+                placeholder="Search clients..."
+                className="w-full sm:w-auto pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
+                onChange={(e) => {
+                  setKeyword(e.target.value);
+                  setCurrentPage(0);
+                }}
+              />
+            </div>
+            <button
+              onClick={handleShow}
+              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md transition"
+            >
+              <Plus className="w-4 h-4" />
+              Add Client
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6"> */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="p-6">
@@ -260,18 +298,6 @@ const AdminClientDetails = () => {
                               </div>
                             </div>
                           </div>
-                          {/* <div className="text-right">
-                          <span
-                            className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                              client.status
-                            )}`}
-                          >
-                            {client.status}
-                          </span>
-                          <p className="text-lg font-bold text-gray-900 mt-2">
-                            {client.value}
-                          </p>
-                        </div> */}
                         </div>
                       </div>
                     ))
@@ -328,28 +354,9 @@ const AdminClientDetails = () => {
                       <MapPin className="w-5 h-5 text-gray-500" />
                       <span className="text-sm">{selectedClient.address}</span>
                     </div>
-                    {/* <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium">Status:</span>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          selectedClient.status
-                        )}`}
-                      >
-                        {selectedClient.status}
-                      </span>
-                    </div> */}
-                    {/* <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium">Total Value:</span>
-                      <span className="font-bold text-lg">
-                        {selectedClient.value}
-                      </span>
-                    </div> */}
                   </div>
                   <div className="mt-6 space-y-2">
                     <button
-                      // onClick={() =>
-                      //   navigate(`/admin/ServicesLanding/${selectedClient.id}`)
-                      // }
                       onClick={handleCreateProposal}
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
@@ -608,3 +615,38 @@ const PaginationContainer = styled.div`
     }
   }
 `;
+
+{
+  /* <div className="text-right">
+                          <span
+                            className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              client.status
+                            )}`}
+                          >
+                            {client.status}
+                          </span>
+                          <p className="text-lg font-bold text-gray-900 mt-2">
+                            {client.value}
+                          </p>
+                        </div> */
+}
+{
+  /* <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium">Status:</span>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          selectedClient.status
+                        )}`}
+                      >
+                        {selectedClient.status}
+                      </span>
+                    </div> */
+}
+{
+  /* <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium">Total Value:</span>
+                      <span className="font-bold text-lg">
+                        {selectedClient.value}
+                      </span>
+                    </div> */
+}

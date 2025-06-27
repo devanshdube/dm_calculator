@@ -16,6 +16,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import Swal from "sweetalert2";
+import { clearUser } from "../redux/user/userSlice";
 
 export default function ServicesLanding() {
   const baseURL = `http://localhost:5555`;
@@ -24,7 +27,8 @@ export default function ServicesLanding() {
   const [getData, setGetData] = useState([]);
   const [getAdsData, setGetAdsData] = useState([]);
   const [clientData, setClientData] = useState([]);
-
+  const { token } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
   console.log(id, proposalId);
 
   //   const [hoveredCard, setHoveredCard] = useState(null);
@@ -87,7 +91,12 @@ export default function ServicesLanding() {
   const fetchClient = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientDetailsById/${id}`
+        `${baseURL}/auth/api/calculator/getClientDetailsById/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (res.data.status === "Success") {
         console.log(res.data.data);
@@ -95,22 +104,53 @@ export default function ServicesLanding() {
       }
     } catch (error) {
       console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
 
   console.log(clientData);
-  const clientName = clientData.client_name;
+  const clientName = clientData?.client_name;
 
   const fetchData = async () => {
     if (!id || !proposalId) return;
     try {
       const { data } = await axios.get(
-        `${baseURL}/auth/api/calculator/getByIDCalculatorTransactions/${proposalId}/${id}`
+        `${baseURL}/auth/api/calculator/getByIDCalculatorTransactions/${proposalId}/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       console.log(data.data);
       setGetData(data.data);
     } catch (error) {
       console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
 
@@ -118,7 +158,12 @@ export default function ServicesLanding() {
     if (!id || !proposalId) return;
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getByIDAdsCampaignDetails/${proposalId}/${id}`
+        `${baseURL}/auth/api/calculator/getByIDAdsCampaignDetails/${proposalId}/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (res.data.status === "Success") {
         console.log(res.data);
@@ -126,6 +171,19 @@ export default function ServicesLanding() {
       }
     } catch (error) {
       console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
 
