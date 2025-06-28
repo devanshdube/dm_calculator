@@ -535,3 +535,50 @@ exports.getClientServiceHistory = async (req, res) => {
     });
   });
 };
+
+// >>>>>>>>>> BD GET API's <<<<<<<<<<<
+
+exports.getClientDetailsEmp = async (req, res) => {
+  const dg_employee = req.params.dg_employee;
+
+  try {
+    if (!dg_employee) {
+      return res.status(400).json({
+        status: "Failure",
+        message: "Missing employee route parameter",
+      });
+    }
+
+    db.query(
+      "SELECT * FROM dm_calculator_client_details WHERE dg_employee = ? ORDER BY id DESC",
+      [dg_employee],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No client details found for the given employee",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};

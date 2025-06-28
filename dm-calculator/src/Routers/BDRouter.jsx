@@ -1,14 +1,20 @@
 import React, { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useSelector } from "react-redux";
+// import { useSelector } from "react-redux";
 import styled from "styled-components";
-
+const QuotationBD = lazy(() => import("../BusinessDeveloper/QuotationBD"));
+const AdsCampaignCalciBD = lazy(() =>
+  import("../BusinessDeveloper/AdsCampaignCalciBD")
+);
+const AddService = lazy(() => import("../BusinessDeveloper/AddService"));
+const HistoryBD = lazy(() => import("../BusinessDeveloper/HistoryBD"));
+const CalculatorBD = lazy(() => import("../BusinessDeveloper/CalculatorBD"));
 const BusinessDeveloperDashboard = lazy(() =>
   import("../BusinessDeveloper/BusinessDeveloperDashboard")
 );
 
 const BDRouter = () => {
-  const { currentUser } = useSelector((state) => state.user);
+  // const { currentUser } = useSelector((state) => state.user);
   return (
     <>
       <Wrapper>
@@ -23,16 +29,18 @@ const BDRouter = () => {
           }
         >
           <Routes>
+            <Route path="dashboard" element={<BusinessDeveloperDashboard />} />
+            <Route path="AddService/:id/:proposalId" element={<AddService />} />
+            <Route path="client/service/history/:id" element={<HistoryBD />} />
             <Route
-              path="dashboard"
-              element={
-                currentUser?.role === "BD" ? (
-                  <BusinessDeveloperDashboard />
-                ) : (
-                  <Navigate to="/" />
-                )
-              }
+              path="calculator/:id/:proposalId"
+              element={<CalculatorBD />}
             />
+            <Route
+              path="Adscalculator/:id/:proposalId"
+              element={<AdsCampaignCalciBD />}
+            />
+            <Route path="quotation/:id/:txn_id" element={<QuotationBD />} />
           </Routes>
         </Suspense>
       </Wrapper>

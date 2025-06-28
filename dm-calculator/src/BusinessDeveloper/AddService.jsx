@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 
-export default function ServicesLanding() {
+export default function AddService() {
   const baseURL = `https://dm.calculator.one-realty.in`;
   const navigate = useNavigate();
   const { id, proposalId } = useParams();
@@ -43,7 +43,7 @@ export default function ServicesLanding() {
       icon: Palette,
       gradient: "from-slate-600 to-gray-700",
       bgPattern: "bg-gradient-to-br from-slate-50 to-gray-50",
-      navigation: "/admin/calculator",
+      navigation: "/BD/calculator",
       features: [
         "Logo Design",
         "Brand Identity",
@@ -61,7 +61,7 @@ export default function ServicesLanding() {
       icon: Megaphone,
       gradient: "from-blue-600 to-slate-700",
       bgPattern: "bg-gradient-to-br from-blue-50 to-slate-50",
-      navigation: "/admin/Adscalculator",
+      navigation: "/BD/Adscalculator",
       features: [
         "Social Media Ads",
         "Google Ads",
@@ -242,7 +242,7 @@ export default function ServicesLanding() {
         <div className="mb-12">
           {/* Back Button */}
           <button
-            onClick={() => navigate("/admin/dashboard")}
+            onClick={() => navigate("/BD/dashboard")}
             className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 group"
           >
             <ArrowLeft className="w-5 h-5 transform transition-transform group-hover:-translate-x-1" />

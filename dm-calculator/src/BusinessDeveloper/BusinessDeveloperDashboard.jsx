@@ -1,573 +1,53 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   User,
-  Phone,
-  Mail,
-  MapPin,
-  Calendar,
   Clock,
   CheckCircle,
-  XCircle,
   Plus,
-  Search,
-  Filter,
   LogOut,
+  Menu,
+  X,
+  ShieldPlus,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 import ClientDetails from "./ClientDetails";
+// const RegisterBD = lazy(() => import("./RegisterBD"));
+// const AdminClientDetails = lazy(() => import("./AdminClientDetails"));
+// const AdminAddServices = lazy(() => import("./AdminAddServices"));
+// const AdminServicesHistory = lazy(() => import("./AdminServicesHistory"));
+// const AdminAdsCampign = lazy(() => import("./AdminAdsCampign"));
+// // const AdminCalculator = lazy(() => import("./AdminCalculator"));
 
 const BusinessDeveloperDashboard = () => {
-  const [activeTab, setActiveTab] = useState("clients");
-  // const [selectedClient, setSelectedClient] = useState(null);
-  const [selectedService, setSelectedService] = useState("");
-  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
-  const userName = currentUser?.name;
+  const [activeTab, setActiveTab] = useState("clients");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Sample data
-  const clients = [
-    {
-      id: 1,
-      name: "Acme Corporation",
-      contact: "John Smith",
-      email: "john@acme.com",
-      phone: "+1 (555) 123-4567",
-      location: "New York, NY",
-      status: "Active",
-      lastContact: "2024-06-05",
-      value: "$125,000",
-    },
-    {
-      id: 2,
-      name: "TechStart Inc",
-      contact: "Sarah Wilson",
-      email: "sarah@techstart.com",
-      phone: "+1 (555) 987-6543",
-      location: "San Francisco, CA",
-      status: "Prospect",
-      lastContact: "2024-06-03",
-      value: "$85,000",
-    },
-    {
-      id: 3,
-      name: "Global Solutions",
-      contact: "Mike Johnson",
-      email: "mike@globalsol.com",
-      phone: "+1 (555) 456-7890",
-      location: "Chicago, IL",
-      status: "Active",
-      lastContact: "2024-06-01",
-      value: "$200,000",
-    },
-  ];
-
-  const services = [
-    {
-      id: 1,
-      name: "Web Development",
-      price: "$5,000 - $25,000",
-      duration: "4-12 weeks",
-    },
-    {
-      id: 2,
-      name: "Mobile App Development",
-      price: "$10,000 - $50,000",
-      duration: "8-20 weeks",
-    },
-    {
-      id: 3,
-      name: "Digital Marketing",
-      price: "$2,000 - $10,000",
-      duration: "3-6 months",
-    },
-    {
-      id: 4,
-      name: "Brand Identity Design",
-      price: "$3,000 - $15,000",
-      duration: "3-8 weeks",
-    },
-    {
-      id: 5,
-      name: "E-commerce Solution",
-      price: "$8,000 - $35,000",
-      duration: "6-16 weeks",
-    },
-    {
-      id: 6,
-      name: "Consulting Services",
-      price: "$150 - $300/hour",
-      duration: "Ongoing",
-    },
-  ];
-
-  const history = [
-    {
-      id: 1,
-      date: "2024-06-05",
-      client: "Acme Corporation",
-      action: "Service Delivered",
-      service: "Web Development",
-      status: "Completed",
-      amount: "$15,000",
-    },
-    {
-      id: 2,
-      date: "2024-06-04",
-      client: "TechStart Inc",
-      action: "Proposal Sent",
-      service: "Mobile App Development",
-      status: "Pending",
-      amount: "$25,000",
-    },
-    {
-      id: 3,
-      date: "2024-06-03",
-      client: "Global Solutions",
-      action: "Contract Signed",
-      service: "Digital Marketing",
-      status: "Active",
-      amount: "$8,000",
-    },
-    {
-      id: 4,
-      date: "2024-06-02",
-      client: "Acme Corporation",
-      action: "Meeting Scheduled",
-      service: "Brand Identity Design",
-      status: "Scheduled",
-      amount: "$12,000",
-    },
-    {
-      id: 5,
-      date: "2024-06-01",
-      client: "TechStart Inc",
-      action: "Initial Contact",
-      service: "E-commerce Solution",
-      status: "Follow-up",
-      amount: "$30,000",
-    },
-  ];
-
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "prospect":
-        return "bg-blue-100 text-blue-800";
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "scheduled":
-        return "bg-purple-100 text-purple-800";
-      case "follow-up":
-        return "bg-orange-100 text-orange-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  useEffect(() => {
+    const savedTab = localStorage.getItem("activeTab");
+    if (savedTab) {
+      setActiveTab(savedTab);
     }
+  }, []);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    localStorage.setItem("activeTab", tabId);
+    setMobileMenuOpen(false); // Close mobile menu on tab change
   };
 
-  // const ClientDetails = () => (
-  //   <div className="space-y-6">
-  //     <div className="flex justify-between items-center">
-  //       <h2 className="text-2xl font-bold text-gray-900">Client Details</h2>
-  //       <div className="flex gap-3">
-  //         <div className="relative">
-  //           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-  //           <input
-  //             type="text"
-  //             placeholder="Search clients..."
-  //             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-  //           />
-  //         </div>
-  //         <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-  //           <Plus className="w-4 h-4" />
-  //           Add Client
-  //         </button>
-  //       </div>
-  //     </div>
-
-  //     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-  //       <div className="lg:col-span-2">
-  //         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-  //           <div className="p-6">
-  //             <h3 className="text-lg font-semibold mb-4">All Clients</h3>
-  //             <div className="space-y-4">
-  //               {clients.map((client) => (
-  //                 <div
-  //                   key={client.id}
-  //                   className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-  //                     selectedClient?.id === client.id
-  //                       ? "border-blue-500 bg-blue-50"
-  //                       : "border-gray-200"
-  //                   }`}
-  //                   onClick={() => setSelectedClient(client)}
-  //                 >
-  //                   <div className="flex justify-between items-start">
-  //                     <div className="flex-1">
-  //                       <div className="flex items-center gap-3 mb-2">
-  //                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-  //                           <User className="w-5 h-5 text-white" />
-  //                         </div>
-  //                         <div>
-  //                           <h4 className="font-semibold text-gray-900">
-  //                             {client.name}
-  //                           </h4>
-  //                           <p className="text-sm text-gray-600">
-  //                             {client.contact}
-  //                           </p>
-  //                         </div>
-  //                       </div>
-  //                       <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-  //                         <div className="flex items-center gap-2">
-  //                           <Mail className="w-4 h-4" />
-  //                           {client.email}
-  //                         </div>
-  //                         <div className="flex items-center gap-2">
-  //                           <Phone className="w-4 h-4" />
-  //                           {client.phone}
-  //                         </div>
-  //                         <div className="flex items-center gap-2">
-  //                           <MapPin className="w-4 h-4" />
-  //                           {client.location}
-  //                         </div>
-  //                         <div className="flex items-center gap-2">
-  //                           <Calendar className="w-4 h-4" />
-  //                           Last contact: {client.lastContact}
-  //                         </div>
-  //                       </div>
-  //                     </div>
-  //                     <div className="text-right">
-  //                       <span
-  //                         className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-  //                           client.status
-  //                         )}`}
-  //                       >
-  //                         {client.status}
-  //                       </span>
-  //                       <p className="text-lg font-bold text-gray-900 mt-2">
-  //                         {client.value}
-  //                       </p>
-  //                     </div>
-  //                   </div>
-  //                 </div>
-  //               ))}
-  //             </div>
-  //           </div>
-  //         </div>
-  //       </div>
-
-  //       <div className="lg:col-span-1">
-  //         {selectedClient ? (
-  //           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-  //             <div className="p-6">
-  //               <h3 className="text-lg font-semibold mb-4">Client Profile</h3>
-  //               <div className="text-center mb-6">
-  //                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-  //                   <User className="w-10 h-10 text-white" />
-  //                 </div>
-  //                 <h4 className="font-bold text-xl text-gray-900">
-  //                   {selectedClient.name}
-  //                 </h4>
-  //                 <p className="text-gray-600">{selectedClient.contact}</p>
-  //               </div>
-  //               <div className="space-y-4">
-  //                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-  //                   <Mail className="w-5 h-5 text-gray-500" />
-  //                   <span className="text-sm">{selectedClient.email}</span>
-  //                 </div>
-  //                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-  //                   <Phone className="w-5 h-5 text-gray-500" />
-  //                   <span className="text-sm">{selectedClient.phone}</span>
-  //                 </div>
-  //                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-  //                   <MapPin className="w-5 h-5 text-gray-500" />
-  //                   <span className="text-sm">{selectedClient.location}</span>
-  //                 </div>
-  //                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-  //                   <span className="text-sm font-medium">Status:</span>
-  //                   <span
-  //                     className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-  //                       selectedClient.status
-  //                     )}`}
-  //                   >
-  //                     {selectedClient.status}
-  //                   </span>
-  //                 </div>
-  //                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-  //                   <span className="text-sm font-medium">Total Value:</span>
-  //                   <span className="font-bold text-lg">
-  //                     {selectedClient.value}
-  //                   </span>
-  //                 </div>
-  //               </div>
-  //               <div className="mt-6 space-y-2">
-  //                 <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-  //                   Schedule Meeting
-  //                 </button>
-  //                 <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-  //                   Send Proposal
-  //                 </button>
-  //               </div>
-  //             </div>
-  //           </div>
-  //         ) : (
-  //           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-  //             <div className="text-center text-gray-500">
-  //               <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
-  //               <p>Select a client to view details</p>
-  //             </div>
-  //           </div>
-  //         )}
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
-
-  const SelectService = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Select Service</h2>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Add Service
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map((service) => (
-          <div
-            key={service.id}
-            className={`bg-white rounded-xl shadow-sm border-2 cursor-pointer transition-all hover:shadow-lg transform hover:-translate-y-1 ${
-              selectedService === service.name
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200"
-            }`}
-            onClick={() => setSelectedService(service.name)}
-          >
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-white" />
-                </div>
-                {selectedService === service.name && (
-                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-4 h-4 text-white" />
-                  </div>
-                )}
-              </div>
-              <h3 className="font-bold text-lg text-gray-900 mb-2">
-                {service.name}
-              </h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Price:</span>
-                  <span>{service.price}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>{service.duration}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {selectedService && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold mb-4">Service Configuration</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Selected Service
-              </label>
-              <input
-                type="text"
-                value={selectedService}
-                readOnly
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Client
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Select Client</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start Date
-              </label>
-              <input
-                type="date"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Budget
-              </label>
-              <input
-                type="text"
-                placeholder="Enter budget"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notes
-              </label>
-              <textarea
-                rows="3"
-                placeholder="Add any additional notes or requirements..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              ></textarea>
-            </div>
-          </div>
-          <div className="mt-6 flex gap-3">
-            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Create Proposal
-            </button>
-            <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-              Save Draft
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const History = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">History</h2>
-        <div className="flex gap-3">
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <select className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              <option>All Activities</option>
-              <option>Completed</option>
-              <option>Pending</option>
-              <option>Active</option>
-            </select>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search history..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
-                    Date
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
-                    Client
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
-                    Action
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
-                    Service
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
-                    Status
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4" />
-                        {item.date}
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="font-medium text-gray-900">
-                        {item.client}
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="text-gray-700">{item.action}</div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="text-gray-700">{item.service}</div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          item.status
-                        )}`}
-                      >
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="font-bold text-gray-900">
-                        {item.amount}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-1">12</div>
-            <div className="text-sm text-gray-600">Total Clients</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-green-600 mb-1">8</div>
-            <div className="text-sm text-gray-600">Active Projects</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-1">$485K</div>
-            <div className="text-sm text-gray-600">Total Revenue</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-orange-600 mb-1">24</div>
-            <div className="text-sm text-gray-600">Completed Projects</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const tabs = [
+    { id: "clients", label: "Client Details", icon: User },
+    // { id: "AddADSCamp", label: "Add Ads Campaigns", icon: CheckCircle },
+    // { id: "AddServices", label: "Add Graphic Services", icon: Plus },
+    // { id: "servicehistory", label: "Graphic Service History", icon: Clock },
+    // { id: "registerbd", label: "Register BD", icon: ShieldPlus },
+  ];
 
   const handleLogout = () => {
     Swal.fire({
@@ -593,62 +73,84 @@ const BusinessDeveloperDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <header className="relative z-10 bg-gray-800/30 backdrop-blur-xl border-b border-gray-700/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Business Developer Dashboard
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                Developer Dashboard
               </h1>
-              <p className="text-gray-600">
-                Manage clients, services, and track your business development
-                activities
-              </p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <div className="text-sm text-gray-600">Welcome back,</div>
-                <div className="font-semibold text-gray-900">{userName}</div>
+
+            <div className="flex items-center gap-3 sm:gap-4">
+              {/* User Info - Hidden on small screens */}
+              <div className="hidden sm:block text-right">
+                <div className="text-xs sm:text-sm text-gray-400">
+                  Welcome back,
+                </div>
+                <div className="font-semibold text-white text-sm sm:text-base">
+                  {currentUser.name}
+                </div>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
+
+              {/* Avatar */}
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
+
+              {/* Logout Button - Hidden on mobile */}
               <button
-                onClick={() => handleLogout()}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                onClick={handleLogout}
+                className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gray-700/50 hover:bg-gray-600/50 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 backdrop-blur-sm"
               >
                 <LogOut className="w-4 h-4" />
-                Logout
+                <span className="hidden lg:inline">Logout</span>
+              </button>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-xl transition-colors"
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Navigation Tabs */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex space-x-8">
-            {[
-              { id: "clients", label: "Client Details", icon: User },
-              { id: "services", label: "Select Service", icon: CheckCircle },
-              { id: "history", label: "History", icon: Clock },
-            ].map((tab) => {
+      {/* Navigation Tabs - Desktop */}
+      <nav className="hidden lg:block relative z-10 bg-gray-800/20 backdrop-blur-xl border-b border-gray-700/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-6 xl:space-x-8">
+            {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-300 ${
                     activeTab === tab.id
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      ? "border-purple-500 text-purple-400 bg-purple-500/10"
+                      : "border-transparent text-gray-400 hover:text-white hover:border-gray-600"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  {tab.label}
+                  <span className="hidden xl:inline">{tab.label}</span>
+                  <span className="xl:hidden">{tab.label.split(" ")[0]}</span>
                 </button>
               );
             })}
@@ -656,12 +158,79 @@ const BusinessDeveloperDashboard = () => {
         </div>
       </nav>
 
+      {/* Mobile Navigation Menu */}
+      <div
+        className={`lg:hidden relative z-20 ${
+          mobileMenuOpen ? "block" : "hidden"
+        }`}
+      >
+        <div className="bg-gray-800/95 backdrop-blur-xl border-b border-gray-700/50">
+          <div className="max-w-7xl mx-auto px-4 py-4 space-y-2">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`w-full flex items-center gap-3 py-3 px-4 rounded-xl font-medium text-sm transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                      : "text-gray-300 hover:text-white hover:bg-gray-700/50"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  {tab.label}
+                </button>
+              );
+            })}
+
+            {/* Mobile Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 py-3 px-4 rounded-xl font-medium text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-300 border-t border-gray-700/50 mt-4 pt-4"
+            >
+              <LogOut className="w-5 h-5" />
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {activeTab === "clients" && <ClientDetails />}
-        {activeTab === "services" && <SelectService />}
-        {activeTab === "history" && <History />}
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div className="transition-all duration-300 ease-in-out">
+          {activeTab === "clients" && <ClientDetails />}
+          {/* {activeTab === "registerbd" && <RegisterBD />}
+          {activeTab === "AddADSCamp" && <AdminAdsCampign />}
+          {activeTab === "AddServices" && <AdminAddServices />}
+          {activeTab === "servicehistory" && <AdminServicesHistory />} */}
+        </div>
       </main>
+
+      {/* Mobile Bottom Navigation (Alternative) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-gray-800/95 backdrop-blur-xl border-t border-gray-700/50">
+        <div className="flex justify-around py-2">
+          {tabs.slice(0, 4).map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all duration-300 ${
+                  activeTab === tab.id
+                    ? "text-purple-400 bg-purple-500/20"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-xs font-medium">
+                  {tab.label.split(" ")[0]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };

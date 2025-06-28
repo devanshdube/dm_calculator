@@ -20,7 +20,7 @@ import AdminCalculator from "./AdminCalculator";
 import { clearUser } from "../redux/user/userSlice";
 
 const AdminClientDetails = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dm.calculator.one-realty.in`;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
@@ -152,7 +152,7 @@ const AdminClientDetails = () => {
     getAllClients();
   }, []);
 
-  //   console.log("getClients:", getClients);
+  // console.log("getClients:", getClients);
 
   const filteredItems = getClients.filter((row) => {
     const matchesKeyword =

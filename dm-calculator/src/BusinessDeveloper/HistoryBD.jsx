@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
 
-const History = () => {
+const HistoryBD = () => {
   const baseURL = `https://dm.calculator.one-realty.in`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
@@ -236,7 +236,7 @@ const History = () => {
                           <button
                             onClick={() =>
                               navigate(
-                                `/admin/quotation/${item.client_id}/${item.txn_id}`
+                                `/BD/quotation/${item.client_id}/${item.txn_id}`
                               )
                             }
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
@@ -275,47 +275,12 @@ const History = () => {
             forcePage={currentPage}
           />
         </PaginationContainer>
-
-        {/* Stats Section */}
-        {/* <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl p-8">
-          <h3 className="text-2xl font-bold text-white mb-6 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-            Quick Stats
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center p-6 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl border border-blue-500/30 hover:from-blue-500/30 hover:to-cyan-500/30 transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
-                12
-              </div>
-              <div className="text-gray-300 font-medium">Total Clients</div>
-            </div>
-            <div className="text-center p-6 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl border border-green-500/30 hover:from-green-500/30 hover:to-emerald-500/30 transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-2">
-                8
-              </div>
-              <div className="text-gray-300 font-medium">Active Projects</div>
-            </div>
-            <div className="text-center p-6 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl border border-purple-500/30 hover:from-purple-500/30 hover:to-violet-500/30 transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-violet-400 bg-clip-text text-transparent mb-2">
-                $485K
-              </div>
-              <div className="text-gray-300 font-medium">Total Revenue</div>
-            </div>
-            <div className="text-center p-6 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl border border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30 transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent mb-2">
-                24
-              </div>
-              <div className="text-gray-300 font-medium">
-                Completed Projects
-              </div>
-            </div>
-          </div>
-        </div> */}
       </div>
     </div>
   );
 };
 
-export default History;
+export default HistoryBD;
 const PaginationContainer = styled.div`
   .pagination {
     display: flex;

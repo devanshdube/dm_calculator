@@ -16,9 +16,9 @@ import {
   Clock,
   CheckCircle,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
-import { useNavigate } from "react-router-dom";
 
 const OPTIONAL_SERVICES = [
   {
@@ -39,7 +39,7 @@ const OPTIONAL_SERVICES = [
   },
 ];
 
-const AdminCalculator = () => {
+const CalculatorBD = () => {
   const baseURL = `https://dm.calculator.one-realty.in`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
@@ -174,18 +174,6 @@ const AdminCalculator = () => {
     setTotal(0);
   };
 
-  // const fetchData = async () => {
-  //   if (!id || !proposalId) return;
-  //   try {
-  //     const { data } = await axios.get(
-  //       `${baseURL}/auth/api/calculator/getByIDCalculatorTransactions/${proposalId}/${id}`
-  //     );
-  //     console.log(data.data);
-  //     setGetData(data.data);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
   const fetchData = async () => {
     if (!id || !proposalId) return;
     try {
@@ -525,4 +513,4 @@ const AdminCalculator = () => {
   );
 };
 
-export default AdminCalculator;
+export default CalculatorBD;

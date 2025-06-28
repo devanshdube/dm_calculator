@@ -31,6 +31,7 @@ const {
   getClientDetailsById,
   getClientTxnHistory,
   getClientServiceHistory,
+  getClientDetailsEmp,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -102,6 +103,9 @@ router.get(
   authenticateToken,
   getClientServiceHistory
 );
+
+// >>>>>>>>>> BD GET API's <<<<<<<<<<<
+router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);
 
 // ---->  Get all routes END <----
 
