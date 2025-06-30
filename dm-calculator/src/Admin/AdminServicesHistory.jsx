@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 
 const AdminServicesHistory = () => {
-  const baseURL = "https://dm.calculator.one-realty.in";
+  const baseURL = "http://localhost:5555";
   const [keyword, setKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const clientPerPage = 7;

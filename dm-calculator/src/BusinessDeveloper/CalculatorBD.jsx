@@ -40,7 +40,7 @@ const OPTIONAL_SERVICES = [
 ];
 
 const CalculatorBD = () => {
-  const baseURL = `https://dm.calculator.one-realty.in`;
+  const baseURL = `http://localhost:5555`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;
@@ -106,12 +106,19 @@ const CalculatorBD = () => {
     let baseAmount = selectedEditingType.amount * quantity;
     const selectedAddons = [];
 
-    OPTIONAL_SERVICES.forEach((opt) => {
+       OPTIONAL_SERVICES.forEach((opt) => {
       if (addons[opt.key]) {
-        baseAmount += opt.amount;
+        baseAmount += opt.amount * quantity;
         selectedAddons.push(opt.key);
       }
     });
+
+    // OPTIONAL_SERVICES.forEach((opt) => {
+    //   if (addons[opt.key]) {
+    //     baseAmount += opt.amount;
+    //     selectedAddons.push(opt.key);
+    //   }
+    // });
 
     setTotal(baseAmount);
 

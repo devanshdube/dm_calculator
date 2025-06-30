@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
+const AllHistory = lazy(() => import("./AllHistory"));
 const RegisterBD = lazy(() => import("./RegisterBD"));
 const AdminClientDetails = lazy(() => import("./AdminClientDetails"));
 const AdminAddServices = lazy(() => import("./AdminAddServices"));
@@ -46,6 +47,7 @@ const AdminDashboard = () => {
     { id: "AddServices", label: "Add Graphic Services", icon: Plus },
     { id: "servicehistory", label: "Graphic Service History", icon: Clock },
     { id: "registerbd", label: "Register BD", icon: ShieldPlus },
+    { id: "history", label: "History", icon: Clock },
   ];
 
   const handleLogout = () => {
@@ -203,6 +205,7 @@ const AdminDashboard = () => {
           {activeTab === "AddADSCamp" && <AdminAdsCampign />}
           {activeTab === "AddServices" && <AdminAddServices />}
           {activeTab === "servicehistory" && <AdminServicesHistory />}
+          {activeTab === "history" && <AllHistory />}
         </div>
       </main>
 

@@ -9,6 +9,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import styled from "styled-components";
+import ForgotPassword from "./Screens/ForgotPassword";
 const Login = lazy(() => import("./Screens/Login"));
 const AdminRouter = lazy(() => import("./Routers/AdminRouter"));
 const BDRouter = lazy(() => import("./Routers/BDRouter"));
@@ -50,7 +51,17 @@ function App() {
             location.pathname !== "/" &&
             location.pathname !== "/password-reset"} */}
           <Routes>
-            <Route path="/" element={<Login />} />
+            <Route
+              path="/"
+              element={currentUser ? <Navigate to="/dashboard" /> : <Login />}
+            />
+
+            <Route
+              path="/password-reset"
+              element={
+                currentUser ? <Navigate to="/dashboard" /> : <ForgotPassword />
+              }
+            />
 
             <Route
               path="/BD/*"

@@ -20,7 +20,7 @@ import AdminCalculator from "./AdminCalculator";
 import { clearUser } from "../redux/user/userSlice";
 
 const AdminClientDetails = () => {
-  const baseURL = `https://dm.calculator.one-realty.in`;
+  const baseURL = `http://localhost:5555`;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
@@ -279,20 +279,21 @@ const AdminClientDetails = () => {
                                 </p>
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                              <div className="flex items-center gap-2">
+                            {/* <div className="grid grid-cols-2 gap-4 text-sm text-gray-600"> */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 break-words">
+                              <div className="flex items-center gap-2 break-words">
                                 <Mail className="w-4 h-4" />
                                 {client.email}
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 break-words">
                                 <Phone className="w-4 h-4" />
                                 {client.phone}
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 break-words">
                                 <MapPin className="w-4 h-4" />
                                 {client.address}
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 break-words">
                                 <Calendar className="w-4 h-4" />
                                 Employee : {client.dg_employee}
                               </div>

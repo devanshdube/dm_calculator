@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 import ClientDetails from "./ClientDetails";
+import AllHistory from "./AllHistory";
 // const RegisterBD = lazy(() => import("./RegisterBD"));
 // const AdminClientDetails = lazy(() => import("./AdminClientDetails"));
 // const AdminAddServices = lazy(() => import("./AdminAddServices"));
@@ -43,6 +44,7 @@ const BusinessDeveloperDashboard = () => {
 
   const tabs = [
     { id: "clients", label: "Client Details", icon: User },
+    { id: "servicehistory", label: "History", icon: Clock },
     // { id: "AddADSCamp", label: "Add Ads Campaigns", icon: CheckCircle },
     // { id: "AddServices", label: "Add Graphic Services", icon: Plus },
     // { id: "servicehistory", label: "Graphic Service History", icon: Clock },
@@ -200,6 +202,7 @@ const BusinessDeveloperDashboard = () => {
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         <div className="transition-all duration-300 ease-in-out">
           {activeTab === "clients" && <ClientDetails />}
+          {activeTab === "servicehistory" && <AllHistory />}
           {/* {activeTab === "registerbd" && <RegisterBD />}
           {activeTab === "AddADSCamp" && <AdminAdsCampign />}
           {activeTab === "AddServices" && <AdminAddServices />}

@@ -17,6 +17,7 @@ const {
   saveCalculatorData,
   saveAdsCampaign,
   registerBD,
+  verifyOtpAndResetPassword,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -32,6 +33,9 @@ const {
   getClientTxnHistory,
   getClientServiceHistory,
   getClientDetailsEmp,
+  getAllClientsTxnHistory,
+  getClientsTxnHistoryByEmployee,
+  getAllBD,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -56,6 +60,7 @@ router.post("/register", register);
 router.post("/registerBD", authenticateToken, registerBD);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
+router.post("/verifyOTP-forgot", verifyOtpAndResetPassword);
 // router.post("/insertServices", insertServices);
 // router.get("/getServices", getServices);
 // router.put("/updateServices/:id", updateServices);
@@ -104,8 +109,16 @@ router.get(
   getClientServiceHistory
 );
 
+router.get("/getAllClientsTxnHistory", getAllClientsTxnHistory);
+router.get("/getAllBD", getAllBD);
+
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);
+
+router.get(
+  "/getClientsTxnByEmployee/:dg_employee",
+  getClientsTxnHistoryByEmployee
+);
 
 // ---->  Get all routes END <----
 

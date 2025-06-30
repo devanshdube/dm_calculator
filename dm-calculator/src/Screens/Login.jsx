@@ -3,7 +3,7 @@ import { Mail, Lock, Eye, EyeOff, X } from "lucide-react";
 import img1 from "../assets/79dd5e221567809.67d70a7ee99ae.jpg";
 import Swal from "sweetalert2";
 import axios from "axios";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUser } from "../redux/user/userSlice";
 
@@ -13,9 +13,9 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
-  const baseURL = "https://dm.calculator.one-realty.in";
+  const baseURL = "http://localhost:5555";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,7 +135,7 @@ export default function Login() {
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <button className="text-white/80 hover:text-white transition-colors">
+                  <button onClick={()=>navigate("/password-reset")} className="text-white/80 hover:text-white transition-colors">
                     Forgot Password
                   </button>
                 </div>

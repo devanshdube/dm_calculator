@@ -536,6 +536,78 @@ exports.getClientServiceHistory = async (req, res) => {
   });
 };
 
+exports.getAllClientsTxnHistory = async (req, res) => {
+  const query = `
+    WITH txn_services AS (
+      SELECT txn_id, client_id, created_at FROM calculator_transactions
+      UNION ALL
+      SELECT txn_id, client_id, created_at FROM ads_campaign_details
+    )
+    SELECT 
+      d.id AS client_id,
+      d.client_name,
+      d.client_organization,
+      d.email,
+      d.phone,
+      d.address,
+      d.dg_employee,
+      d.created_at AS client_created_at,
+      t.txn_id,
+      DATE(t.created_at) AS txn_date
+    FROM dm_calculator_client_details d
+    LEFT JOIN txn_services t ON d.id = t.client_id
+    ORDER BY txn_date DESC
+  `;
+
+  db.query(query, (err, result) => {
+    if (err) {
+      return res.status(500).json({
+        status: "Failure",
+        message: "Database error",
+        error: err,
+      });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      message: "All client transaction history fetched successfully",
+      data: result,
+    });
+  });
+};
+
+exports.getAllBD = async (req, res) => {
+  try {
+    db.query("SELECT * FROM dm_calculator_employees", (err, results) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
+        });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No services found",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        data: results,
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 
 exports.getClientDetailsEmp = async (req, res) => {
@@ -581,4 +653,47 @@ exports.getClientDetailsEmp = async (req, res) => {
       error,
     });
   }
+};
+
+exports.getClientsTxnHistoryByEmployee = async (req, res) => {
+  const { dg_employee } = req.params;
+
+  const query = `
+    WITH txn_services AS (
+      SELECT txn_id, client_id, created_at FROM calculator_transactions
+      UNION ALL
+      SELECT txn_id, client_id, created_at FROM ads_campaign_details
+    )
+    SELECT 
+      d.id AS client_id,
+      d.client_name,
+      d.client_organization,
+      d.email,
+      d.phone,
+      d.address,
+      d.dg_employee,
+      d.created_at AS client_created_at,
+      t.txn_id,
+      DATE(t.created_at) AS txn_date
+    FROM dm_calculator_client_details d
+    LEFT JOIN txn_services t ON d.id = t.client_id
+    WHERE d.dg_employee = ?
+    ORDER BY txn_date DESC
+  `;
+
+  db.query(query, [dg_employee], (err, result) => {
+    if (err) {
+      return res.status(500).json({
+        status: "Failure",
+        message: "Database error",
+        error: err,
+      });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      message: `Transaction history fetched for employee: ${dg_employee}`,
+      data: result,
+    });
+  });
 };
