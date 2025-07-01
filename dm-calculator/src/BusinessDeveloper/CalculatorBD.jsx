@@ -40,7 +40,7 @@ const OPTIONAL_SERVICES = [
 ];
 
 const CalculatorBD = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dm.calculator.one-realty.in`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;

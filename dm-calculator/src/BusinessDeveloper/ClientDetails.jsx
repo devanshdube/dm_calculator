@@ -19,7 +19,7 @@ import styled from "styled-components";
 import { clearUser } from "../redux/user/userSlice";
 
 const ClientDetails = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dm.calculator.one-realty.in`;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);

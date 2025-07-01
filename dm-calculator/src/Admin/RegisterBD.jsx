@@ -9,8 +9,8 @@ import moment from "moment";
 // import { clearUser } from "../redux/user/userSlice";
 
 export default function RegisterBD() {
-  // const baseURL = `http://localhost:5555`;
-  const baseURL = `http://localhost:5555`;
+  // const baseURL = `https://dm.calculator.one-realty.in`;
+  const baseURL = `https://dm.calculator.one-realty.in`;
   const { token } = useSelector((state) => state.user);
   //   const dispatch = useDispatch();
   //   const navigate = useNavigate();

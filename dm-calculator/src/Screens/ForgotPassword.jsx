@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 
 const ForgotPassword = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dm.calculator.one-realty.in`;
   const [userId, setUserId] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");

@@ -8,7 +8,7 @@ import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
 
 export default function QuotationBD() {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dm.calculator.one-realty.in`;
   const { id, txn_id } = useParams();
   console.log(id, txn_id);
   const navigate = useNavigate();

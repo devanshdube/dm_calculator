@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
 const AdsCampaignCalculator = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dm.calculator.one-realty.in`;
   const { id, proposalId } = useParams();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;
@@ -28,7 +28,7 @@ const AdsCampaignCalculator = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          "http://localhost:5555/auth/api/calculator/getAdsServices",
+          "https://dm.calculator.one-realty.in/auth/api/calculator/getAdsServices",
           {
             headers: {
               "Content-Type": "application/json",
@@ -71,7 +71,7 @@ const AdsCampaignCalculator = () => {
   //     try {
   //       setLoading(true);
   //       const response = await fetch(
-  //         `http://localhost:5555/auth/api/calculator/getAdsServices`
+  //         `https://dm.calculator.one-realty.in/auth/api/calculator/getAdsServices`
   //       );
   //       const data = await response.json();
 
@@ -212,7 +212,7 @@ const AdsCampaignCalculator = () => {
   //   Get save Details
   //   const handleSaveToDatabase = async () => {
   //   try {
-  //     const response = await fetch("http://localhost:5555/auth/api/calculator/saveAdsCampaign", {
+  //     const response = await fetch("https://dm.calculator.one-realty.in/auth/api/calculator/saveAdsCampaign", {
   //       method: "POST",
   //       headers: {
   //         "Content-Type": "application/json",
@@ -301,7 +301,7 @@ const AdsCampaignCalculator = () => {
       if (results.length > 0) {
         setAdsItems(results); // update state
         const response = await fetch(
-          "http://localhost:5555/auth/api/calculator/saveAdsCampaign",
+          "https://dm.calculator.one-realty.in/auth/api/calculator/saveAdsCampaign",
           {
             method: "POST",
             headers: {

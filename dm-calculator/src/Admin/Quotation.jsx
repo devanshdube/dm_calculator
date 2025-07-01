@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import img from "../assets/dg.jpg";
 
 export default function Quotation() {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dm.calculator.one-realty.in`;
   const { id, txn_id } = useParams();
   console.log(id, txn_id);
   const navigate = useNavigate();

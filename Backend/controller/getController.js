@@ -551,7 +551,7 @@ exports.getAllClientsTxnHistory = async (req, res) => {
       d.dg_employee,
       d.created_at AS client_created_at,
       t.txn_id,
-      DATE(t.created_at) AS txn_date
+      t.created_at AS txn_date
     FROM dm_calculator_client_details d
     LEFT JOIN txn_services t ON d.id = t.client_id
     ORDER BY txn_date DESC

@@ -16,22 +16,32 @@ const BDRouter = lazy(() => import("./Routers/BDRouter"));
 
 function App() {
   const { currentUser } = useSelector((state) => state.user);
-  const [userRole, setUserRole] = useState(null);
+  // const [userRole, setUserRole] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   useEffect(() => {
-    if (currentUser?.role) {
-      setUserRole(currentUser.role);
-      if (location.pathname === "/") {
-        if (currentUser.role === "Owner") {
-          navigate("/admin/dashboard");
-        } else if (currentUser.role === "BD") {
-          navigate("/BD/dashboard");
-        }
-      }
+  if (currentUser?.role && location.pathname === "/") {
+    if (currentUser.role === "Owner") {
+      navigate("/admin/dashboard");
+    } else if (currentUser.role === "BD") {
+      navigate("/BD/dashboard");
     }
-  }, [currentUser, location.pathname, navigate]);
-  console.log(userRole);
+  }
+}, [currentUser, location.pathname, navigate]);
+
+  // useEffect(() => {
+  //   if (currentUser?.role && location.pathname === "/") {
+  //     setUserRole(currentUser.role);
+  //     if (location.pathname === "/") {
+  //       if (currentUser.role === "Owner") {
+  //         navigate("/admin/dashboard");
+  //       } else if (currentUser.role === "BD") {
+  //         navigate("/BD/dashboard");
+  //       }
+  //     }
+  //   }
+  // }, [currentUser, location.pathname, navigate]);
+  // console.log(userRole);
 
   return (
     <>
@@ -66,7 +76,23 @@ function App() {
             <Route
               path="/BD/*"
               element={
-                currentUser?.role === "BD" ? <BDRouter /> : <Navigate to="/" />
+                currentUser?.role === "BD" ? (
+                  <Suspense
+                    fallback={
+                      <div className="loading-container">
+                        {/* <div className="spinner"></div> */}
+                        <div className="spinner-wrapper">
+                          <div className="spinner-ring"></div>
+                          <div className="spinner-center">DM</div>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <BDRouter />
+                  </Suspense>
+                ) : (
+                  <Navigate to="/" />
+                )
               }
             />
 
@@ -74,7 +100,19 @@ function App() {
               path="/admin/*"
               element={
                 currentUser?.role === "Owner" ? (
+                       <Suspense
+                    fallback={
+                      <div className="loading-container">
+                        {/* <div className="spinner"></div> */}
+                        <div className="spinner-wrapper">
+                          <div className="spinner-ring"></div>
+                          <div className="spinner-center">DM</div>
+                        </div>
+                      </div>
+                    }
+                  >
                   <AdminRouter />
+                  </Suspense>
                 ) : (
                   <Navigate to="/" />
                 )

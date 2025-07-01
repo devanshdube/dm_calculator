@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 
 const AdsCampaignCalciBD = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dm.calculator.one-realty.in`;
   const { id, proposalId } = useParams();
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
@@ -28,7 +28,7 @@ const AdsCampaignCalciBD = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          `http://localhost:5555/auth/api/calculator/getAdsServices`,
+          `https://dm.calculator.one-realty.in/auth/api/calculator/getAdsServices`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -178,7 +178,7 @@ const AdsCampaignCalciBD = () => {
       if (results.length > 0) {
         setAdsItems(results); // update state
         const response = await fetch(
-          "http://localhost:5555/auth/api/calculator/saveAdsCampaign",
+          "https://dm.calculator.one-realty.in/auth/api/calculator/saveAdsCampaign",
           {
             method: "POST",
             headers: {
