@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 // import { Mail, Lock, User } from "lucide-react";
-import { User, Mail, Lock, UserPlus, Eye, Calendar, Users } from 'lucide-react';
+import { User, Mail, Lock, UserPlus, Eye, Calendar, Users } from "lucide-react";
 import { useSelector } from "react-redux";
 import moment from "moment";
 // import { useNavigate } from "react-router-dom";
@@ -130,123 +130,123 @@ export default function RegisterBD() {
 
   console.log(registeredBDs);
 
-//   return (
-//   <div className="min-h-screen bg-transparent py-10 px-4">
-//     <div className="max-w-xl mx-auto bg-white shadow-md rounded-lg p-6">
-//       <div className="flex justify-between items-center mb-6">
-//         <h2 className="text-2xl font-bold text-gray-800">Register BD</h2>
-//         {/* <button
-//           onClick={fetchRegisteredBDs}
-//           className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded shadow text-sm"
-//         >
-//           Show All
-//         </button> */}
-//       </div>
+  //   return (
+  //   <div className="min-h-screen bg-transparent py-10 px-4">
+  //     <div className="max-w-xl mx-auto bg-white shadow-md rounded-lg p-6">
+  //       <div className="flex justify-between items-center mb-6">
+  //         <h2 className="text-2xl font-bold text-gray-800">Register BD</h2>
+  //         {/* <button
+  //           onClick={fetchRegisteredBDs}
+  //           className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded shadow text-sm"
+  //         >
+  //           Show All
+  //         </button> */}
+  //       </div>
 
-//       <form onSubmit={handleSubmit} className="space-y-5">
-//         {/* Name */}
-//         <div>
-//           <label className="block text-sm font-medium text-gray-700 mb-1">
-//             Employee Name
-//           </label>
-//           <div className="flex items-center border border-gray-300 rounded px-3 py-2 bg-white">
-//             <User className="h-5 w-5 text-gray-400 mr-2" />
-//             <input
-//               type="text"
-//               name="employee_name"
-//               value={formData.employee_name}
-//               onChange={handleChange}
-//               className="w-full outline-none"
-//               placeholder="Enter full name"
-//               required
-//             />
-//           </div>
-//         </div>
+  //       <form onSubmit={handleSubmit} className="space-y-5">
+  //         {/* Name */}
+  //         <div>
+  //           <label className="block text-sm font-medium text-gray-700 mb-1">
+  //             Employee Name
+  //           </label>
+  //           <div className="flex items-center border border-gray-300 rounded px-3 py-2 bg-white">
+  //             <User className="h-5 w-5 text-gray-400 mr-2" />
+  //             <input
+  //               type="text"
+  //               name="employee_name"
+  //               value={formData.employee_name}
+  //               onChange={handleChange}
+  //               className="w-full outline-none"
+  //               placeholder="Enter full name"
+  //               required
+  //             />
+  //           </div>
+  //         </div>
 
-//         {/* Email */}
-//         <div>
-//           <label className="block text-sm font-medium text-gray-700 mb-1">
-//             Email
-//           </label>
-//           <div className="flex items-center border border-gray-300 rounded px-3 py-2 bg-white">
-//             <Mail className="h-5 w-5 text-gray-400 mr-2" />
-//             <input
-//               type="email"
-//               name="employee_email"
-//               value={formData.employee_email}
-//               onChange={handleChange}
-//               className="w-full outline-none"
-//               placeholder="you@example.com"
-//               required
-//             />
-//           </div>
-//         </div>
+  //         {/* Email */}
+  //         <div>
+  //           <label className="block text-sm font-medium text-gray-700 mb-1">
+  //             Email
+  //           </label>
+  //           <div className="flex items-center border border-gray-300 rounded px-3 py-2 bg-white">
+  //             <Mail className="h-5 w-5 text-gray-400 mr-2" />
+  //             <input
+  //               type="email"
+  //               name="employee_email"
+  //               value={formData.employee_email}
+  //               onChange={handleChange}
+  //               className="w-full outline-none"
+  //               placeholder="you@example.com"
+  //               required
+  //             />
+  //           </div>
+  //         </div>
 
-//         {/* Password */}
-//         <div>
-//           <label className="block text-sm font-medium text-gray-700 mb-1">
-//             Password
-//           </label>
-//           <div className="flex items-center border border-gray-300 rounded px-3 py-2 bg-white">
-//             <Lock className="h-5 w-5 text-gray-400 mr-2" />
-//             <input
-//               type="password"
-//               name="employee_password"
-//               value={formData.employee_password}
-//               onChange={handleChange}
-//               className="w-full outline-none"
-//               placeholder="••••••••"
-//               required
-//             />
-//           </div>
-//         </div>
+  //         {/* Password */}
+  //         <div>
+  //           <label className="block text-sm font-medium text-gray-700 mb-1">
+  //             Password
+  //           </label>
+  //           <div className="flex items-center border border-gray-300 rounded px-3 py-2 bg-white">
+  //             <Lock className="h-5 w-5 text-gray-400 mr-2" />
+  //             <input
+  //               type="password"
+  //               name="employee_password"
+  //               value={formData.employee_password}
+  //               onChange={handleChange}
+  //               className="w-full outline-none"
+  //               placeholder="••••••••"
+  //               required
+  //             />
+  //           </div>
+  //         </div>
 
-//         {/* Submit */}
-//         <button
-//           type="submit"
-//           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded"
-//         >
-//           Register
-//         </button>
-//       </form>
-//     </div>
+  //         {/* Submit */}
+  //         <button
+  //           type="submit"
+  //           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded"
+  //         >
+  //           Register
+  //         </button>
+  //       </form>
+  //     </div>
 
-//     {/* History Below */}
-//     {registeredBDs.length > 0 && (
-//       <div className="max-w-5xl mx-auto mt-10 bg-white shadow-md rounded-lg p-4 overflow-x-auto">
-//         <h3 className="text-xl font-semibold mb-4 text-gray-800">
-//           Registered BDs
-//         </h3>
-//         <table className="min-w-full text-sm text-left text-gray-700">
-//           <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-//             <tr>
-//               <th className="px-4 py-2">#</th>
-//               <th className="px-4 py-2">Date</th>
-//               <th className="px-4 py-2">Name</th>
-//               <th className="px-4 py-2">Role</th>
-//               <th className="px-4 py-2">Email</th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {registeredBDs.map((bd, index) => (
-//               <tr key={index} className="border-b hover:bg-gray-50">
-//                 <td className="px-4 py-2">{index + 1}</td>
-//                 <td className="px-4 py-2">
-//                   {moment(bd.created_at).format("DD MMM YYYY")}
-//                 </td>
-//                 <td className="px-4 py-2">{bd.employee_name}</td>
-//                 <td className="px-4 py-2">{bd.employee_role}</td>
-//                 <td className="px-4 py-2">{bd.employee_email}</td>
-//               </tr>
-//             ))}
-//           </tbody>
-//         </table>
-//       </div>
-//     )}
-//   </div>
-// );
+  //     {/* History Below */}
+  //     {registeredBDs.length > 0 && (
+  //       <div className="max-w-5xl mx-auto mt-10 bg-white shadow-md rounded-lg p-4 overflow-x-auto">
+  //         <h3 className="text-xl font-semibold mb-4 text-gray-800">
+  //           Registered BDs
+  //         </h3>
+  //         <table className="min-w-full text-sm text-left text-gray-700">
+  //           <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+  //             <tr>
+  //               <th className="px-4 py-2">#</th>
+  //               <th className="px-4 py-2">Date</th>
+  //               <th className="px-4 py-2">Name</th>
+  //               <th className="px-4 py-2">Role</th>
+  //               <th className="px-4 py-2">Email</th>
+  //             </tr>
+  //           </thead>
+  //           <tbody>
+  //             {registeredBDs.map((bd, index) => (
+  //               <tr key={index} className="border-b hover:bg-gray-50">
+  //                 <td className="px-4 py-2">{index + 1}</td>
+  //                 <td className="px-4 py-2">
+  //                   {moment(bd.created_at).format("DD MMM YYYY")}
+  //                 </td>
+  //                 <td className="px-4 py-2">{bd.employee_name}</td>
+  //                 <td className="px-4 py-2">{bd.employee_role}</td>
+  //                 <td className="px-4 py-2">{bd.employee_email}</td>
+  //               </tr>
+  //             ))}
+  //           </tbody>
+  //         </table>
+  //       </div>
+  //     )}
+  //   </div>
+  // );
 
- return (
+  return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header Section */}
@@ -254,8 +254,12 @@ export default function RegisterBD() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
             <UserPlus className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">BD Registration Portal</h1>
-          <p className="text-slate-300 text-lg">Register new Business Development team members</p>
+          <h1 className="text-4xl font-bold text-white mb-2">
+            BD Registration Portal
+          </h1>
+          <p className="text-slate-300 text-lg">
+            Register new Business Development team members
+          </p>
         </div>
 
         {/* Registration Form */}
@@ -360,7 +364,7 @@ export default function RegisterBD() {
                 {registeredBDs.length} Members
               </span>
             </div>
-            
+
             <div className="overflow-hidden rounded-lg border border-white/20">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -388,7 +392,10 @@ export default function RegisterBD() {
                   </thead>
                   <tbody className="divide-y divide-white/10">
                     {registeredBDs.map((bd, index) => (
-                      <tr key={index} className="hover:bg-white/5 transition-colors duration-150">
+                      <tr
+                        key={index}
+                        className="hover:bg-white/5 transition-colors duration-150"
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
                           <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full text-white font-semibold">
                             {index + 1}
@@ -402,12 +409,17 @@ export default function RegisterBD() {
                             <div className="flex-shrink-0 h-10 w-10">
                               <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
                                 <span className="text-sm font-medium text-white">
-                                  {bd.employee_name.split(' ').map(n => n[0]).join('')}
+                                  {bd.employee_name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
                                 </span>
                               </div>
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-white">{bd.employee_name}</div>
+                              <div className="text-sm font-medium text-white">
+                                {bd.employee_name}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -430,7 +442,6 @@ export default function RegisterBD() {
       </div>
     </div>
   );
-
 
   // return (
   //   // <div className="flex items-center justify-center px-4">

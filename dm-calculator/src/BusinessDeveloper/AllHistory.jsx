@@ -11,11 +11,10 @@ import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
 
 const AllHistory = () => {
-  //   const baseURL = `http://localhost:5555`;
   const baseURL = `http://localhost:5555`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
-  const [clientData, setClientData] = useState([]);
+  // const [clientData, setClientData] = useState([]);
   const { id } = useParams();
   const { currentUser, token } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -28,13 +27,13 @@ const AllHistory = () => {
   const fetchAllClientServices = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientsTxnByEmployee/${currentUser.name}`
-        // {
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //     Authorization: `Bearer ${token}`,
-        //   },
-        // }
+        `${baseURL}/auth/api/calculator/getClientsTxnByEmployee/${currentUser.name}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (res.data.status === "Success") {
         console.log(res.data);
@@ -143,13 +142,13 @@ const AllHistory = () => {
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
               History
             </h2>
-            <button
+            {/* <button
               onClick={() => navigate(-1)}
               className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-500/25"
             >
               <ArrowLeft className="w-4 h-4" />
               Go Back
-            </button>
+            </button> */}
           </div>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             {/* <div className="relative group">
@@ -294,6 +293,7 @@ const PaginationContainer = styled.div`
     padding: 10px;
     list-style: none;
     border-radius: 5px;
+    margin-bottom: 1.5rem;
   }
 
   .pagination li {

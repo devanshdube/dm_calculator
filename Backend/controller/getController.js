@@ -410,9 +410,7 @@ exports.getClientTxnHistory = async (req, res) => {
       SELECT txn_id, client_id, created_at FROM ads_campaign_details
     )
     SELECT 
-      txn_id,
-      client_id,
-      DATE(created_at) AS txn_date
+      txn_id, client_id, created_at AS txn_date
     FROM txn_services
     WHERE client_id = ?
     GROUP BY txn_id, client_id, DATE(created_at)
@@ -658,28 +656,85 @@ exports.getClientDetailsEmp = async (req, res) => {
 exports.getClientsTxnHistoryByEmployee = async (req, res) => {
   const { dg_employee } = req.params;
 
+  // const query = `
+  //   WITH txn_services AS (
+  //     SELECT txn_id, client_id, created_at FROM calculator_transactions
+  //     UNION ALL
+  //     SELECT txn_id, client_id, created_at FROM ads_campaign_details
+  //   )
+  //   SELECT
+  //     d.id AS client_id,
+  //     d.client_name,
+  //     d.client_organization,
+  //     d.email,
+  //     d.phone,
+  //     d.address,
+  //     d.dg_employee,
+  //     d.created_at AS client_created_at,
+  //     t.txn_id,
+  //     DATE(t.created_at) AS txn_date
+  //   FROM dm_calculator_client_details d
+  //   LEFT JOIN txn_services t ON d.id = t.client_id
+  //   WHERE d.dg_employee = ?
+  //   ORDER BY txn_date DESC
+  // `;
+
   const query = `
-    WITH txn_services AS (
-      SELECT txn_id, client_id, created_at FROM calculator_transactions
-      UNION ALL
-      SELECT txn_id, client_id, created_at FROM ads_campaign_details
-    )
-    SELECT 
-      d.id AS client_id,
-      d.client_name,
-      d.client_organization,
-      d.email,
-      d.phone,
-      d.address,
-      d.dg_employee,
-      d.created_at AS client_created_at,
-      t.txn_id,
-      DATE(t.created_at) AS txn_date
-    FROM dm_calculator_client_details d
-    LEFT JOIN txn_services t ON d.id = t.client_id
-    WHERE d.dg_employee = ?
-    ORDER BY txn_date DESC
-  `;
+WITH txn_services AS (
+  SELECT txn_id, client_id, created_at, 'calculator' AS source FROM calculator_transactions
+  UNION
+  SELECT txn_id, client_id, created_at, 'ads_campaign' AS source FROM ads_campaign_details
+)
+SELECT
+  d.id AS client_id,
+  d.client_name,
+  d.client_organization,
+  d.email,
+  d.phone,
+  d.address,
+  d.dg_employee,
+  d.created_at AS client_created_at,
+  t.txn_id,
+  DATE(t.created_at) AS txn_date,
+  t.source
+FROM dm_calculator_client_details d
+LEFT JOIN (
+  SELECT txn_id, client_id, created_at, source
+  FROM txn_services
+  GROUP BY txn_id, client_id, created_at, source
+) t ON d.id = t.client_id
+WHERE d.dg_employee = ?
+ORDER BY txn_date DESC;
+    `;
+  //   const query = `
+  //  WITH txn_services AS (
+  //   SELECT txn_id, client_id, created_at FROM calculator_transactions
+  //   UNION ALL
+  //   SELECT txn_id, client_id, created_at FROM ads_campaign_details
+  // ),
+  // latest_txn AS (
+  //   SELECT client_id, MAX(created_at) AS last_txn_date
+  //   FROM txn_services
+  //   GROUP BY client_id
+  // )
+  // SELECT
+  //   d.id AS client_id,
+  //   d.client_name,
+  //   d.client_organization,
+  //   d.email,
+  //   d.phone,
+  //   d.address,
+  //   d.dg_employee,
+  //   d.created_at AS client_created_at,
+  //   lt.last_txn_date
+  // FROM dm_calculator_client_details d
+  // LEFT JOIN latest_txn lt ON d.id = lt.client_id
+  // WHERE d.dg_employee = ?
+  // ORDER BY
+  //   CASE WHEN lt.last_txn_date IS NULL THEN 1 ELSE 0 END,
+  //   lt.last_txn_date DESC;
+
+  //     `;
 
   db.query(query, [dg_employee], (err, result) => {
     if (err) {

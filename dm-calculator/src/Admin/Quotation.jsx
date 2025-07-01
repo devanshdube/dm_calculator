@@ -6,6 +6,7 @@ import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
+import img from "../assets/dg.jpg";
 
 export default function Quotation() {
   const baseURL = `http://localhost:5555`;
@@ -206,9 +207,16 @@ export default function Quotation() {
             </div>
 
             <div className="md:w-1/2 text-right print:w-1/2">
-              <h1 className="text-3xl font-bold text-indigo-700 mb-1">
+              <img
+                src={img} // Update the path to where you put the image in your project
+                alt="DOAGuru Logo"
+                className="w-32 h-auto mb-1 mx-auto md:mx-0" // Adjust width and alignment as you want
+              />
+
+              {/* <h1 className="text-3xl font-bold text-indigo-700 mb-1">
                 DOAGuru InfoSystems
-              </h1>
+              </h1> */}
+
               <p className="text-gray-600">
                 1815, Wright Town, Jabalpur,
                 <br />

@@ -34,7 +34,7 @@ const AdminClientDetails = () => {
     address: "",
     dg_employee: employeeName,
   });
-  console.log(selectedClient);
+  // console.log(selectedClient);
 
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -42,6 +42,7 @@ const AdminClientDetails = () => {
   const [keyword, setKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const clientPerPage = 3;
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleClose = () => {
     setShowModal(false);
@@ -55,7 +56,20 @@ const AdminClientDetails = () => {
     });
   };
 
-  const handleShow = () => setShowModal(true);
+  // const handleShow = () => setShowModal(true);
+  const handleShow = () => {
+    setSelectedClient(null);
+    setFormData({
+      client_name: "",
+      client_organization: "",
+      email: "",
+      phone: "",
+      address: "",
+      dg_employee: employeeName,
+    });
+    setIsEditing(false);
+    setShowModal(true);
+  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -67,50 +81,129 @@ const AdminClientDetails = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      const response = await axios.post(
-        `${baseURL}/auth/api/calculator/insertClientDetails`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      console.log("Submitting form data:", formData);
+      let response;
+
+      if (isEditing && selectedClient) {
+        response = await axios.put(
+          `${baseURL}/auth/api/calculator/updateClientDetails/${selectedClient.id}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data);
+      } else {
+        response = await axios.post(
+          `${baseURL}/auth/api/calculator/insertClientDetails`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data);
+      }
+
+      console.log("API response:", response.data);
+
       if (response.data.status === "Success") {
         Swal.fire({
           icon: "success",
           title: "Success",
-          text: "Client added successfully!",
+          text: isEditing
+            ? "Client updated successfully!"
+            : "Client added successfully!",
         }).then(() => {
-          setFormData({
-            client_name: "",
-            client_organization: "",
-            email: "",
-            phone: "",
-            address: "",
-            dg_employee: employeeName,
-          });
           setShowModal(false);
           getAllClients();
         });
-        setLoading(false);
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text:
+            response.data.message || "Failed to save client. Please try again.",
+        });
       }
     } catch (error) {
-      console.error("Error adding client:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Failed to add client. Please try again.",
-      });
-      setLoading(false);
-      return;
+      console.error("Error saving client:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Status:", error.response.status);
+        Swal.fire({
+          icon: "error",
+          title: `Error ${error.response.status}`,
+          text:
+            error.response.data.message ||
+            "Failed to save client. Please try again.",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to save client. Please try again.",
+        });
+      }
     } finally {
       setLoading(false);
     }
-    handleClose();
   };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.post(
+  //       `${baseURL}/auth/api/calculator/insertClientDetails`,
+  //       formData,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
+  //     if (response.data.status === "Success") {
+  //       Swal.fire({
+  //         icon: "success",
+  //         title: "Success",
+  //         text: "Client added successfully!",
+  //       }).then(() => {
+  //         setFormData({
+  //           client_name: "",
+  //           client_organization: "",
+  //           email: "",
+  //           phone: "",
+  //           address: "",
+  //           dg_employee: employeeName,
+  //         });
+  //         setShowModal(false);
+  //         getAllClients();
+  //       });
+  //       setLoading(false);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error adding client:", error);
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "Error",
+  //       text: "Failed to add client. Please try again.",
+  //     });
+  //     setLoading(false);
+  //     return;
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  //   handleClose();
+  // };
 
   // All BD client data
 
@@ -253,59 +346,88 @@ const AdminClientDetails = () => {
               <div className="p-6">
                 <h3 className="text-lg font-semibold mb-4">All Clients</h3>
                 <div className="space-y-4">
-                  {showApiData && showApiData.length > 0 ? (
-                    showApiData?.map((client) => (
-                      <div
-                        key={client.id}
-                        className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                          selectedClient?.id === client.id
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200"
-                        }`}
-                        onClick={() => setSelectedClient(client)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                                <User className="w-5 h-5 text-white" />
-                              </div>
-                              <div>
-                                <h4 className="font-semibold text-gray-900">
-                                  {client.client_organization}
-                                </h4>
-                                <p className="text-sm text-gray-600">
-                                  {client.client_name}
-                                </p>
-                              </div>
-                            </div>
-                            {/* <div className="grid grid-cols-2 gap-4 text-sm text-gray-600"> */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 break-words">
-                              <div className="flex items-center gap-2 break-words">
-                                <Mail className="w-4 h-4" />
-                                {client.email}
-                              </div>
-                              <div className="flex items-center gap-2 break-words">
-                                <Phone className="w-4 h-4" />
-                                {client.phone}
-                              </div>
-                              <div className="flex items-center gap-2 break-words">
-                                <MapPin className="w-4 h-4" />
-                                {client.address}
-                              </div>
-                              <div className="flex items-center gap-2 break-words">
-                                <Calendar className="w-4 h-4" />
-                                Employee : {client.dg_employee}
+                  {loading ? (
+                    <div className="loading-overlay">
+                      <div className="spinner"></div>
+                    </div>
+                  ) : (
+                    <>
+                      {showApiData && showApiData.length > 0 ? (
+                        showApiData?.map((client) => (
+                          <div
+                            key={client.id}
+                            className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                              selectedClient?.id === client.id
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-gray-200"
+                            }`}
+                            onClick={() => setSelectedClient(client)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                                    <User className="w-5 h-5 text-white" />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold text-gray-900">
+                                      {client.client_organization}
+                                    </h4>
+                                    <p className="text-sm text-gray-600">
+                                      {client.client_name}
+                                    </p>
+                                  </div>
+                                </div>
+                                {/* <div className="grid grid-cols-2 gap-4 text-sm text-gray-600"> */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 break-words">
+                                  <div className="flex items-center gap-2 break-words">
+                                    <Mail className="w-4 h-4" />
+                                    {client.email}
+                                  </div>
+                                  <div className="flex items-center gap-2 break-words">
+                                    <Phone className="w-4 h-4" />
+                                    {client.phone}
+                                  </div>
+                                  <div className="flex items-center gap-2 break-words">
+                                    <MapPin className="w-4 h-4" />
+                                    {client.address}
+                                  </div>
+                                  <div className="flex items-center gap-2 break-words">
+                                    <Calendar className="w-4 h-4" />
+                                    Employee : {client.dg_employee}
+                                  </div>
+
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // prevent card onClick
+                                      setSelectedClient(client);
+                                      setFormData({
+                                        client_name: client.client_name,
+                                        client_organization:
+                                          client.client_organization,
+                                        email: client.email,
+                                        phone: client.phone,
+                                        address: client.address,
+                                        dg_employee: client.dg_employee,
+                                      });
+                                      setIsEditing(true);
+                                      setShowModal(true);
+                                    }}
+                                    className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25"
+                                  >
+                                    Edit
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </div>
+                        ))
+                      ) : (
+                        <div className="text-center text-gray-500 py-6">
+                          <p>No clients found</p>
                         </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center text-gray-500 py-6">
-                      <p>No clients found</p>
-                    </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -404,7 +526,7 @@ const AdminClientDetails = () => {
                     <User className="w-5 h-5 text-blue-600" />
                   </div>
                   <h2 className="text-xl font-semibold text-gray-900">
-                    Add New Client
+                    {isEditing ? "Edit Client" : "Add New Client"}
                   </h2>
                 </div>
                 <button
@@ -517,8 +639,22 @@ const AdminClientDetails = () => {
                     disabled={loading}
                     className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
                   >
-                    {loading ? "Saving..." : "Save Client"}
+                    {loading
+                      ? isEditing
+                        ? "Updating..."
+                        : "Saving..."
+                      : isEditing
+                      ? "Update Client"
+                      : "Save Client"}
                   </button>
+
+                  {/* <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                  >
+                    {loading ? "Saving..." : "Save Client"}
+                  </button> */}
                 </div>
               </form>
             </div>
@@ -530,6 +666,40 @@ const AdminClientDetails = () => {
 };
 
 export default AdminClientDetails;
+const LoadingContainer = styled.div`
+  /* Add this CSS in your global stylesheet or in a CSS module */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+
+  .spinner {
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+`;
 const PaginationContainer = styled.div`
   .pagination {
     display: flex;

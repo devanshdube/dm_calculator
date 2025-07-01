@@ -60,6 +60,7 @@ const AdminCalculator = () => {
   const [total, setTotal] = useState(0);
   const navigate = useNavigate();
   console.log(id, proposalId);
+  const [editId, setEditId] = useState(null);
 
   useEffect(() => {
     axios
@@ -70,6 +71,23 @@ const AdminCalculator = () => {
       })
       .catch((err) => console.error(err));
   }, []);
+
+  const handleEdit = (entry) => {
+    setEditId(entry.id);
+    setSelectedService(entry.service_name);
+    setSelectedCategory(entry.category_name);
+    setSelectedEditingType({
+      editing_type_id: entry.editing_type_id, // may need to match from `data`
+      editing_type_name: entry.editing_type_name,
+      amount: parseFloat(entry.editing_type_amount),
+    });
+    setQuantity(parseInt(entry.quantity));
+    setAddons({
+      content_posting: entry.include_content_posting === "1",
+      thumbnail_creation: entry.include_thumbnail_creation === "1",
+    });
+    setTotal(parseFloat(entry.total_amount));
+  };
 
   const filterOptionalServices = (services) => {
     return services
@@ -150,16 +168,29 @@ const AdminCalculator = () => {
 
     console.log(payload);
 
-    axios
-      .post(`${baseURL}/auth/api/calculator/saveCalculatorData`, payload)
+    // axios
+    //   .post(`${baseURL}/auth/api/calculator/saveCalculatorData`, payload)
+    const request = editId
+      ? axios.put(
+          `${baseURL}/auth/api/calculator/updateGraphicEntryById/${editId}`,
+          payload
+        )
+      : axios.post(
+          `${baseURL}/auth/api/calculator/saveCalculatorData`,
+          payload
+        );
+
+    request
       .then((res) => {
+        resetForm();
         if (res.data.status === "Success") {
           Swal.fire({
             icon: "success",
-            title: "Success",
-            text: "Saved Successfully!",
+            title: editId ? "Updated!" : "Saved!",
+            text: editId ? "Entry updated successfully" : "Saved successfully",
           });
           fetchData();
+          resetForm();
         }
       })
       .catch((err) => {
@@ -168,6 +199,7 @@ const AdminCalculator = () => {
   };
 
   const resetForm = () => {
+    setEditId(null);
     setSelectedService("");
     setSelectedCategory("");
     setSelectedEditingType(null);
@@ -474,10 +506,17 @@ const AdminCalculator = () => {
                   </div>
 
                   {/* Right Section: Amount + Delete */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 sm:gap-4">
                     <div className="text-green-400 font-bold text-xl">
                       ₹{parseFloat(order.total_amount).toLocaleString()}
                     </div>
+                    <button
+                      onClick={() => handleEdit(order)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                      title="Edit"
+                    >
+                      ✎
+                    </button>
                     <button
                       onClick={() => handleDelete(order.id)}
                       className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"

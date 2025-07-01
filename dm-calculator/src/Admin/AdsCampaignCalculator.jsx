@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { clearUser } from "../redux/user/userSlice";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 const AdsCampaignCalculator = () => {
   const baseURL = `http://localhost:5555`;
   const { id, proposalId } = useParams();
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;
   const [adsData, setAdsData] = useState([]);
   const [enteredAmount, setEnteredAmount] = useState({});
@@ -17,6 +18,7 @@ const AdsCampaignCalculator = () => {
   const [error, setError] = useState("");
   const [getData, setGetData] = useState([]);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   console.log(adsItems);
   console.log(id, proposalId);
 
@@ -25,26 +27,69 @@ const AdsCampaignCalculator = () => {
     const fetchAds = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `http://localhost:5555/auth/api/calculator/getAdsServices`
+        const response = await axios.get(
+          "http://localhost:5555/auth/api/calculator/getAdsServices",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
-        const data = await response.json();
 
-        if (data.status === "Success" && data.data) {
-          setAdsData(data.data);
-          console.log("Ads data loaded:", data.data);
+        if (response.data.status === "Success" && response.data.data) {
+          setAdsData(response.data.data);
+          console.log("Ads data loaded:", response.data.data);
         } else {
           setError("Failed to load ads data");
         }
       } catch (error) {
         console.error("Error fetching ads data:", error);
         setError("Failed to load ads data from server");
+        if (error.response && error.response.status === 401) {
+          // Token is invalid or expired
+          Swal.fire({
+            title: "Session Expired",
+            text: "Please login again.",
+            icon: "warning",
+            confirmButtonText: "OK",
+          }).then(() => {
+            dispatch(clearUser());
+            localStorage.removeItem("token");
+            navigate("/");
+          });
+        }
       } finally {
         setLoading(false);
       }
     };
+
     fetchAds();
   }, []);
+  // useEffect(() => {
+  //   const fetchAds = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await fetch(
+  //         `http://localhost:5555/auth/api/calculator/getAdsServices`
+  //       );
+  //       const data = await response.json();
+
+  //       if (data.status === "Success" && data.data) {
+  //         setAdsData(data.data);
+  //         console.log("Ads data loaded:", data.data);
+  //       } else {
+  //         setError("Failed to load ads data");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching ads data:", error);
+  //       setError("Failed to load ads data from server");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchAds();
+  // }, []);
 
   // Generate unique ID
   const generateUniqueId = () => {
@@ -288,7 +333,13 @@ const AdsCampaignCalculator = () => {
     if (!id || !proposalId) return;
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getByIDAdsCampaignDetails/${proposalId}/${id}`
+        `${baseURL}/auth/api/calculator/getByIDAdsCampaignDetails/${proposalId}/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (res.data.status === "Success") {
         console.log(res.data);
@@ -296,6 +347,19 @@ const AdsCampaignCalculator = () => {
       }
     } catch (error) {
       console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
 

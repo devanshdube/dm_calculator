@@ -11,7 +11,7 @@ const ForgotPassword = () => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const handleSendOtp = async () => {
     setLoading(true);

@@ -50,6 +50,8 @@ const {
   updateService,
   updateCategory,
   updateEditingType,
+  updateCalculatorDataById,
+  updateClientDetails,
 } = require("../controller/updateController");
 
 const authenticateToken = require("../middleware/authenticateToken");
@@ -109,7 +111,11 @@ router.get(
   getClientServiceHistory
 );
 
-router.get("/getAllClientsTxnHistory", getAllClientsTxnHistory);
+router.get(
+  "/getAllClientsTxnHistory",
+  authenticateToken,
+  getAllClientsTxnHistory
+);
 router.get("/getAllBD", getAllBD);
 
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
@@ -117,6 +123,7 @@ router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);
 
 router.get(
   "/getClientsTxnByEmployee/:dg_employee",
+  authenticateToken,
   getClientsTxnHistoryByEmployee
 );
 
@@ -139,6 +146,8 @@ router.delete("/deleteGraphicEntryById/:id", deleteGraphicEntryById);
 router.put("/updateService/:service_id", updateService);
 router.put("/updateCategory/:category_id", updateCategory);
 router.put("/updateEditingType/:editing_type_id", updateEditingType);
+router.put("/updateGraphicEntryById/:id", updateCalculatorDataById);
+router.put("/updateClientDetails/:id", updateClientDetails);
 // ---->  UPDATE all routes END <----
 
 module.exports = router;
