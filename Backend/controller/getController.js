@@ -536,26 +536,53 @@ exports.getClientServiceHistory = async (req, res) => {
 
 exports.getAllClientsTxnHistory = async (req, res) => {
   const query = `
-    WITH txn_services AS (
-      SELECT txn_id, client_id, created_at FROM calculator_transactions
-      UNION ALL
-      SELECT txn_id, client_id, created_at FROM ads_campaign_details
-    )
-    SELECT 
-      d.id AS client_id,
-      d.client_name,
-      d.client_organization,
-      d.email,
-      d.phone,
-      d.address,
-      d.dg_employee,
-      d.created_at AS client_created_at,
-      t.txn_id,
-      t.created_at AS txn_date
-    FROM dm_calculator_client_details d
-    LEFT JOIN txn_services t ON d.id = t.client_id
-    ORDER BY txn_date DESC
-  `;
+WITH txn_services AS (
+  SELECT txn_id, client_id, created_at, 'calculator' AS source FROM calculator_transactions
+  UNION
+  SELECT txn_id, client_id, created_at, 'ads_campaign' AS source FROM ads_campaign_details
+)
+SELECT
+  d.id AS client_id,
+  d.client_name,
+  d.client_organization,
+  d.email,
+  d.phone,
+  d.address,
+  d.dg_employee,
+  d.created_at AS client_created_at,
+  t.txn_id,
+  t.created_at AS txn_date,
+  t.source
+FROM dm_calculator_client_details d
+LEFT JOIN (
+  SELECT txn_id, client_id, created_at, source
+  FROM txn_services
+  GROUP BY txn_id, client_id, created_at, source
+) t ON d.id = t.client_id
+ORDER BY txn_date DESC
+`;
+
+  // const query = `
+  //   WITH txn_services AS (
+  //     SELECT txn_id, client_id, created_at FROM calculator_transactions
+  //     UNION ALL
+  //     SELECT txn_id, client_id, created_at FROM ads_campaign_details
+  //   )
+  //   SELECT
+  //     d.id AS client_id,
+  //     d.client_name,
+  //     d.client_organization,
+  //     d.email,
+  //     d.phone,
+  //     d.address,
+  //     d.dg_employee,
+  //     d.created_at AS client_created_at,
+  //     t.txn_id,
+  //     t.created_at AS txn_date
+  //   FROM dm_calculator_client_details d
+  //   LEFT JOIN txn_services t ON d.id = t.client_id
+  //   ORDER BY txn_date DESC
+  // `;
 
   db.query(query, (err, result) => {
     if (err) {
@@ -695,7 +722,7 @@ SELECT
   d.dg_employee,
   d.created_at AS client_created_at,
   t.txn_id,
-  DATE(t.created_at) AS txn_date,
+  t.created_at AS txn_date,
   t.source
 FROM dm_calculator_client_details d
 LEFT JOIN (

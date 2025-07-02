@@ -168,7 +168,7 @@ const AdminAddServices = () => {
       <div className="max-w-4xl mx-auto p-6 space-y-10">
         <div className="lg:col-span-2 space-y-10">
           <h2 className="text-3xl font-bold text-center text-gray-300">
-            🎛️ Graphic Service Management Panel
+            🎛️ Graphic & SEO Service Management Panel
           </h2>
 
           {/* Add Service */}

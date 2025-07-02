@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Suspense, lazy } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -20,14 +20,14 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   useEffect(() => {
-  if (currentUser?.role && location.pathname === "/") {
-    if (currentUser.role === "Owner") {
-      navigate("/admin/dashboard");
-    } else if (currentUser.role === "BD") {
-      navigate("/BD/dashboard");
+    if (currentUser?.role && location.pathname === "/") {
+      if (currentUser.role === "Owner") {
+        navigate("/admin/dashboard");
+      } else if (currentUser.role === "BD") {
+        navigate("/BD/dashboard");
+      }
     }
-  }
-}, [currentUser, location.pathname, navigate]);
+  }, [currentUser, location.pathname, navigate]);
 
   // useEffect(() => {
   //   if (currentUser?.role && location.pathname === "/") {
@@ -66,10 +66,23 @@ function App() {
               element={currentUser ? <Navigate to="/dashboard" /> : <Login />}
             />
 
-            <Route
+            {/* <Route
               path="/password-reset"
               element={
                 currentUser ? <Navigate to="/dashboard" /> : <ForgotPassword />
+              }
+            /> */}
+
+            <Route
+              path="/password-reset"
+              element={
+                currentUser?.role === "Owner" ? (
+                  <Navigate to="/admin/dashboard" />
+                ) : currentUser?.role === "BD" ? (
+                  <Navigate to="/BD/dashboard" />
+                ) : (
+                  <ForgotPassword />
+                )
               }
             />
 
@@ -100,7 +113,7 @@ function App() {
               path="/admin/*"
               element={
                 currentUser?.role === "Owner" ? (
-                       <Suspense
+                  <Suspense
                     fallback={
                       <div className="loading-container">
                         {/* <div className="spinner"></div> */}
@@ -111,7 +124,7 @@ function App() {
                       </div>
                     }
                   >
-                  <AdminRouter />
+                    <AdminRouter />
                   </Suspense>
                 ) : (
                   <Navigate to="/" />

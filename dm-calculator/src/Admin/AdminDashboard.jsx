@@ -43,8 +43,10 @@ const AdminDashboard = () => {
 
   const tabs = [
     { id: "clients", label: "Client Details", icon: User },
-    { id: "AddADSCamp", label: "Add Ads Campaigns", icon: CheckCircle },
-    { id: "AddServices", label: "Add Graphic Services", icon: Plus },
+    // { id: "AddADSCamp", label: "Add Ads Campaigns", icon: CheckCircle },
+    { id: "AddADSCamp", label: "Campaigns", icon: CheckCircle },
+    // { id: "AddServices", label: "Add Graphic Services", icon: Plus },
+    { id: "AddServices", label: "Graphic", icon: Plus },
     { id: "servicehistory", label: "Graphic Service History", icon: Clock },
     { id: "registerbd", label: "Register BD", icon: ShieldPlus },
     { id: "history", label: "History", icon: Clock },

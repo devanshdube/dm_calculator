@@ -23,6 +23,9 @@ const AllHistory = () => {
   const clientPerPage = 5;
   console.log(id);
   console.log(currentUser);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [selectedTxn, setSelectedTxn] = useState(null);
 
   const fetchAllClientServices = async () => {
     try {
@@ -201,14 +204,19 @@ const AllHistory = () => {
                         </td>
                         <td className="py-5 px-6">
                           <button
-                            onClick={() =>
-                              navigate(
-                                `/admin/quotation/${item.client_id}/${item.txn_id}`
-                              )
-                            }
+                            onClick={() => {
+                              setSelectedClient(item.client_id);
+                              setSelectedTxn(item.txn_id);
+                              setShowModal(true);
+                            }}
+                            // onClick={() =>
+                            //   navigate(
+                            //     `/admin/quotation/${item.client_id}/${item.txn_id}`
+                            //   )
+                            // }
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                            Action
+                            Quotation
                           </button>
                         </td>
                       </tr>
@@ -228,6 +236,47 @@ const AllHistory = () => {
             </div>
           </div>
         </div>
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+              <button
+                onClick={() => setShowModal(false)}
+                className="absolute top-2 right-3 text-red-600 hover:text-gray-500 text-xl font-bold"
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <h2 className="text-lg font-semibold mb-4 text-center">
+                Select Quotation Type
+              </h2>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/admin/quotation/${selectedClient}/${selectedTxn}?gst=1`
+                    );
+                    setShowModal(false);
+                  }}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  With GST (18%)
+                </button>
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/admin/quotation/${selectedClient}/${selectedTxn}?gst=0`
+                    );
+                    setShowModal(false);
+                  }}
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  Without GST
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <PaginationContainer>
           <ReactPaginate
             previousLabel={"Previous"}

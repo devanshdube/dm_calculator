@@ -259,29 +259,31 @@ exports.forgotPassword = async (req, res) => {
   try {
     const getUserQuery = `SELECT * FROM dm_calculator_employees WHERE employee_email = ?`;
 
-db.query(getUserQuery, [User], async (err, result) => {
-  if (err || result.length === 0) {
-    return res
-      .status(400)
-      .json({ status: "Failure", message: "User not found" });
-  }
+    db.query(getUserQuery, [User], async (err, result) => {
+      if (err || result.length === 0) {
+        return res
+          .status(400)
+          .json({ status: "Failure", message: "User not found" });
+      }
 
-  const user = result[0];
-  const otp = crypto.randomInt(100000, 999999).toString();
-  const otpHash = await bcrypt.hash(otp, 10);
+      const user = result[0];
+      const otp = crypto.randomInt(100000, 999999).toString();
+      const otpHash = await bcrypt.hash(otp, 10);
 
-  forgototpStore.set(user.id, {
-    otpHash,
-    expiresAt: Date.now() + 5 * 60 * 1000,
-  });
+      forgototpStore.set(user.id, {
+        otpHash,
+        expiresAt: Date.now() + 5 * 60 * 1000,
+      });
 
-  await passwordOtpEmail(user.employee_email, otp);
+      await passwordOtpEmail(user.employee_email, otp);
 
-  return res
-    .status(200)
-    .json({ status: "Success", message: `OTP sent to ${user.employee_email}` });
-});
-
+      return res
+        .status(200)
+        .json({
+          status: "Success",
+          message: `OTP sent to ${user.employee_email}`,
+        });
+    });
   } catch (error) {
     console.error("Error processing forgot password request:", error);
     return res
@@ -415,7 +417,6 @@ exports.verifyOtpAndResetPassword = async (req, res) => {
       .json({ status: "Failure", message: "Internal server error" });
   }
 };
-
 
 // exports.insertServices = async (req, res) => {
 //   const { services, category, editing_type, amount, selected } = req.body;

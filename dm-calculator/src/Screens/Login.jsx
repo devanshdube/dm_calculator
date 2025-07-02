@@ -136,6 +136,7 @@ export default function Login() {
 
                 <div className="flex items-center justify-between text-sm">
                   <button
+                    type="button"
                     onClick={() => navigate("/password-reset")}
                     className="text-white/80 hover:text-white transition-colors"
                   >
@@ -144,7 +145,7 @@ export default function Login() {
                 </div>
 
                 <button
-                  onClick={handleSubmit}
+                  // onClick={handleSubmit}
                   disabled={loading}
                   className="w-full py-3 px-6 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                 >

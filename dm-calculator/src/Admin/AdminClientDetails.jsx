@@ -71,10 +71,25 @@ const AdminClientDetails = () => {
     setShowModal(true);
   };
 
+  // const handleChange = (e) => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     [e.target.name]: e.target.value,
+  //   }));
+  // };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Restrict phone number to digits only and max 10 digits
+    if (name === "phone") {
+      // Prevent non-numeric input and limit to 10 digits
+      if (!/^\d{0,10}$/.test(value)) return;
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
   };
 
@@ -597,7 +612,7 @@ const AdminClientDetails = () => {
                     Phone Number
                   </label>
                   <input
-                    type="tel"
+                    type="number"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
