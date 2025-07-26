@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 import styled from "styled-components";
 import ForgotPassword from "./Screens/ForgotPassword";
+import { GlobalStyle } from "./Admin/GlobalStyle ";
 const Login = lazy(() => import("./Screens/Login"));
 const AdminRouter = lazy(() => import("./Routers/AdminRouter"));
 const BDRouter = lazy(() => import("./Routers/BDRouter"));
@@ -45,6 +46,7 @@ function App() {
 
   return (
     <>
+    <GlobalStyle/> 
       <Wrapper>
         <Suspense
           fallback={
