@@ -27,38 +27,50 @@ const AllHistory = () => {
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
 
-  const fetchAllClientServices = async () => {
-    try {
-      const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getAllClientsTxnHistory`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+const fetchAllClientServices = async () => {
+  try {
+    const res = await axios.get(
+      `${baseURL}/auth/api/calculator/getAllClientsTxnHistory`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (res.data.status === "Success") {
+      const uniqueTxnData = [];
+      const seenTxnIds = new Set();
+
+      for (const item of res.data.data) {
+        // ✅ Skip items with missing/null/empty txn_id
+        if (item.txn_id && !seenTxnIds.has(item.txn_id)) {
+          seenTxnIds.add(item.txn_id);
+          uniqueTxnData.push(item);
         }
-      );
-      if (res.data.status === "Success") {
-        console.log(res.data);
-        setFetchServices(res.data.data);
       }
-    } catch (error) {
-      console.log(error);
-      if (error.response && error.response.status === 401) {
-        // Token is invalid or expired
-        Swal.fire({
-          title: "Session Expired",
-          text: "Please login again.",
-          icon: "warning",
-          confirmButtonText: "OK",
-        }).then(() => {
-          dispatch(clearUser());
-          localStorage.removeItem("token");
-          navigate("/");
-        });
-      }
+
+      setFetchServices(uniqueTxnData);
     }
-  };
+  } catch (error) {
+    console.log(error);
+    if (error.response && error.response.status === 401) {
+      Swal.fire({
+        title: "Session Expired",
+        text: "Please login again.",
+        icon: "warning",
+        confirmButtonText: "OK",
+      }).then(() => {
+        dispatch(clearUser());
+        localStorage.removeItem("token");
+        navigate("/");
+      });
+    }
+  }
+};
+
+
   console.log(fetchServices);
 
   useEffect(() => {

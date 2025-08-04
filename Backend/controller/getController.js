@@ -432,6 +432,7 @@ exports.getClientTxnHistory = async (req, res) => {
   });
 };
 
+
 // exports.getClientServiceHistory = async (req, res) => {
 //   const { client_id, txn_id } = req.params;
 
@@ -480,43 +481,49 @@ exports.getClientTxnHistory = async (req, res) => {
 //   });
 // };
 
+// old code
 exports.getClientServiceHistory = async (req, res) => {
   const { client_id, txn_id } = req.params;
 
   const query = `
-    SELECT 
-      'Graphic Service' AS service_type,
-      ct.txn_id,
-      ct.created_at,
-      ct.service_name,
-      ct.category_name,
-      ct.editing_type_name,
-      ct.editing_type_amount,
-      ct.quantity,
-      ct.total_amount,
-      NULL AS amount,
-      NULL AS percent,
-      NULL AS charge
-    FROM calculator_transactions ct
-    WHERE ct.txn_id = ? AND ct.client_id = ?
+  SELECT 
+  'Graphic Service' AS service_type,
+  ct.txn_id,
+  ct.created_at,
+  ct.service_name,
+  ct.category_name,
+  ct.editing_type_name,
+  ct.editing_type_amount,
+  ct.quantity,
+  ct.include_content_posting,
+  ct.include_thumbnail_creation,
+  ct.total_amount,
+  NULL AS amount,
+  NULL AS percent,
+  NULL AS charge
+FROM calculator_transactions ct
+WHERE ct.txn_id = ? AND ct.client_id = ?
 
-    UNION
+UNION
 
-    SELECT 
-      'Ads Campaign' AS service_type,
-      ad.txn_id,
-      ad.created_at,
-      NULL AS service_name,
-      ad.category AS category_name,
-      NULL AS editing_type_name,
-      NULL AS editing_type_amount,
-      NULL AS quantity,
-      ad.total AS total_amount,
-      ad.amount,
-      ad.percent,
-      ad.charge
-    FROM ads_campaign_details ad
-    WHERE ad.txn_id = ? AND ad.client_id = ?
+SELECT 
+  'Ads Campaign' AS service_type,
+  ad.txn_id,
+  ad.created_at,
+  NULL AS service_name,
+  ad.category AS category_name,
+  NULL AS editing_type_name,
+  NULL AS editing_type_amount,
+  NULL AS quantity,
+  NULL AS include_content_posting,
+  NULL AS include_thumbnail_creation,
+  ad.total AS total_amount,
+  ad.amount,
+  ad.percent,
+  ad.charge
+FROM ads_campaign_details ad
+WHERE ad.txn_id = ? AND ad.client_id = ?
+
   `;
 
   db.query(query, [txn_id, client_id, txn_id, client_id], (err, result) => {
@@ -533,6 +540,10 @@ exports.getClientServiceHistory = async (req, res) => {
     });
   });
 };
+
+
+
+
 
 exports.getAllClientsTxnHistory = async (req, res) => {
   const query = `
@@ -779,3 +790,33 @@ ORDER BY txn_date DESC;
     });
   });
 };
+exports.optionalServiceAmounts = (req, res) => {
+  const query = `
+    SELECT 
+      s.service_name, 
+      c.category_name, 
+      et.editing_type_name, 
+      et.amount 
+    FROM editing_types et
+    JOIN services s ON et.service_id = s.service_id
+    JOIN categories c ON et.category_id = c.category_id
+    WHERE et.editing_type_name IN ('Content Posting', 'Thumbnail Creation')
+  `;
+
+  db.query(query, (err, rows) => {
+    if (err) {
+      console.error("Database error in optionalServiceAmounts:", err);
+      return res.status(500).json({
+        status: 'error',
+        message: 'Internal Server Error',
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: rows,
+    });
+  });
+};
+
+

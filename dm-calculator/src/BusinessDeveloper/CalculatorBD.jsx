@@ -20,26 +20,8 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 
-const OPTIONAL_SERVICES = [
-  {
-    key: "content_posting",
-    label: "Content Posting",
-    service: "Social Media Optimization",
-    category: "Organic Page Optimization",
-    editing_type: "Content Posting",
-    amount: 400,
-  },
-  {
-    key: "thumbnail_creation",
-    label: "Thumbnail Creation",
-    service: "Graphics Design",
-    category: "Static Graphics",
-    editing_type: "Thumbnail Creation",
-    amount: 300,
-  },
-];
 
-const CalculatorBD = () => {
+const CalculatorBD = () =>  {
   const baseURL = `https://dm.calculator.one-realty.in`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
@@ -51,12 +33,14 @@ const CalculatorBD = () => {
   const [selectedEditingType, setSelectedEditingType] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [getData, setGetData] = useState([]);
-  const [addons, setAddons] = useState(
-    OPTIONAL_SERVICES.reduce((acc, item) => {
-      acc[item.key] = true;
-      return acc;
-    }, {})
-  );
+  const [optionalServices, setOptionalServices] = useState([]);
+
+  const [addons, setAddons] = useState({});
+
+  const [optionalAmounts, setOptionalAmounts] = useState([]);
+  
+  console.log(data);
+  
   const [total, setTotal] = useState(0);
   const navigate = useNavigate();
   console.log(id, proposalId);
@@ -66,50 +50,98 @@ const CalculatorBD = () => {
     axios
       .get(`${baseURL}/auth/api/calculator/services/category/editing`)
       .then((res) => {
-        const filtered = filterOptionalServices(res.data.data);
-        setData(filtered);
+     
+  setData(res.data.data);
       })
       .catch((err) => console.error(err));
   }, []);
 
-  const handleEdit = (entry) => {
-    setEditId(entry.id);
-    setSelectedService(entry.service_name);
-    setSelectedCategory(entry.category_name);
-    setSelectedEditingType({
-      editing_type_id: entry.editing_type_id, // may need to match from `data`
-      editing_type_name: entry.editing_type_name,
-      amount: parseFloat(entry.editing_type_amount),
-    });
-    setQuantity(parseInt(entry.quantity));
-    setAddons({
-      content_posting: entry.include_content_posting === "1",
-      thumbnail_creation: entry.include_thumbnail_creation === "1",
-    });
-    setTotal(parseFloat(entry.total_amount));
-  };
+useEffect(() => {
+  axios.get(`${baseURL}/auth/api/calculator/optional-service-amounts`)
+    .then(res => {
+      if (res.data.status === "success") {
+        const services = res.data.data;
+        setOptionalServices(services);
 
-  const filterOptionalServices = (services) => {
-    return services
-      .map((service) => {
-        const filteredCategories = service.categories
-          .map((category) => {
-            const filteredEditing = category.editing_types.filter((editing) => {
-              return !OPTIONAL_SERVICES.some(
-                (opt) =>
-                  opt.service === service.service_name &&
-                  opt.category === category.category_name &&
-                  opt.editing_type === editing.editing_type_name
-              );
-            });
-            return { ...category, editing_types: filteredEditing };
-          })
-          .filter((cat) => cat.editing_types.length > 0);
+        const initialAddons = {};
+        services.forEach(item => {
+          const key = item.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+          initialAddons[key] = false;
+        });
+        setAddons(initialAddons);
+        setOptionalAmounts(services); // already done in your code
+      }
+    })
+    .catch(err => console.error(err));
+}, []);
 
-        return { ...service, categories: filteredCategories };
-      })
-      .filter((service) => service.categories.length > 0);
-  };
+// useEffect(() => {
+//   if (data.length && optionalServices.length) {
+//     const filtered = filterOptionalServices(data);
+//     setData(filtered);
+//   }
+// }, [data, optionalServices]);
+
+
+
+const getOptionalAddonAmount = (serviceName, editingTypeName) => {
+  const match = optionalAmounts.find(
+    (item) =>
+      item.service_name === serviceName &&
+      item.editing_type_name === editingTypeName
+  );
+  return match ? parseFloat(match.amount) : 0;
+};
+
+const handleEdit = (entry) => {
+  setEditId(entry.id);
+  setSelectedService(entry.service_name);
+  setSelectedCategory(entry.category_name);
+  setSelectedEditingType({
+    editing_type_id: entry.editing_type_id,
+    editing_type_name: entry.editing_type_name,
+    amount: parseFloat(entry.editing_type_amount),
+  });
+  setQuantity(parseInt(entry.quantity));
+
+  // Dynamically map optional services from entry
+  const updatedAddons = {};
+  optionalServices.forEach((opt) => {
+    const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+    const entryKey = `include_${key}`;
+    updatedAddons[key] = parseFloat(entry[entryKey]) > 0;
+  });
+
+  setAddons(updatedAddons);
+  setTotal(parseFloat(entry.total_amount));
+};
+
+
+const filterOptionalServices = (services) => {
+  return services
+    .map((service) => {
+      const filteredCategories = service.categories
+        .map((category) => {
+          const filteredEditing = category.editing_types.filter((editing) => {
+            // Check if this editing type is an optional service
+            const isOptional = optionalServices.some(
+              (opt) =>
+                opt.service_name === service.service_name &&
+                opt.category_name === category.category_name &&
+                opt.editing_type_name === editing.editing_type_name
+            );
+            return !isOptional; // Only keep non-optional services
+          });
+
+          return { ...category, editing_types: filteredEditing };
+        })
+        .filter((cat) => cat.editing_types.length > 0);
+
+      return { ...service, categories: filteredCategories };
+    })
+    .filter((service) => service.categories.length > 0);
+};
+
 
   const getSelectedService = data.find(
     (s) => s.service_name === selectedService
@@ -118,81 +150,70 @@ const CalculatorBD = () => {
     (c) => c.category_name === selectedCategory
   );
 
-  const handleSave = () => {
-    if (!selectedEditingType) return;
+const handleSave = () => {
+  if (!selectedEditingType) return;
 
-    let baseAmount = selectedEditingType.amount * quantity;
-    const selectedAddons = [];
+  // Base amount
+  let baseAmount = selectedEditingType.amount * quantity;
 
-    OPTIONAL_SERVICES.forEach((opt) => {
-      if (addons[opt.key]) {
-        baseAmount += opt.amount * quantity;
-        selectedAddons.push(opt.key);
+  // Optional addon values
+  let optionalTotal = 0;
+  let include_content_posting = 0;
+  let include_thumbnail_creation = 0;
+
+  optionalServices.forEach((opt) => {
+    const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+    if (addons[key]) {
+      const amount = parseFloat(opt.amount);
+      optionalTotal += amount;
+
+      // Set named fields (for backend)
+      if (key === "content_posting") {
+        include_content_posting = amount;
+      } else if (key === "thumbnail_creation") {
+        include_thumbnail_creation = amount;
       }
-    });
+    }
+  });
 
-    // OPTIONAL_SERVICES.forEach((opt) => {
-    //   if (addons[opt.key]) {
-    //     baseAmount += opt.amount;
-    //     selectedAddons.push(opt.key);
-    //   }
-    // });
+  const finalAmount = baseAmount + optionalTotal;
+  setTotal(finalAmount);
 
-    setTotal(baseAmount);
-
-    // const payload = {
-    //   txn_id: proposalId,
-    //   client_id: id,
-    //   service_name: selectedService,
-    //   category_name: selectedCategory,
-    //   editing_type_name: selectedEditingType.editing_type_name,
-    //   editing_type_amount: selectedEditingType.amount,
-    //   quantity,
-    //   addons: selectedAddons,
-    //   total_amount: baseAmount,
-    // };
-
-    const payload = {
-      txn_id: proposalId,
-      client_id: id,
-      service_name: selectedService,
-      category_name: selectedCategory,
-      editing_type_name: selectedEditingType.editing_type_name,
-      editing_type_amount: selectedEditingType.amount,
-      quantity,
-      include_content_posting: addons["content_posting"] ? 1 : 0,
-      include_thumbnail_creation: addons["thumbnail_creation"] ? 1 : 0,
-      total_amount: baseAmount,
-      employee: userName,
-    };
-
-    console.log(payload);
-
-    const request = editId
-      ? axios.put(
-          `${baseURL}/auth/api/calculator/updateGraphicEntryById/${editId}`,
-          payload
-        )
-      : axios.post(
-          `${baseURL}/auth/api/calculator/saveCalculatorData`,
-          payload
-        );
-
-    request
-      .then((res) => {
-        if (res.data.status === "Success") {
-          Swal.fire({
-            icon: "success",
-            title: editId ? "Updated!" : "Saved!",
-            text: editId ? "Entry updated successfully" : "Saved successfully",
-          });
-          fetchData();
-        }
-      })
-      .catch((err) => {
-        console.error("Save error:", err);
-      });
+  const payload = {
+    txn_id: proposalId,
+    client_id: id,
+    service_name: selectedService,
+    category_name: selectedCategory,
+    editing_type_name: selectedEditingType.editing_type_name,
+    editing_type_amount: selectedEditingType.amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount: finalAmount,
+    employee: userName,
   };
+
+  const request = editId
+    ? axios.put(`${baseURL}/auth/api/calculator/updateGraphicEntryById/${editId}`, payload)
+    : axios.post(`${baseURL}/auth/api/calculator/saveCalculatorData`, payload);
+
+  request
+    .then((res) => {
+      resetForm();
+      if (res.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: editId ? "Updated!" : "Saved!",
+          text: editId ? "Entry updated successfully" : "Saved successfully",
+        });
+        fetchData();
+      }
+    })
+    .catch((err) => {
+      console.error("Save error:", err);
+    });
+};
+
 
   const resetForm = () => {
     setEditId(null);
@@ -200,14 +221,22 @@ const CalculatorBD = () => {
     setSelectedCategory("");
     setSelectedEditingType(null);
     setQuantity(1);
-    setAddons(
-      OPTIONAL_SERVICES.reduce((acc, item) => {
-        acc[item.key] = true; // or false, depending on your default
-        return acc;
-      }, {})
-    );
+ const initialAddons = {};
+optionalServices.forEach(item => {
+  const key = item.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+  initialAddons[key] = false;
+});
+setAddons(initialAddons);
+
     setTotal(0);
   };
+
+  console.log(selectedService);
+  console.log(selectedCategory);
+  console.log(selectedEditingType);
+  console.log(quantity);
+  console.log(addons);
+
 
   const fetchData = async () => {
     if (!id || !proposalId) return;
@@ -393,39 +422,30 @@ const CalculatorBD = () => {
             />
           </div>
 
-          <div className="space-y-4">
-            {OPTIONAL_SERVICES.map((opt) => (
-              <div key={opt.key}>
-                <label className="block font-semibold">{opt.label}?</label>
-                <div className="flex gap-4 mt-2">
-                  <button
-                    className={`px-4 py-2 rounded ${
-                      addons[opt.key]
-                        ? "bg-green-600 text-white"
-                        : "bg-gray-300 text-black"
-                    }`}
-                    onClick={() =>
-                      setAddons((prev) => ({ ...prev, [opt.key]: true }))
-                    }
-                  >
-                    YES
-                  </button>
-                  <button
-                    className={`px-4 py-2 rounded ${
-                      !addons[opt.key]
-                        ? "bg-red-600 text-white"
-                        : "bg-gray-300 text-black"
-                    }`}
-                    onClick={() =>
-                      setAddons((prev) => ({ ...prev, [opt.key]: false }))
-                    }
-                  >
-                    NO
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <di1v className="space-y-4">
+         {optionalServices.map((opt) => {
+  const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+  return (
+    <div key={key}>
+      <label className="block font-semibold">{opt.editing_type_name}?</label>
+      <div className="flex gap-4 mt-2">
+        <button
+          className={`px-4 py-2 rounded ${addons[key] ? "bg-green-600 text-white" : "bg-gray-300 text-black"}`}
+          onClick={() => setAddons(prev => ({ ...prev, [key]: true }))}
+        >
+          YES
+        </button>
+        <button
+          className={`px-4 py-2 rounded ${!addons[key] ? "bg-red-600 text-white" : "bg-gray-300 text-black"}`}
+          onClick={() => setAddons(prev => ({ ...prev, [key]: false }))}
+        >
+          NO
+        </button>
+      </div>
+    </div>
+  );
+})}
+          </di1v>
 
           <button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"
@@ -472,9 +492,9 @@ const CalculatorBD = () => {
                     {(order.include_content_posting === "1" ||
                       order.include_thumbnail_creation === "1") && (
                       <div className="text-base text-white/60 italic">
-                        {order.include_content_posting === "1" &&
+                        {order.include_content_posting === "0" &&
                           "📢 Content Posting "}
-                        {order.include_thumbnail_creation === "1" &&
+                        {order.include_thumbnail_creation === "0" &&
                           "🖼 Thumbnail Creation"}
                       </div>
                     )}
@@ -484,7 +504,7 @@ const CalculatorBD = () => {
                   </div>
 
                   {/* Right Section: Amount + Delete */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 sm:gap-4">
                     <div className="text-green-400 font-bold text-xl">
                       ₹{parseFloat(order.total_amount).toLocaleString()}
                     </div>
@@ -554,5 +574,4 @@ const CalculatorBD = () => {
     </>
   );
 };
-
 export default CalculatorBD;

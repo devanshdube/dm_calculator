@@ -13,19 +13,22 @@ import img3 from "../assets/dghead.jpeg";
 export default function QuotationBD() {
   const baseURL = `https://dm.calculator.one-realty.in`;
   const { id, txn_id } = useParams();
-  console.log(id, txn_id);
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const isGST = query.get("gst") === "1";
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+
   const [serviceData, setServiceData] = useState([]);
   const [graphicData, setGraphicData] = useState([]);
   const [adsData, setAdsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clientData, setClientData] = useState([]);
-
+  const [imagesLoaded, setImagesLoaded] = useState({
+    header: false,
+    footer: false,
+  });
   const fetchServices = async () => {
     try {
       const res = await axios.get(
@@ -37,17 +40,13 @@ export default function QuotationBD() {
           },
         }
       );
-      console.log(res.data.data);
       setServiceData(res.data.data);
     } catch (error) {
-      console.error(error);
-      if (error.response && error.response.status === 401) {
-        // Token is invalid or expired
+      if (error.response?.status === 401) {
         Swal.fire({
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -56,8 +55,6 @@ export default function QuotationBD() {
       }
     }
   };
-
-  console.log(serviceData);
 
   const fetchClient = async () => {
     try {
@@ -71,18 +68,14 @@ export default function QuotationBD() {
         }
       );
       if (res.data.status === "Success") {
-        console.log(res.data.data);
         setClientData(res.data.data);
       }
     } catch (error) {
-      console.log(error);
-      if (error.response && error.response.status === 401) {
-        // Token is invalid or expired
+      if (error.response?.status === 401) {
         Swal.fire({
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -92,7 +85,6 @@ export default function QuotationBD() {
     }
   };
 
-  console.log(clientData);
   const clientName = clientData?.client_name;
   const clientAddress = clientData?.address;
   const clientPhone = clientData?.phone;
@@ -129,12 +121,15 @@ export default function QuotationBD() {
         service.categories.push(category);
       }
 
-      category.editingTypes.push({
-        type: item.editing_type_name || "N/A",
-        quantity: Number(item.quantity) || 1,
-        price: Number(item.editing_type_amount) || 0,
-        total: Number(item.total_amount) || 0,
-      });
+    category.editingTypes.push({
+  type: item.editing_type_name || "N/A",
+  quantity: Number(item.quantity) || 1,
+  price: Number(item.editing_type_amount) || 0,
+  total: Number(item.total_amount) || 0,
+  include_content_posting: Number(item.include_content_posting) || 0,
+  include_thumbnail_creation: Number(item.include_thumbnail_creation) || 0,
+});
+
     });
 
     setGraphicData(groupedGraphic);
@@ -142,492 +137,231 @@ export default function QuotationBD() {
     setLoading(false);
   }, [serviceData]);
 
-  const graphicTotal = graphicData.reduce((serviceSum, service) => {
-    return (
-      serviceSum +
-      service.categories.reduce((catSum, cat) => {
-        return (
+  const graphicTotal = graphicData.reduce(
+    (sum, service) =>
+      sum +
+      service.categories.reduce(
+        (catSum, cat) =>
           catSum +
-          cat.editingTypes.reduce((editSum, edit) => {
-            return editSum + (edit.total || edit.price * edit.quantity);
-          }, 0)
-        );
-      }, 0)
-    );
-  }, 0);
+          cat.editingTypes.reduce(
+            (editSum, edit) =>
+              editSum + (edit.total || edit.price * edit.quantity),
+            0
+          ),
+        0
+      ),
+    0
+  );
 
   const adsTotal = adsData.reduce(
     (sum, item) => sum + Number(item.total_amount || 0),
     0
   );
-
   const grandTotal = graphicTotal + adsTotal;
 
-  if (loading)
+  if (loading) {
     return (
       <div className="text-center p-10 font-semibold text-gray-700">
         Loading...
       </div>
     );
-
-  window.onload = function () {
-    setTimeout(() => {
-      window.print();
-    }, 2000);
-  };
+  }
 
   return (
-    <Wrapper>
-      <div className="print-header">
-        <img src={isGST ? img1 : img3} alt="Header" className="w-full" />
+    <>
+      <div className="bg-white print:bg-white print:m-0 print:p-0">
+      {/* Hidden on print - Action Buttons */}
+      <div className="print:hidden flex justify-end gap-3 my-4">
+        <button onClick={() => window.print()} className="bg-blue-600 text-white rounded-full px-4 py-2">🖨️ Print</button>
+        <button onClick={() => navigate("/admin/dashboard")} className="bg-teal-600 text-white rounded-full px-4 py-2">📊 Dashboard</button>
+        <button onClick={() => navigate(-1)} className="bg-gray-600 text-white rounded-full px-4 py-2">🔙 Back</button>
       </div>
-      <div className="min-h-screen bg-white flex items-center justify-center p-4 sm:p-6 print:block print:p-0 print:pt-[100px] print:pb-[80px]">
-        <div className="bg-white p-4 sm:p-6 md:p-8 shadow-lg rounded-lg max-w-6xl w-full print:shadow-none print:p-4 print:rounded-none">
-          {/* BUTTONS */}
-          <div className="print:hidden flex flex-wrap justify-center md:justify-end gap-3 mb-6">
-            <button
-              onClick={() => window.print()}
-              className="inline-flex min-w-[100px] justify-center items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-full shadow-sm transition"
-            >
-              🖨️ <span>Print</span>
-            </button>
-            <button
-              onClick={() => navigate("/admin/dashboard")}
-              className="inline-flex min-w-[100px] justify-center items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-medium px-4 py-2 rounded-full shadow-sm transition"
-            >
-              📊 <span>Dashboard</span>
-            </button>
-            <button
-              onClick={() => navigate(-1)}
-              className="inline-flex min-w-[100px] justify-center items-center gap-2 bg-slate-500 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-full shadow-sm transition"
-            >
-              🔙 <span>Back</span>
-            </button>
+
+      {/* Table for proper header/footer repetition */}
+      <table className="w-full print:border-collapse print:table print:w-full">
+        {/* Repeating Header */}
+        <thead className="print:table-header-group hidden">
+          <tr>
+            <td colSpan="100%">
+          <div className="w-full print:mb-3">
+            <img
+              src={isGST ? img1 : img3}
+              alt="Header"
+              className="w-full h-auto object-contain"
+            />
           </div>
+        </td>
+          </tr>
+        </thead>
 
-          {/* HEADER */}
-          {/* <div className="flex flex-col md:flex-row justify-between gap-4 mb-8 print:flex-row print:gap-10">
-            <div className="md:w-1/2 print:w-1/2">
-              <h3 className="text-lg font-semibold mb-4">Client Details</h3>
-              <p>
-                <strong>Name:</strong> {clientName}
-              </p>
-              <p>
-                <strong>Contact:</strong> {clientPhone}
-              </p>
-              <p>
-                <strong>Address:</strong> {clientAddress}
-              </p>
-            </div>
+        {/* Repeating Footer */}
+       
 
-            <div className="md:w-1/2 text-right print:w-1/2">
-              <h1 className="text-3xl font-bold text-indigo-700 mb-1">
-                DOAGuru InfoSystems
-              </h1>
-              <p className="text-gray-600">
-                1815, Wright Town, Jabalpur,
-                <br />
-                Madhya Pradesh 482002
-              </p>
-              <p className="text-gray-600 mb-4">Phone: 074409 92424</p>
-              <h2 className="text-xl font-semibold">Quotation</h2>
-              <p className="text-gray-600">{moment().format("DD/MM/YYYY")}</p>
-              <p className="text-gray-600">Quote #: {txn_id}</p>
-            </div>
-          </div> */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mt-4 mb-8 print:flex-row print:gap-10">
-            {/* Left - Client Details */}
-            <div className="md:w-1/3 print:w-1/3 text-left">
-              <h3 className="text-lg font-semibold mt-8 mb-1">
-                Client Details
-              </h3>
-              <p>
-                <strong>Name:</strong> {clientName}
-              </p>
-              <p>
-                <strong>Contact:</strong> {clientPhone}
-              </p>
-              <p>
-                <strong>Address:</strong> {clientAddress}
-              </p>
-            </div>
+        {/* Main Content */}
+        <tbody className="print:table-row-group">
+          <tr>
+            <td className="p-0 m-0">
+              <div className="min-h-[auto] flex flex-col justify-between px-6 print:px-4">
 
-            {/* Center - Logo */}
-            {/* <div className="md:w-1/3 print:w-1/3 flex justify-center"> */}
-            <div className="md:w-1/3 print:w-1/3 text-center">
-              <h2 className="text-xl font-semibold">Quotation</h2>
-              <p className="text-gray-600">{moment().format("DD/MM/YYYY")}</p>
-              <p className="text-gray-600">Quote #: {txn_id}</p>
-              {/* <img
-                          src={img}
-                          alt="DOAGuru InfoSystems Logo"
-                          className="w-40 object-contain"
-                        /> */}
-            </div>
-
-            {/* Right - Address and Quotation */}
-            <div className="md:w-1/3 print:w-1/3 text-right">
-              <p className="text-gray-600 mt-8">
-                1815, Wright Town, Jabalpur,
-                <br />
-                Madhya Pradesh 482002
-              </p>
-              <p className="text-gray-600 mb-1">Phone: 074409 92424</p>
-              {/* <h2 className="text-xl font-semibold">Quotation</h2>
-                        <p className="text-gray-600">{moment().format("DD/MM/YYYY")}</p>
-                        <p className="text-gray-600">Quote #: {txn_id}</p> */}
-            </div>
-          </div>
-
-          {/* GRAPHIC SECTION */}
-          {/* <section className="mb-10">
-            <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">
-              Graphic Services
-            </h3>
-            {graphicData.length === 0 ? (
-              <p className="text-center text-gray-500">
-                No Graphic Services found.
-              </p>
-            ) : (
-              graphicData.map((service, idx) => (
-                <div key={idx} className="mb-6">
-                  <h4 className="font-semibold text-lg mb-3">
-                    {service.service}
-                  </h4>
-                  {service.categories.map((cat, cidx) => (
-                    <div key={cidx} className="mb-4">
-                      <h5 className="font-semibold mb-2">{cat.categoryName}</h5>
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full border border-gray-300 text-sm">
-                          <thead className="bg-indigo-100">
-                            <tr>
-                              <th className="border px-3 py-2 text-left">
-                                Editing Type
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Quantity
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Price (₹)
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Total (₹)
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {cat.editingTypes.map((edit, eidx) => (
-                              <tr
-                                key={eidx}
-                                className={
-                                  eidx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                                }
-                              >
-                                <td className="border px-3 py-2">
-                                  {edit.type}
-                                </td>
-                                <td className="border px-3 py-2 text-right">
-                                  {edit.quantity}
-                                </td>
-                                <td className="border px-3 py-2 text-right">
-                                  {edit.price.toLocaleString()}
-                                </td>
-                                <td className="border px-3 py-2 text-right">
-                                  {edit.total.toLocaleString()}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  ))}
+                {/* Client Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3 print:grid-cols-2">
+                  <div className="break-words">
+                    <h3 className="text-lg font-semibold mb-2">Client Details</h3>
+                    <p className="break-words"><strong>Name:</strong> {clientData?.client_name}</p>
+                    <p className="break-words"><strong>Organization Name:</strong> {clientData?.client_organization}</p>
+                    <p className="break-words"><strong>Contact:</strong> {clientData?.phone}</p>
+                    <p className="break-words"><strong>Address:</strong> {clientData?.address}</p>
+                  </div>
+                  <div className="text-end">
+                    <h2 className="text-2xl font-bold">Quotation</h2>
+                    <p>{moment().format("DD/MM/YYYY")}</p>
+                    <p>Quote #: {txn_id}</p>
+                  </div>
+                  {/* <div className="text-right text-gray-600 break-words">
+                    <p>1815, Wright Town, Jabalpur,</p>
+                    <p>Madhya Pradesh 482002</p>
+                    <p>Phone: 074409 92424</p>
+                  </div> */}
                 </div>
-              ))
-            )}
-            <p className="font-semibold text-right text-lg mt-4">
-              Graphic Total: ₹{graphicTotal.toLocaleString()}
-            </p>
-          </section> */}
-          {graphicData.length > 0 && graphicTotal > 0 ? (
-            <section className="mb-10">
-              <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">
-                Graphic Services
-              </h3>
 
-              {graphicData.map((service, idx) => (
-                <div key={idx} className="mb-6">
-                  <h4 className="font-semibold text-lg mb-3">
-                    {service.service}
-                  </h4>
+                {/* Graphic Services */}
+                {graphicData.length > 0 && (
+                  <section className="mb-2">
+                    <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">Graphic Services</h3>
+                    {graphicData.map((service, idx) => (
+                     
+                      
+                      
+                      <div key={idx} className="mb-3">
+                        <h4 className="font-semibold text-lg mb-2">{service.service}</h4>
+                        {service.categories.map((cat, cidx) => (
+                          <div key={cidx} className="mb-4">
+                            <h5 className="font-semibold mb-2">{cat.categoryName}</h5>
+                        <table className="w-full border text-sm">
+  <thead className="bg-indigo-100">
+    <tr>
+      <th className="border px-3 py-2 text-left">Editing Type</th>
+      <th className="border px-3 py-2 text-right">Quantity</th>
+      <th className="border px-3 py-2 text-right">Price (₹)</th>
+      <th className="border px-3 py-2 text-right">Total (₹)</th>
+    </tr>
+  </thead>
+<tbody>
+  {cat.editingTypes.map((edit, eidx) => {
+    const qty = Number(edit.quantity || 0);
+    const price = Number(edit.price || 0);
+    const thumb = Number(edit.include_thumbnail_creation || 0);
+    const posting = Number(edit.include_content_posting || 0);
 
-                  {service.categories.map((cat, cidx) => (
-                    <div key={cidx} className="mb-4">
-                      <h5 className="font-semibold mb-2">{cat.categoryName}</h5>
+    const totalBase = price * qty;
+    const totalThumb = thumb * qty;
+    const totalPost = posting * qty;
+    const total = totalBase + totalThumb + totalPost;
 
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full border border-gray-300 text-sm">
-                          <thead className="bg-indigo-100">
-                            <tr>
-                              <th className="border px-3 py-2 text-left">
-                                Editing Type
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Quantity
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Price (₹)
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Total (₹)
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {cat.editingTypes.map((edit, eidx) => (
-                              <tr
-                                key={eidx}
-                                className={
-                                  eidx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                                }
-                              >
-                                <td className="border px-3 py-2">
-                                  {edit.type}
-                                </td>
-                                <td className="border px-3 py-2 text-right">
-                                  {edit.quantity}
-                                </td>
-                                <td className="border px-3 py-2 text-right">
-                                  {edit.price?.toLocaleString()}
-                                </td>
-                                <td className="border px-3 py-2 text-right">
-                                  {edit.total?.toLocaleString()}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))}
-
-              <p className="font-semibold text-right text-lg mt-4">
-                Graphic Total: ₹{graphicTotal.toLocaleString()}
-              </p>
-            </section>
-          ) : null}
-
-          {/* ADS SECTION */}
-          {/* <section className="mb-10">
-            <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">
-              Ads Services
-            </h3>
-            {adsData.length === 0 ? (
-              <p className="text-center text-gray-500">
-                No Ads Services found.
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full border border-gray-300 text-sm">
-                  <thead className="bg-indigo-100">
-                    <tr>
-                      <th className="border px-3 py-2 text-left">Category</th>
-                      <th className="border px-3 py-2 text-right">
-                        Amount (₹)
-                      </th>
-                      <th className="border px-3 py-2 text-right">
-                        Percentage (%)
-                      </th>
-                      <th className="border px-3 py-2 text-right">
-                        Charges (₹)
-                      </th>
-                      <th className="border px-3 py-2 text-right">
-                        Final Total (₹)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {adsData.map((ad, idx) => (
-                      <tr
-                        key={idx}
-                        className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                      >
-                        <td className="border px-3 py-2">{ad.category_name}</td>
-                        <td className="border px-3 py-2 text-right">
-                          {Number(
-                            ad.editing_type_amount || ad.amount || 0
-                          ).toLocaleString()}
-                        </td>
-                        <td className="border px-3 py-2 text-right">
-                          {ad.percent || ad.percentage || 0}
-                        </td>
-                        <td className="border px-3 py-2 text-right">
-                          {Number(ad.charge || 0).toLocaleString()}
-                        </td>
-                        <td className="border px-3 py-2 text-right font-semibold">
-                          {Number(
-                            ad.total_amount || ad.finalTotal || 0
-                          ).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <p className="font-semibold text-right text-lg mt-4">
-              Ads Total: ₹{adsTotal.toLocaleString()}
-            </p>
-          </section> */}
-          {adsData.length > 0 && adsTotal > 0 && (
-            <section className="mb-10">
-              <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">
-                Ads Services
-              </h3>
-
-              <div className="overflow-x-auto">
-                <table className="min-w-full border border-gray-300 text-sm">
-                  <thead className="bg-indigo-100">
-                    <tr>
-                      <th className="border px-3 py-2 text-left">Category</th>
-                      <th className="border px-3 py-2 text-right">
-                        Amount (₹)
-                      </th>
-                      <th className="border px-3 py-2 text-right">
-                        Percentage (%)
-                      </th>
-                      <th className="border px-3 py-2 text-right">
-                        Charges (₹)
-                      </th>
-                      <th className="border px-3 py-2 text-right">
-                        Final Total (₹)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {adsData.map((ad, idx) => (
-                      <tr
-                        key={idx}
-                        className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                      >
-                        <td className="border px-3 py-2">{ad.category_name}</td>
-                        <td className="border px-3 py-2 text-right">
-                          {Number(
-                            ad.editing_type_amount || ad.amount || 0
-                          ).toLocaleString()}
-                        </td>
-                        <td className="border px-3 py-2 text-right">
-                          {ad.percent || ad.percentage || 0}
-                        </td>
-                        <td className="border px-3 py-2 text-right">
-                          {Number(ad.charge || 0).toLocaleString()}
-                        </td>
-                        <td className="border px-3 py-2 text-right font-semibold">
-                          {Number(
-                            ad.total_amount || ad.finalTotal || 0
-                          ).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <p className="font-semibold text-right text-lg mt-4">
-                Ads Total: ₹{adsTotal.toLocaleString()}
-              </p>
-            </section>
+    return (
+      <tr key={eidx} className={eidx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+        <td className="border px-3 py-2 align-top">
+          {edit.type}
+        </td>
+        <td className="border px-3 py-2 text-left">
+          <div>Video Shoot with Editing: {qty}</div>
+          {thumb > 0 && <div>Thumbnail: {qty}</div>}
+          {posting > 0 && <div>Posting with hashtag: {qty}</div>}
+        </td>
+        <td className="border px-3 py-2 text-left">
+          <div>{price} × {qty} = ₹{totalBase.toLocaleString()}</div>
+          {thumb > 0 && (
+            <div>{thumb} × {qty} = ₹{totalThumb.toLocaleString()}</div>
           )}
+          {posting > 0 && (
+            <div>{posting} × {qty} = ₹{totalPost.toLocaleString()}</div>
+          )}
+        </td>
+        <td className="border px-3 py-2 text-right font-semibold">
+          ₹{total.toLocaleString()}
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
 
-          {/* GRAND TOTAL */}
-          {/* <section className="border-t pt-4 text-right">
-            <p className="text-2xl font-bold text-indigo-700">
-              Grand Total: ₹{grandTotal.toLocaleString()}
-            </p>
-          </section> */}
-          <section className="border-t pt-4 text-right">
-            <p className="text-xl text-gray-700">
-              Subtotal: ₹{grandTotal.toLocaleString()}
-            </p>
 
-            {isGST && (
-              <>
-                <p className="text-lg text-gray-600 mt-1">
-                  GST (18%): ₹{(grandTotal * 0.18).toLocaleString()}
-                </p>
-                <p className="text-2xl font-bold text-indigo-700 mt-2">
-                  Total with GST: ₹{(grandTotal * 1.18).toLocaleString()}
-                </p>
-              </>
-            )}
+</table>
 
-            {!isGST && (
-              <p className="text-2xl font-bold text-indigo-700 mt-2">
-                Grand Total: ₹{grandTotal.toLocaleString()}
-              </p>
-            )}
-          </section>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                    <p className="text-right text-lg font-semibold">Graphic Total: ₹{graphicTotal.toLocaleString()}</p>
+                  </section>
+                )}
 
-          {/* FOOTER */}
-          {/* <footer className="mt-10 border-t pt-6 text-center text-gray-600 text-sm">
-            <p>Thank you for your business!</p>
-            <p>Please contact us for any questions regarding this quotation.</p>
-          </footer> */}
-        </div>
-      </div>
-      <div className="print-footer">
-        <img src={img2} alt="Footer" className="w-full" />
-      </div>
-    </Wrapper>
+                {/* Ads Services */}
+                {adsData.length > 0 && (
+                  <section className="mb-5">
+                    <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">Ads Services</h3>
+                    <table className="w-full border text-sm">
+                      <thead className="bg-indigo-100">
+                        <tr>
+                          <th className="border px-3 py-2 text-left">Category</th>
+                          <th className="border px-3 py-2 text-right">Amount (₹)</th>
+                          <th className="border px-3 py-2 text-right">Percentage (%)</th>
+                          <th className="border px-3 py-2 text-right">Charges (₹)</th>
+                          <th className="border px-3 py-2 text-right">Final Total (₹)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {adsData.map((ad, idx) => (
+                          <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                            <td className="border px-3 py-2">{ad.category_name}</td>
+                            <td className="border px-3 py-2 text-right">{Number(ad.amount || 0).toLocaleString()}</td>
+                            <td className="border px-3 py-2 text-right">{ad.percent || 0}</td>
+                            <td className="border px-3 py-2 text-right">{Number(ad.charge || 0).toLocaleString()}</td>
+                            <td className="border px-3 py-2 text-right font-semibold">{Number(ad.total_amount || 0).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <p className="text-right text-lg font-semibold mt-1">Ads Total: ₹{adsTotal.toLocaleString()}</p>
+                  </section>
+                )}
+
+                {/* Grand Total Section */}
+                <section className="text-right border-t pt-3">
+                  <p className="text-xl text-gray-700">Subtotal: ₹{grandTotal.toLocaleString()}</p>
+                  {isGST ? (
+                    <>
+                      <p className="text-lg text-gray-600 mt-1">GST (18%): ₹{(grandTotal * 0.18).toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-indigo-700 mt-2">Total with GST: ₹{(grandTotal * 1.18).toLocaleString()}</p>
+                    </>
+                  ) : (
+                    <p className="text-2xl font-bold text-indigo-700 mt-2">Grand Total: ₹{grandTotal.toLocaleString()}</p>
+                  )}
+                </section>
+
+              </div>
+            </td>
+          </tr>
+        </tbody>
+
+         <tfoot className="hidden print:table-footer-group print:fixed bottom-[-0.1rem]">
+          <tr>
+            <td colSpan="100%">
+          <div className=" print:mt-5">
+            <img
+              src={img2}
+              alt="Footer"
+              
+              style={{height:'3.5rem' , width:"119rem"}}
+            />
+          </div>
+        </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    </>
   );
 }
 
-const Wrapper = styled.div`
-  @media print {
-    @page {
-      margin: 0;
-    }
 
-    body {
-      margin: 0;
-      padding: 0;
-    }
-
-    .print-header,
-    .print-footer {
-      position: fixed;
-      width: 100%;
-      left: 0;
-      z-index: 9999;
-      display: block;
-    }
-
-    .print-header {
-      top: 0;
-      height: 150px;
-    }
-
-    .print-footer {
-      bottom: 0;
-      height: 80px;
-    }
-
-    .print-header img,
-    .print-footer img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-`;
-
-// const Wrapper = styled.div`
-//   @media print {
-//     body {
-//       margin: 0;
-//       padding: 0;
-//     }
-//   }
-// `;

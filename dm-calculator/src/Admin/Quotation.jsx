@@ -121,12 +121,15 @@ export default function Quotation() {
         service.categories.push(category);
       }
 
-      category.editingTypes.push({
-        type: item.editing_type_name || "N/A",
-        quantity: Number(item.quantity) || 1,
-        price: Number(item.editing_type_amount) || 0,
-        total: Number(item.total_amount) || 0,
-      });
+    category.editingTypes.push({
+  type: item.editing_type_name || "N/A",
+  quantity: Number(item.quantity) || 1,
+  price: Number(item.editing_type_amount) || 0,
+  total: Number(item.total_amount) || 0,
+  include_content_posting: Number(item.include_content_posting) || 0,
+  include_thumbnail_creation: Number(item.include_thumbnail_creation) || 0,
+});
+
     });
 
     setGraphicData(groupedGraphic);
@@ -180,7 +183,7 @@ export default function Quotation() {
         <thead className="print:table-header-group hidden">
           <tr>
             <td colSpan="100%">
-          <div className="w-full print:mb-4">
+          <div className="w-full print:mb-3">
             <img
               src={isGST ? img1 : img3}
               alt="Header"
@@ -198,58 +201,93 @@ export default function Quotation() {
         <tbody className="print:table-row-group">
           <tr>
             <td className="p-0 m-0">
-              <div className="min-h-[100vh] flex flex-col justify-between px-6 print:px-4">
+              <div className="min-h-[auto] flex flex-col justify-between px-6 print:px-4">
 
                 {/* Client Details */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 print:grid-cols-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3 print:grid-cols-2">
                   <div className="break-words">
                     <h3 className="text-lg font-semibold mb-2">Client Details</h3>
                     <p className="break-words"><strong>Name:</strong> {clientData?.client_name}</p>
+                    <p className="break-words"><strong>Organization Name:</strong> {clientData?.client_organization}</p>
                     <p className="break-words"><strong>Contact:</strong> {clientData?.phone}</p>
                     <p className="break-words"><strong>Address:</strong> {clientData?.address}</p>
                   </div>
-                  <div className="text-center">
+                  <div className="text-end">
                     <h2 className="text-2xl font-bold">Quotation</h2>
                     <p>{moment().format("DD/MM/YYYY")}</p>
                     <p>Quote #: {txn_id}</p>
                   </div>
-                  <div className="text-right text-gray-600 break-words">
+                  {/* <div className="text-right text-gray-600 break-words">
                     <p>1815, Wright Town, Jabalpur,</p>
                     <p>Madhya Pradesh 482002</p>
                     <p>Phone: 074409 92424</p>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Graphic Services */}
                 {graphicData.length > 0 && (
-                  <section className="mb-10">
-                    <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">Graphic Services</h3>
+                  <section className="mb-2">
+                    <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">Graphic Services</h3>
                     {graphicData.map((service, idx) => (
-                      <div key={idx} className="mb-6">
+                     
+                      
+                      
+                      <div key={idx} className="mb-3">
                         <h4 className="font-semibold text-lg mb-2">{service.service}</h4>
                         {service.categories.map((cat, cidx) => (
                           <div key={cidx} className="mb-4">
                             <h5 className="font-semibold mb-2">{cat.categoryName}</h5>
-                            <table className="w-full border text-sm">
-                              <thead className="bg-indigo-100">
-                                <tr>
-                                  <th className="border px-3 py-2 text-left">Editing Type</th>
-                                  <th className="border px-3 py-2 text-right">Quantity</th>
-                                  <th className="border px-3 py-2 text-right">Price (₹)</th>
-                                  <th className="border px-3 py-2 text-right">Total (₹)</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {cat.editingTypes.map((edit, eidx) => (
-                                  <tr key={eidx} className={eidx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                                    <td className="border px-3 py-2">{edit.type}</td>
-                                    <td className="border px-3 py-2 text-right">{edit.quantity}</td>
-                                    <td className="border px-3 py-2 text-right">{edit.price.toLocaleString()}</td>
-                                    <td className="border px-3 py-2 text-right">{edit.total.toLocaleString()}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                        <table className="w-full border text-sm">
+  <thead className="bg-indigo-100">
+    <tr>
+      <th className="border px-3 py-2 text-left">Editing Type</th>
+      <th className="border px-3 py-2 text-right">Quantity</th>
+      <th className="border px-3 py-2 text-right">Price (₹)</th>
+      <th className="border px-3 py-2 text-right">Total (₹)</th>
+    </tr>
+  </thead>
+<tbody>
+  {cat.editingTypes.map((edit, eidx) => {
+    const qty = Number(edit.quantity || 0);
+    const price = Number(edit.price || 0);
+    const thumb = Number(edit.include_thumbnail_creation || 0);
+    const posting = Number(edit.include_content_posting || 0);
+
+    const totalBase = price * qty;
+    const totalThumb = thumb * qty;
+    const totalPost = posting * qty;
+    const total = totalBase + totalThumb + totalPost;
+
+    return (
+      <tr key={eidx} className={eidx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+        <td className="border px-3 py-2 align-top">
+          {edit.type}
+        </td>
+        <td className="border px-3 py-2 text-left">
+          <div>Video Shoot with Editing: {qty}</div>
+          {thumb > 0 && <div>Thumbnail: {qty}</div>}
+          {posting > 0 && <div>Posting with hashtag: {qty}</div>}
+        </td>
+        <td className="border px-3 py-2 text-left">
+          <div>{price} × {qty} = ₹{totalBase.toLocaleString()}</div>
+          {thumb > 0 && (
+            <div>{thumb} × {qty} = ₹{totalThumb.toLocaleString()}</div>
+          )}
+          {posting > 0 && (
+            <div>{posting} × {qty} = ₹{totalPost.toLocaleString()}</div>
+          )}
+        </td>
+        <td className="border px-3 py-2 text-right font-semibold">
+          ₹{total.toLocaleString()}
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
+
+
+</table>
+
                           </div>
                         ))}
                       </div>
@@ -260,7 +298,7 @@ export default function Quotation() {
 
                 {/* Ads Services */}
                 {adsData.length > 0 && (
-                  <section className="mb-10">
+                  <section className="mb-5">
                     <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">Ads Services</h3>
                     <table className="w-full border text-sm">
                       <thead className="bg-indigo-100">
@@ -284,12 +322,12 @@ export default function Quotation() {
                         ))}
                       </tbody>
                     </table>
-                    <p className="text-right text-lg font-semibold mt-2">Ads Total: ₹{adsTotal.toLocaleString()}</p>
+                    <p className="text-right text-lg font-semibold mt-1">Ads Total: ₹{adsTotal.toLocaleString()}</p>
                   </section>
                 )}
 
                 {/* Grand Total Section */}
-                <section className="text-right border-t pt-4">
+                <section className="text-right border-t pt-3">
                   <p className="text-xl text-gray-700">Subtotal: ₹{grandTotal.toLocaleString()}</p>
                   {isGST ? (
                     <>
@@ -305,14 +343,16 @@ export default function Quotation() {
             </td>
           </tr>
         </tbody>
-         <tfoot className="hidden print:table-footer-group">
+
+         <tfoot className="hidden print:table-footer-group print:fixed bottom-[-0.1rem]">
           <tr>
             <td colSpan="100%">
-          <div className="w-full print:mt-4">
+          <div className=" print:mt-5">
             <img
               src={img2}
               alt="Footer"
-              className="w-full h-auto object-contain"
+              
+              style={{height:'3.5rem' , width:"119rem"}}
             />
           </div>
         </td>
@@ -323,7 +363,6 @@ export default function Quotation() {
     </>
   );
 }
-
 
 
 

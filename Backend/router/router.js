@@ -36,6 +36,7 @@ const {
   getAllClientsTxnHistory,
   getClientsTxnHistoryByEmployee,
   getAllBD,
+  optionalServiceAmounts,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -149,5 +150,8 @@ router.put("/updateEditingType/:editing_type_id", updateEditingType);
 router.put("/updateGraphicEntryById/:id", updateCalculatorDataById);
 router.put("/updateClientDetails/:id", updateClientDetails);
 // ---->  UPDATE all routes END <----
+
+router.get("/optional-service-amounts", optionalServiceAmounts);
+
 
 module.exports = router;
