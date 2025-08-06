@@ -753,13 +753,14 @@ const handleSave = () => {
     const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
     if (addons[key]) {
       const amount = parseFloat(opt.amount);
-      optionalTotal += amount;
+      const totalForThisAddon = amount * quantity; // ✅ multiply by quantity
 
-      // Set named fields (for backend)
+      optionalTotal += totalForThisAddon;
+
       if (key === "content_posting") {
-        include_content_posting = amount;
+        include_content_posting = amount; // Send unit amount, not total
       } else if (key === "thumbnail_creation") {
-        include_thumbnail_creation = amount;
+        include_thumbnail_creation = amount; // Send unit amount, not total
       }
     }
   });
@@ -801,6 +802,7 @@ const handleSave = () => {
       console.error("Save error:", err);
     });
 };
+
 
 
   const resetForm = () => {

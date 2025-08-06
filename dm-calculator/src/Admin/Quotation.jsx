@@ -249,41 +249,48 @@ export default function Quotation() {
 <tbody>
   {cat.editingTypes.map((edit, eidx) => {
     const qty = Number(edit.quantity || 0);
-    const price = Number(edit.price || 0);
+    const base = Number(edit.price || 0);
     const thumb = Number(edit.include_thumbnail_creation || 0);
     const posting = Number(edit.include_content_posting || 0);
 
-    const totalBase = price * qty;
+    const totalBase = base * qty;
     const totalThumb = thumb * qty;
     const totalPost = posting * qty;
-    const total = totalBase + totalThumb + totalPost;
 
     return (
-      <tr key={eidx} className={eidx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-        <td className="border px-3 py-2 align-top">
-          {edit.type}
-        </td>
-        <td className="border px-3 py-2 text-left">
-          <div>Video Shoot with Editing: {qty}</div>
-          {thumb > 0 && <div>Thumbnail: {qty}</div>}
-          {posting > 0 && <div>Posting with hashtag: {qty}</div>}
-        </td>
-        <td className="border px-3 py-2 text-left">
-          <div>{price} × {qty} = ₹{totalBase.toLocaleString()}</div>
-          {thumb > 0 && (
-            <div>{thumb} × {qty} = ₹{totalThumb.toLocaleString()}</div>
-          )}
-          {posting > 0 && (
-            <div>{posting} × {qty} = ₹{totalPost.toLocaleString()}</div>
-          )}
-        </td>
-        <td className="border px-3 py-2 text-right font-semibold">
-          ₹{total.toLocaleString()}
-        </td>
-      </tr>
+      <>
+        {/* Base Editing */}
+        <tr key={`base-${eidx}`} className="bg-white">
+          <td className="border px-3 py-2">{edit.type}</td>
+          <td className="border px-3 py-2 text-right">{qty}</td>
+          <td className="border px-3 py-2 text-right">₹{base.toLocaleString()}</td>
+          <td className="border px-3 py-2 text-right font-semibold">₹{totalBase.toLocaleString()}</td>
+        </tr>
+
+        {/* Thumbnail Creation */}
+        {thumb > 0 && (
+          <tr key={`thumb-${eidx}`} className="bg-gray-50">
+            <td className="border px-3 py-2">Thumbnail Creation</td>
+            <td className="border px-3 py-2 text-right">{qty}</td>
+            <td className="border px-3 py-2 text-right">₹{thumb.toLocaleString()}</td>
+            <td className="border px-3 py-2 text-right font-semibold">₹{(thumb * qty).toLocaleString()}</td>
+          </tr>
+        )}
+
+        {/* Content Posting */}
+        {posting > 0 && (
+          <tr key={`posting-${eidx}`} className="bg-gray-50">
+            <td className="border px-3 py-2">Content Posting</td>
+            <td className="border px-3 py-2 text-right">{qty}</td>
+            <td className="border px-3 py-2 text-right">₹{posting.toLocaleString()}</td>
+            <td className="border px-3 py-2 text-right font-semibold">₹{(posting * qty).toLocaleString()}</td>
+          </tr>
+        )}
+      </>
     );
   })}
 </tbody>
+
 
 
 </table>
