@@ -47,6 +47,7 @@ const {
   deleteAdsCampaignEntryById,
   deleteGraphicEntryById,
   deleteClientById,
+  deleteQuoatationById,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -145,6 +146,7 @@ router.delete("/deleteGraphicEntryById/:id", deleteGraphicEntryById);
 
 router.delete("/deleteClientById/:id", deleteClientById);
 
+router.delete("/deleteQuotationById/:txn_id", deleteQuoatationById);
 
 
 

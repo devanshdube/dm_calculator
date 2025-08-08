@@ -92,6 +92,55 @@ const History = () => {
       }
     }
   };
+  const handleDeletequotation = async (quotationId) => {
+const confirm = await Swal.fire({
+  title: "Are you sure?",
+  text: "Do you want to delete this quotation permanently?",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#d33",
+  cancelButtonColor: "#3085d6",
+  confirmButtonText: "Yes, delete it!",
+});
+
+if (!confirm.isConfirmed) return;
+
+try {
+  const response = await axios.delete(
+    `${baseURL}/auth/api/calculator/deleteQuotationById/${quotationId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (response.data.status === "Success") {
+    Swal.fire({
+      icon: "success",
+      title: "Deleted!",
+      text: "Quatation deleted successfully.",
+    });
+
+    // Refresh client list
+        fetchClient();
+    fetchAllClientServices();
+  } else {
+    Swal.fire({
+      icon: "error",
+      title: "Failed!",
+      text: response.data.message || "Unable to delete client.",
+    });
+  }
+} catch (error) {
+  console.error("Error deleting client:", error);
+  Swal.fire({
+    icon: "error",
+    title: "Error",
+    text: "Something went wrong while deleting client.",
+  });
+}
+};
 
   console.log(clientData);
   const clientName = clientData.client_name;
@@ -250,6 +299,13 @@ const History = () => {
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
                             Quotation
+                          </button>
+                          <button
+                            onClick={() => handleDeletequotation(item.txn_id)}
+                           
+                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-500 text-white shadow-lg shadow-red-500/25 mx-2"
+                          >
+                            Delete
                           </button>
                         </td>
                       </tr>

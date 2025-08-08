@@ -421,6 +421,7 @@ export default function AddService() {
                   <th className="p-3">Editing Type</th>
                   <th className="p-3">Qty</th>
                   <th className="p-3">Amount</th>
+                     <th className="p-3">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -436,6 +437,12 @@ export default function AddService() {
                     <td className="p-3">{order.editing_type_name}</td>
                     <td className="p-3">{order.quantity}</td>
                     <td className="p-3">{order.total_amount}</td>
+                    <td><button
+  className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
+       onClick={() =>    navigate(`/BD/calculator/${id}/${proposalId}`)}
+>
+  Edit
+</button></td>   
                   </tr>
                 ))}
               </tbody>
@@ -465,6 +472,7 @@ export default function AddService() {
                   <th className="p-3">%</th>
                   <th className="p-3">Charge</th>
                   <th className="p-3">Amount</th>
+                     <th className="p-3">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -480,6 +488,12 @@ export default function AddService() {
                     <td className="p-3">{order.percent}</td>
                     <td className="p-3">{order.charge}</td>
                     <td className="p-3">{order.total}</td>
+                      <td> <button
+  className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
+       onClick={() =>    navigate(`/BD/Adscalculator/${id}/${proposalId}`)}
+>
+  Edit
+</button></td>  
                   </tr>
                 ))}
               </tbody>

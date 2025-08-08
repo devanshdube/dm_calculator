@@ -626,6 +626,7 @@ const AdminCalculator = () => {
   const [addons, setAddons] = useState({});
 
   const [optionalAmounts, setOptionalAmounts] = useState([]);
+  const [loading, setLoading] = useState(false);
   
   console.log(data);
   
@@ -740,6 +741,7 @@ const filterOptionalServices = (services) => {
 
 const handleSave = () => {
   if (!selectedEditingType) return;
+  setLoading(true);
 
   // Base amount
   let baseAmount = selectedEditingType.amount * quantity;
@@ -796,9 +798,11 @@ const handleSave = () => {
           text: editId ? "Entry updated successfully" : "Saved successfully",
         });
         fetchData();
+        setLoading(false);
       }
     })
     .catch((err) => {
+      setLoading(false);
       console.error("Save error:", err);
     });
 };
@@ -1039,9 +1043,9 @@ setAddons(initialAddons);
 
           <button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"
-            onClick={handleSave}
+            onClick={handleSave} disabled = {loading}
           >
-            Calculate & Save
+           {loading ? 'Save...':'Calculate & Save'} 
           </button>
           <button
             className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"
