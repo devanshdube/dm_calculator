@@ -21,7 +21,7 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 
 export default function ServicesLanding() {
-  const baseURL = `https://dm.calculator.one-realty.in`;
+  const baseURL = `http://localhost:5555`;
   const navigate = useNavigate();
   const { id, proposalId } = useParams();
   const [getData, setGetData] = useState([]);

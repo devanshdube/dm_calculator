@@ -18,6 +18,7 @@ const {
   saveAdsCampaign,
   registerBD,
   verifyOtpAndResetPassword,
+  saveCalculatorDataOfPlan,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -37,6 +38,7 @@ const {
   getClientsTxnHistoryByEmployee,
   getAllBD,
   optionalServiceAmounts,
+  getPlanData,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -79,6 +81,7 @@ router.post("/addCategories", addCategories);
 router.post("/addEditingTypes", addEditingTypes);
 router.post("/saveCalculatorData", saveCalculatorData);
 router.post("/saveAdsCampaign", saveAdsCampaign);
+router.post("/saveCalculatorDataofplan", saveCalculatorDataOfPlan);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -120,6 +123,8 @@ router.get(
   getAllClientsTxnHistory
 );
 router.get("/getAllBD", getAllBD);
+
+router.get("/getAllPlanData", getPlanData);
 
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);

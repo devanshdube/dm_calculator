@@ -8,11 +8,14 @@ import {
   Menu,
   X,
   ShieldPlus,
+  PlaneIcon,
+  List,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
+import AdminAddPlan from "./AdminAddPlan";
 const AllHistory = lazy(() => import("./AllHistory"));
 const RegisterBD = lazy(() => import("./RegisterBD"));
 const AdminClientDetails = lazy(() => import("./AdminClientDetails"));
@@ -48,6 +51,7 @@ const AdminDashboard = () => {
     // { id: "AddServices", label: "Add Graphic Services", icon: Plus },
     { id: "AddServices", label: "Graphic", icon: Plus },
     { id: "servicehistory", label: "Graphic Service History", icon: Clock },
+    { id: "addplan", label: "Add Plan", icon: List},
     { id: "registerbd", label: "Register BD", icon: ShieldPlus },
     { id: "history", label: "History", icon: Clock },
   ];
@@ -207,6 +211,7 @@ const AdminDashboard = () => {
           {activeTab === "AddADSCamp" && <AdminAdsCampign />}
           {activeTab === "AddServices" && <AdminAddServices />}
           {activeTab === "servicehistory" && <AdminServicesHistory />}
+          {activeTab === "addplan" && <AdminAddPlan />}
           {activeTab === "history" && <AllHistory />}
         </div>
       </main>

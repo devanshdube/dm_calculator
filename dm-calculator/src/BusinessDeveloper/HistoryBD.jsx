@@ -11,7 +11,7 @@ import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
 
 const HistoryBD = () => {
-  const baseURL = `https://dm.calculator.one-realty.in`;
+  const baseURL = `http://localhost:5555`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
   const [clientData, setClientData] = useState([]);

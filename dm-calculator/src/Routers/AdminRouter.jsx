@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 // import { useSelector } from "react-redux";
 import styled from "styled-components";
 import Quotation from "../Admin/Quotation";
+import AdminAddPlan from "../Admin/AdminAddPlan";
 
 const AdminDashboard = lazy(() => import("../Admin/AdminDashboard"));
 const AdminCalculator = lazy(() => import("../Admin/AdminCalculator"));
@@ -32,6 +33,10 @@ const AdminRouter = () => {
             <Route
               path="calculator/:id/:proposalId"
               element={<AdminCalculator />}
+            />
+            <Route
+              path="add-plan"
+              element={<AdminAddPlan />}
             />
             <Route
               path="Adscalculator/:id/:proposalId"

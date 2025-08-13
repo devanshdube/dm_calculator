@@ -11,7 +11,7 @@ import img2 from "../assets/Dg 2copy.png";
 import img3 from "../assets/dghead.jpeg";
 
 export default function QuotationBD() {
-  const baseURL = `https://dm.calculator.one-realty.in`;
+  const baseURL = `http://localhost:5555`;
   const { id, txn_id } = useParams();
   const location = useLocation();
   const query = new URLSearchParams(location.search);
@@ -462,7 +462,7 @@ export default function QuotationBD() {
                     </section>
                   </div>
                 </div>
-                <div className="h-[35rem]"></div>
+                <div className="h-[45rem]"></div>
               </td>
             </tr>
           </tbody>
