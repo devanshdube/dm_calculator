@@ -170,3 +170,64 @@ exports.updateClientDetails = async (req, res) => {
     res.status(500).json({ status: "Failure", message: "Server error", error });
   }
 };
+
+exports.updatePlandata = (req, res) => {
+  const { id } = req.params;
+  const {
+   
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+  } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE plan_data
+    SET
+
+      service_name = ?,
+      category_name = ?,
+      editing_type_name = ?,
+      editing_type_amount = ?,
+      quantity = ?,
+      include_content_posting = ?,
+      include_thumbnail_creation = ?,
+      total_amount = ?,
+      employee = ?,
+      created_at = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+      
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+    updatedAt,
+    id,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry updated successfully" });
+  });
+};

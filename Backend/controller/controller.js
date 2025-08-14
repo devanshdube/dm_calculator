@@ -957,7 +957,7 @@ exports.saveAdsCampaign = async (req, res) => {
 
 exports.saveCalculatorDataOfPlan = (req, res) => {
   const {
-    plan,
+   plan_id,
     service_name,
     category_name,
     editing_type_name,
@@ -973,7 +973,7 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
 
   const query = `
     INSERT INTO plan_data (
-    	paln,
+    	plan_id,
       service_name,
       category_name,
       editing_type_name,
@@ -988,7 +988,7 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
   `;
 
   const values = [
-    plan,
+    plan_id,
     service_name,
     category_name,
     editing_type_name,
@@ -1008,5 +1008,34 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
     }
 
     res.status(200).json({ status: "Success", message: "Saved successfully of Plan" });
+  });
+};
+
+exports.saveCalculatorDataOfPlanDetail = (req, res) => {
+  const {
+   plan_name,
+  } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    INSERT INTO plan_details (
+    	plan_name,
+      created_at
+    ) VALUES (?, ?)
+  `;
+
+  const values = [
+    plan_name,
+    createdAt
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Insert Error:", err);
+      return res.status(500).json({ status: "Failure", message: "Plan  error" });
+    }
+
+    res.status(200).json({ status: "Success", message: "Saved successfully of Plan Detail" });
   });
 };

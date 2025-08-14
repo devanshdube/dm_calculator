@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import styled from "styled-components";
 import Quotation from "../Admin/Quotation";
 import AdminAddPlan from "../Admin/AdminAddPlan";
+import AdminPlanHistory from "../Admin/AdminPlanHistory";
 
 const AdminDashboard = lazy(() => import("../Admin/AdminDashboard"));
 const AdminCalculator = lazy(() => import("../Admin/AdminCalculator"));
@@ -48,6 +49,9 @@ const AdminRouter = () => {
             />
             <Route path="client/service/history/:id" element={<History />} />
             <Route path="quotation/:id/:txn_id" element={<Quotation />} />
+
+
+            <Route path="plan-details/:id" element={<AdminPlanHistory />} />
           </Routes>
         </Suspense>
       </Wrapper>

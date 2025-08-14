@@ -19,6 +19,7 @@ const {
   registerBD,
   verifyOtpAndResetPassword,
   saveCalculatorDataOfPlan,
+  saveCalculatorDataOfPlanDetail,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -39,6 +40,7 @@ const {
   getAllBD,
   optionalServiceAmounts,
   getPlanData,
+  getPlanDetails,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -57,6 +59,7 @@ const {
   updateEditingType,
   updateCalculatorDataById,
   updateClientDetails,
+  updatePlandata,
 } = require("../controller/updateController");
 
 const authenticateToken = require("../middleware/authenticateToken");
@@ -82,6 +85,7 @@ router.post("/addEditingTypes", addEditingTypes);
 router.post("/saveCalculatorData", saveCalculatorData);
 router.post("/saveAdsCampaign", saveAdsCampaign);
 router.post("/saveCalculatorDataofplan", saveCalculatorDataOfPlan);
+router.post("/saveCalculatorDataofplanDetail", saveCalculatorDataOfPlanDetail);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -125,6 +129,7 @@ router.get(
 router.get("/getAllBD", getAllBD);
 
 router.get("/getAllPlanData", getPlanData);
+router.get("/getAllPlanDetails", getPlanDetails);
 
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);
@@ -163,6 +168,7 @@ router.put("/updateCategory/:category_id", updateCategory);
 router.put("/updateEditingType/:editing_type_id", updateEditingType);
 router.put("/updateGraphicEntryById/:id", updateCalculatorDataById);
 router.put("/updateClientDetails/:id", updateClientDetails);
+router.put("/updatePlanData/:id", updatePlandata);
 // ---->  UPDATE all routes END <----
 
 router.get("/optional-service-amounts", optionalServiceAmounts);

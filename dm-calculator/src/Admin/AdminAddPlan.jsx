@@ -16,6 +16,8 @@ import {
   Package,
   Clock,
   CheckCircle,
+  List,
+  ListCheckIcon,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
@@ -98,25 +100,7 @@ const getOptionalAddonAmount = (serviceName, editingTypeName) => {
 
 const handleEdit = (entry) => {
   setEditId(entry.id);
-  setSelectedService(entry.service_name);
-  setSelectedCategory(entry.category_name);
-  setSelectedEditingType({
-    editing_type_id: entry.editing_type_id,
-    editing_type_name: entry.editing_type_name,
-    amount: parseFloat(entry.editing_type_amount),
-  });
-  setQuantity(parseInt(entry.quantity));
-
-  // Dynamically map optional services from entry
-  const updatedAddons = {};
-  optionalServices.forEach((opt) => {
-    const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-    const entryKey = `include_${key}`;
-    updatedAddons[key] = parseFloat(entry[entryKey]) > 0;
-  });
-
-  setAddons(updatedAddons);
-  setTotal(parseFloat(entry.total_amount));
+setSelectedPlan(entry.plan_name)
 };
 
 
@@ -154,53 +138,20 @@ const filterOptionalServices = (services) => {
   );
 
 const handleSave = () => {
-  if (!selectedEditingType) return;
+
   setLoading(true);
+console.log(selectedPlan);
 
-  // Base amount
-  let baseAmount = selectedEditingType.amount * quantity;
-
-  // Optional addon values
-  let optionalTotal = 0;
-  let include_content_posting = 0;
-  let include_thumbnail_creation = 0;
-
-  optionalServices.forEach((opt) => {
-    const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-    if (addons[key]) {
-      const amount = parseFloat(opt.amount);
-      const totalForThisAddon = amount * quantity; // ✅ multiply by quantity
-
-      optionalTotal += totalForThisAddon;
-
-      if (key === "content_posting") {
-        include_content_posting = amount; // Send unit amount, not total
-      } else if (key === "thumbnail_creation") {
-        include_thumbnail_creation = amount; // Send unit amount, not total
-      }
-    }
-  });
-
-  const finalAmount = baseAmount + optionalTotal;
-  setTotal(finalAmount);
-
+ 
+ 
   const payload = {
-    txn_id: proposalId,
-    client_id: id,
-    service_name: selectedService,
-    category_name: selectedCategory,
-    editing_type_name: selectedEditingType.editing_type_name,
-    editing_type_amount: selectedEditingType.amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount: finalAmount,
-    employee: userName,
+   
+    plan_name: selectedPlan,
   };
 
   const request = editId
-    ? axios.put(`${baseURL}/auth/api/calculator/updateGraphicEntryById/${editId}`, payload)
-    : axios.post(`${baseURL}/auth/api/calculator/saveCalculatorData`, payload);
+    ? axios.put(`${baseURL}/auth/api/calculator/updatePlanData/${editId}`, payload)
+    : axios.post(`${baseURL}/auth/api/calculator/saveCalculatorDataofplanDetail`, payload);
 
   request
     .then((res) => {
@@ -213,6 +164,7 @@ const handleSave = () => {
         });
         fetchData();
         setLoading(false);
+        setSelectedPlan('')
       }
     })
     .catch((err) => {
@@ -224,33 +176,17 @@ const handleSave = () => {
 
 
   const resetForm = () => {
-    setEditId(null);
-    setSelectedService("");
-    setSelectedCategory("");
-    setSelectedEditingType(null);
-    setQuantity(1);
- const initialAddons = {};
-optionalServices.forEach(item => {
-  const key = item.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-  initialAddons[key] = false;
-});
-setAddons(initialAddons);
-
-    setTotal(0);
+   setSelectedPlan('')
   };
 
-  console.log(selectedService);
-  console.log(selectedCategory);
-  console.log(selectedEditingType);
-  console.log(quantity);
-  console.log(addons);
+
 
 
   const fetchData = async () => {
-    if (!id || !proposalId) return;
+   
     try {
       const { data } = await axios.get(
-        `${baseURL}/auth/api/calculator/getByIDCalculatorTransactions/${proposalId}/${id}`,
+        `${baseURL}/auth/api/calculator/getAllPlanDetails`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -280,7 +216,7 @@ setAddons(initialAddons);
 
   useEffect(() => {
     fetchData();
-  }, [id, proposalId]);
+  }, []);
 
   console.log(getData);
 
@@ -330,6 +266,10 @@ setAddons(initialAddons);
       });
     }
   };
+    const grandTotal = getData.reduce(
+    (acc, order) => acc + parseFloat(order.total_amount || 0),
+    0
+  );
 
   return (
     <>
@@ -341,143 +281,27 @@ setAddons(initialAddons);
   
 
           <div>
-            <label className="block font-semibold mb-1">Select Plan</label>
-            <select
+            <label className="block font-semibold mb-1">Plan Name</label>
+            <input
               className="w-full p-2 border rounded bg-white text-black"
               value={selectedPlan}
               onChange={(e) => {
                 setSelectedPlan(e.target.value);
               }}
-            >
-              <option value="">-- Choose Plan --</option>
-          
-                <option value="basic">
-                  Basic
-                </option>
-                <option value="standard">
-                Standard
-                </option>
-                <option value="premium">
-                  Premium 
-                </option>
-            
-            </select>
-          </div>
-          <div>
-            <label className="block font-semibold mb-1">Select Service</label>
-            <select
-              className="w-full p-2 border rounded bg-white text-black"
-              value={selectedService}
-              onChange={(e) => {
-                setSelectedService(e.target.value);
-                setSelectedCategory("");
-                setSelectedEditingType(null);
-              }}
-            >
-              <option value="">-- Choose Service --</option>
-              {data.map((service) => (
-                <option key={service.service_id} value={service.service_name}>
-                  {service.service_name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {getSelectedService && (
-            <div>
-              <label className="block font-semibold mb-1">
-                Select Category
-              </label>
-              <select
-                className="w-full p-2 border rounded bg-white text-black"
-                value={selectedCategory}
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value);
-                  setSelectedEditingType(null);
-                }}
-              >
-                <option value="">-- Choose Category --</option>
-                {getSelectedService.categories.map((category) => (
-                  <option
-                    key={category.category_id}
-                    value={category.category_name}
-                  >
-                    {category.category_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {getSelectedCategory && (
-            <div>
-              <label className="block font-semibold mb-1">
-                Select Editing Type
-              </label>
-              <select
-                className="w-full p-2 border rounded bg-white text-black"
-                value={selectedEditingType?.editing_type_id || ""}
-                onChange={(e) => {
-                  const edit = getSelectedCategory.editing_types.find(
-                    (et) => et.editing_type_id === parseInt(e.target.value)
-                  );
-                  setSelectedEditingType(edit);
-                }}
-              >
-                <option value="">-- Choose Editing Type --</option>
-                {getSelectedCategory.editing_types.map((edit) => (
-                  <option
-                    key={edit.editing_type_id}
-                    value={edit.editing_type_id}
-                  >
-                    {edit.editing_type_name} - ₹{edit.amount}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div>
-            <label className="block font-semibold mb-1">Quantity</label>
-            <input
-              type="number"
-              className="w-full p-2 border rounded bg-white text-black"
-              min={1}
-              value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value))}
+              placeholder="Enter the Plan Name"
             />
+              
           </div>
+        
 
-          <di1v className="space-y-4">
-         {optionalServices.map((opt) => {
-  const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-  return (
-    <div key={key}>
-      <label className="block font-semibold">{opt.editing_type_name}?</label>
-      <div className="flex gap-4 mt-2">
-        <button
-          className={`px-4 py-2 rounded ${addons[key] ? "bg-green-600 text-white" : "bg-gray-300 text-black"}`}
-          onClick={() => setAddons(prev => ({ ...prev, [key]: true }))}
-        >
-          YES
-        </button>
-        <button
-          className={`px-4 py-2 rounded ${!addons[key] ? "bg-red-600 text-white" : "bg-gray-300 text-black"}`}
-          onClick={() => setAddons(prev => ({ ...prev, [key]: false }))}
-        >
-          NO
-        </button>
-      </div>
-    </div>
-  );
-})}
-          </di1v>
+
+         
 
           <button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"
             onClick={handleSave} disabled = {loading}
           >
-           {loading ? 'Save...':'Calculate & Save'} 
+           {loading ? 'Save...':'Create Plan'} 
           </button>
           <button
             className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"
@@ -486,54 +310,39 @@ setAddons(initialAddons);
             Reset Form
           </button>
 
-          {total > 0 && (
+        
             <div className="text-xl font-semibold text-center text-green-300 mt-4">
-              Total Amount: ₹{total}
+              Total Amount: ₹{grandTotal.toLocaleString()}
             </div>
-          )}
+         
           {/* Client Orders */}
 
           <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <Package className="w-5 h-5" />
-            Recent Client Orders
+            Plan Added
           </h3>
           <div className="space-y-4">
             {getData.map((order) => (
               <div
                 key={order.id}
                 className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
+
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
                   {/* Left Section: Info */}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 font-semibold text-lg">
-                      <Megaphone className="w-5 h-5 text-yellow-400" />
+                      <List className="w-5 h-5 text-yellow-400" />
                       <span>
-                        {order.service_name} → {order.category_name}
+                        {order.plan_name} → {order.category_name}
                       </span>
                     </div>
-                    <div className="text-lg text-white/80">
-                      🎬 {order.editing_type_name} × {order.quantity}
-                    </div>
-                    {(order.include_content_posting === "1" ||
-                      order.include_thumbnail_creation === "1") && (
-                      <div className="text-base text-white/60 italic">
-                        {order.include_content_posting === "0" &&
-                          "📢 Content Posting "}
-                        {order.include_thumbnail_creation === "0" &&
-                          "🖼 Thumbnail Creation"}
-                      </div>
-                    )}
-                    {/* <div className="text-xs text-white/50">
-                      🕒 {new Date(order.created_at).toLocaleString("en-IN")}
-                    </div> */}
+                  
                   </div>
 
                   {/* Right Section: Amount + Delete */}
                   <div className="flex items-center gap-2 sm:gap-4">
-                    <div className="text-green-400 font-bold text-xl">
-                      ₹{parseFloat(order.total_amount).toLocaleString()}
-                    </div>
+                    
                     <button
                       onClick={() => handleEdit(order)}
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
@@ -548,53 +357,20 @@ setAddons(initialAddons);
                     >
                       ×
                     </button>
+                    <button
+                      onClick={() => navigate(`/admin/plan-details/${order.id}`)}
+                      className="bg-orange-600 hover:bg-orange-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                      title="detail"
+                    >
+                      <ListCheckIcon/>
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* <div className="space-y-3">
-            {getData.map((order) => (
-              <div
-                key={order.id}
-                className="flex items-center justify-between p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/15 transition-colors"
-              >
-                <div className="flex flex-wrap gap-6 text-white items-center">
-                  <div className="flex items-center gap-1">
-                    <Megaphone className="w-4 h-4 text-yellow-400" />
-                    <span className="font-medium">
-                      {order.service_name} → {order.category_name}
-                    </span>
-                  </div>
-                  <div className="text-sm">
-                    🎬 {order.editing_type_name} × {order.quantity}
-                  </div>
-                  <div className="text-xs italic text-white/70">
-                    {order.include_content_posting === "1" &&
-                      "📢 Content Posting"}
-                    {order.include_thumbnail_creation === "1" &&
-                      " 🖼 Thumbnail Creation"}
-                  </div>
-                  <div className="text-xs text-white/50">
-                    🕒 {new Date(order.created_at).toLocaleString("en-IN")}
-                  </div>
-                  <div className="ml-auto text-green-400 font-bold text-lg">
-                    <div className="text-green-400 font-bold text-lg">
-                      ₹{parseFloat(order.total_amount).toLocaleString()}
-                    </div>
-                    <button
-                      onClick={() => handleDelete(order.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold"
-                      title="Delete"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div> */}
+      
         </div>
       </div>
     </>
