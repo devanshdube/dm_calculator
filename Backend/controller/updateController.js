@@ -171,6 +171,54 @@ exports.updateClientDetails = async (req, res) => {
   }
 };
 
+exports.updatePlanNameDetail = async (req, res) => {
+  const { id } = req.params;
+  const { plan_name } = req.body;
+
+  if (!id) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "Missing id parameter",
+    });
+  }
+  
+
+  const updatePlanDetail =
+    "UPDATE plan_details SET plan_name = ? WHERE id = ?";
+  const updatePlanData =
+    "UPDATE plan_data SET plan_name = ? WHERE plan_id = ?";
+
+  db.query(updatePlanDetail, [plan_name,id], (err1, result1) => {
+    if (err1) {
+      return res.status(500).json({
+        status: "Failure",
+        message: "Error updating plan detail",
+        error: err1,
+      });
+    }
+
+    db.query(updatePlanData, [plan_name,id], (err2, result2) => {
+      if (err2) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error updating plan data",
+          error: err2,
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        message: ` updated of plan_name in successfully`,
+      });
+    });
+  });
+};
+
+
+
+
+
+
 exports.updatePlandata = (req, res) => {
   const { id } = req.params;
   const {
@@ -231,3 +279,5 @@ exports.updatePlandata = (req, res) => {
       .json({ status: "Success", message: "Entry updated successfully" });
   });
 };
+
+

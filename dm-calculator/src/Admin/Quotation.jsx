@@ -238,7 +238,7 @@ export default function Quotation() {
                         </p>
                       </div>
                       <div className="text-end">
-                        <h2 className="text-2xl font-bold">Quotation</h2>
+                        <h2 className="text-2xl font-bold">{serviceData[0].plan_name} Plan</h2>
                         <p>{moment().format("DD/MM/YYYY")}</p>
                         <p>Quote #: {txn_id}</p>
                       </div>

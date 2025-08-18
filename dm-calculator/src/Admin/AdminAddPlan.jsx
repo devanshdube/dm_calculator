@@ -150,7 +150,7 @@ console.log(selectedPlan);
   };
 
   const request = editId
-    ? axios.put(`${baseURL}/auth/api/calculator/updatePlanData/${editId}`, payload)
+    ? axios.put(`${baseURL}/auth/api/calculator/updatePlanName/${editId}`, payload)
     : axios.post(`${baseURL}/auth/api/calculator/saveCalculatorDataofplanDetail`, payload);
 
   request
@@ -235,7 +235,7 @@ console.log(selectedPlan);
 
     try {
       const res = await axios.delete(
-        `${baseURL}/auth/api/calculator/deleteGraphicEntryById/${entryId}`
+        `${baseURL}/auth/api/calculator/deletePlanNameDetail/${entryId}`
       );
 
       const result = res.data;

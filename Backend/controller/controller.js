@@ -867,6 +867,7 @@ exports.saveCalculatorData = (req, res) => {
     include_thumbnail_creation,
     total_amount,
     employee,
+    plan_name,
   } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
@@ -883,9 +884,9 @@ exports.saveCalculatorData = (req, res) => {
       include_content_posting,
       include_thumbnail_creation,
       total_amount,
-      employee,
+      employee,plan_name,
       created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
@@ -899,8 +900,9 @@ exports.saveCalculatorData = (req, res) => {
     include_content_posting,
     include_thumbnail_creation,
     total_amount,
-    employee,
+    employee,plan_name || "Customise",
     createdAt,
+    
   ];
 
   db.query(query, values, (err, result) => {
@@ -958,6 +960,7 @@ exports.saveAdsCampaign = async (req, res) => {
 exports.saveCalculatorDataOfPlan = (req, res) => {
   const {
    plan_id,
+   plan_name,
     service_name,
     category_name,
     editing_type_name,
@@ -973,7 +976,7 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
 
   const query = `
     INSERT INTO plan_data (
-    	plan_id,
+    	plan_id,plan_name,
       service_name,
       category_name,
       editing_type_name,
@@ -984,11 +987,11 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
       total_amount,
       employee,
       created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
-    plan_id,
+    plan_id,plan_name,
     service_name,
     category_name,
     editing_type_name,

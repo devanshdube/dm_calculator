@@ -29,7 +29,7 @@ const AdminPlanHistory = () => {
   const userName = currentUser?.name;
   const { id } = useParams();
   const [data, setData] = useState([]);
-  const [plandata, setPlanData] = useState([]);
+  const [planName, setPlanName] = useState('');
   const [selectedService, setSelectedService] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -186,8 +186,8 @@ const handleSave = () => {
   setTotal(finalAmount);
 
   const payload = {
-   
-    plan: selectedPlan,
+   plan_id:id,
+    plan_name: planName,
     service_name: selectedService,
     category_name: selectedCategory,
     editing_type_name: selectedEditingType.editing_type_name,
@@ -251,7 +251,7 @@ setAddons(initialAddons);
    
     try {
       const { data } = await axios.get(
-        `${baseURL}/auth/api/calculator/getAllPlanData`,
+        `${baseURL}/auth/api/calculator/getAllPlanDataById/${id}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -282,7 +282,7 @@ setAddons(initialAddons);
    
     try {
       const { data } = await axios.get(
-        `${baseURL}/auth/api/calculator/getAllPlanData`,
+        `${baseURL}/auth/api/calculator/getAllPlanDetailsById/${id}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -291,7 +291,7 @@ setAddons(initialAddons);
         }
       );
       console.log(data.data);
-      setGetData(data.data);
+      setPlanName(data.data[0].plan_name);
     } catch (error) {
       console.log(error);
       if (error.response && error.response.status === 401) {
@@ -373,7 +373,7 @@ setAddons(initialAddons);
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white p-6">
         <div className="w-full max-w-2xl bg-white/10 backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
           <h2 className="text-3xl font-bold text-white text-center mb-6">
-            🧮  Add Plans
+            🧮  Add Plans Of {planName}
           </h2>
     <button
             onClick={() => navigate(-1)}
@@ -382,29 +382,7 @@ setAddons(initialAddons);
             ← Go Back
           </button>
 
-          <div>
-            <label className="block font-semibold mb-1">Select Plan</label>
-            <select
-              className="w-full p-2 border rounded bg-white text-black"
-              value={selectedPlan}
-              onChange={(e) => {
-                setSelectedPlan(e.target.value);
-              }}
-            >
-              <option value="">-- Choose Plan --</option>
-          
-                <option value="basic">
-                  Basic
-                </option>
-                <option value="standard">
-                Standard
-                </option>
-                <option value="premium">
-                  Premium 
-                </option>
-            
-            </select>
-          </div>
+     
           <div>
             <label className="block font-semibold mb-1">Select Service</label>
             <select

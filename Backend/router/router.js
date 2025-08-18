@@ -41,6 +41,8 @@ const {
   optionalServiceAmounts,
   getPlanData,
   getPlanDetails,
+  getPlanDetailsById,
+  getPlanDataById,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -52,6 +54,7 @@ const {
   deleteGraphicEntryById,
   deleteClientById,
   deleteQuoatationById,
+  deletePlanNameDetail,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -60,6 +63,7 @@ const {
   updateCalculatorDataById,
   updateClientDetails,
   updatePlandata,
+  updatePlanNameDetail,
 } = require("../controller/updateController");
 
 const authenticateToken = require("../middleware/authenticateToken");
@@ -129,7 +133,9 @@ router.get(
 router.get("/getAllBD", getAllBD);
 
 router.get("/getAllPlanData", getPlanData);
+router.get("/getAllPlanDataById/:id", getPlanDataById);
 router.get("/getAllPlanDetails", getPlanDetails);
+router.get("/getAllPlanDetailsById/:id", getPlanDetailsById);
 
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);
@@ -158,6 +164,8 @@ router.delete("/deleteClientById/:id", deleteClientById);
 
 router.delete("/deleteQuotationById/:txn_id", deleteQuoatationById);
 
+router.delete("/deletePlanNameDetail/:id", deletePlanNameDetail);
+
 
 
 // ---->  DELETE all routes END <----
@@ -169,6 +177,8 @@ router.put("/updateEditingType/:editing_type_id", updateEditingType);
 router.put("/updateGraphicEntryById/:id", updateCalculatorDataById);
 router.put("/updateClientDetails/:id", updateClientDetails);
 router.put("/updatePlanData/:id", updatePlandata);
+router.put("/updatePlanName/:id", updatePlanNameDetail);
+
 // ---->  UPDATE all routes END <----
 
 router.get("/optional-service-amounts", optionalServiceAmounts);

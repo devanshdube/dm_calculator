@@ -497,6 +497,7 @@ exports.getClientServiceHistory = async (req, res) => {
   ct.quantity,
   ct.include_content_posting,
   ct.include_thumbnail_creation,
+  ct.plan_name,
   ct.total_amount,
   NULL AS amount,
   NULL AS percent,
@@ -517,6 +518,7 @@ SELECT
   NULL AS quantity,
   NULL AS include_content_posting,
   NULL AS include_thumbnail_creation,
+  NULL AS plan_name,
   ad.total AS total_amount,
   ad.amount,
   ad.percent,
@@ -856,12 +858,87 @@ exports.getPlanData = async (req, res) => {
     });
   }
 };
+exports.getPlanDataById = async (req, res) => {  
+ const {id} = req.params;
+  try {
+    db.query(
+      "SELECT * FROM plan_data WHERE plan_id = ?",[id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No plan found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+
+
 exports.getPlanDetails = async (req, res) => {
   
 
   try {
     db.query(
       "SELECT * FROM plan_details",
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No plan found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+exports.getPlanDetailsById = async (req, res) => {
+  
+const {id} = req.params;
+
+  try {
+    db.query(
+      "SELECT * FROM plan_details WHERE id = ?",[id],
       (err, results) => {
         if (err) {
           return res.status(500).json({

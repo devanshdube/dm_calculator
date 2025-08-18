@@ -25,9 +25,12 @@ export default function ServicesLanding() {
   const navigate = useNavigate();
   const { id, proposalId } = useParams();
   const [getData, setGetData] = useState([]);
+  const [getPlanData, setGetPlanData] = useState([]);
   const [getAdsData, setGetAdsData] = useState([]);
   const [clientData, setClientData] = useState([]);
-  const { token } = useSelector((state) => state.user);
+    const [loading, setLoading] = useState(false);
+const { currentUser, token } = useSelector((state) => state.user);
+  const userName = currentUser?.name;
   const dispatch = useDispatch();
   console.log(id, proposalId);
 
@@ -69,23 +72,7 @@ export default function ServicesLanding() {
         "Analytics & ROI",
       ],
     },
-    // {
-    //   id: 3,
-    //   title: "SEO Services",
-    //   subtitle: "Organic Visibility",
-    //   description:
-    //     "Dominate search results with comprehensive SEO strategies that boost your online presence and drive organic traffic.",
-    //   icon: Search,
-    //   gradient: "from-gray-600 to-slate-700",
-    //   bgPattern: "bg-gradient-to-br from-gray-50 to-slate-50",
-    //   navigation: "#",
-    //   features: [
-    //     "Keyword Research",
-    //     "On-Page SEO",
-    //     "Link Building",
-    //     "Technical SEO",
-    //   ],
-    // },
+    
   ];
 
   const fetchClient = async () => {
@@ -101,6 +88,37 @@ export default function ServicesLanding() {
       if (res.data.status === "Success") {
         console.log(res.data.data);
         setClientData(res.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
+  const fetchPlanData = async () => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getAllPlanData`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.data.status === "Success") {
+        console.log(res.data.data);
+        setGetPlanData(res.data.data);
       }
     } catch (error) {
       console.log(error);
@@ -191,6 +209,7 @@ export default function ServicesLanding() {
     fetchClient();
     fetchData();
     fetchAdsData();
+    fetchPlanData()
   }, [id, proposalId]);
 
   // Table Total Amount
@@ -217,6 +236,100 @@ export default function ServicesLanding() {
 
   const totalAmount = grandTotal + grandAdsTotal;
   console.log(totalAmount);
+const groupByPlan = (data) => {
+  console.log(data);
+  
+  const grouped = {};
+
+  data.forEach((item) => {
+    if (!grouped[item.plan_id]) {
+      grouped[item.plan_id] = {
+        id: item.plan_id,
+        title: item.plan_name,
+        subtitle: "Custom Plan", // you can make this dynamic if needed
+        description: `Includes ${item.plan_name} services tailored to your needs.`,
+        gradient: "from-green-500 to-teal-600", // default or dynamic
+        navigation: "/admin/dynamicPlan",
+        features: [],
+        totalAmount: 0, // new field for amount
+      };
+    }
+
+    grouped[item.plan_id].features.push(
+      `${item.service_name} - ${item.category_name}`
+    );
+
+    // Add the amount (make sure item.amount is a number)
+    grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
+  });
+
+  return Object.values(grouped);
+};
+
+  const plans = groupByPlan(getPlanData);
+// When "Create Quotation" button is clicked
+const handleCreateQuotation = async (planId) => {
+  try {
+    // Step 1: filter plan-wise data
+    const filteredPlanData = getPlanData.filter(
+      (item) => item.plan_id === planId
+    );
+
+    if (filteredPlanData.length === 0) {
+      Swal.fire({
+        icon: "info",
+        title: "No Data",
+        text: "No services found for this plan.",
+      });
+      return;
+    }
+
+    // Step 2: loop through filtered data and save
+    for (const item of filteredPlanData) {
+      const payload = {
+        txn_id: proposalId,
+        client_id: id,
+        service_name: item.service_name,
+        category_name: item.category_name,
+        editing_type_name: item.editing_type_name,
+        editing_type_amount: item.editing_type_amount,
+        quantity: item.quantity,
+        include_content_posting: item.include_content_posting,
+        include_thumbnail_creation: item.include_thumbnail_creation,
+        total_amount: item.total_amount,
+        plan_name: item.plan_name,
+        employee: userName,
+      };
+
+      await axios.post(
+        `${baseURL}/auth/api/calculator/saveCalculatorData`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    }
+
+    // Step 3: success message
+    Swal.fire({
+      icon: "success",
+      title: "Quotation Created",
+      text: `Plan quotation saved successfully!`,
+    });
+
+    fetchData(); // refresh table
+  } catch (err) {
+    console.error("Save error:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Something went wrong while saving the quotation.",
+    });
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -301,14 +414,115 @@ export default function ServicesLanding() {
             </div>
           </div>
         </div>
+        <div className="">
+           <p className="text-3xl font-bold text-white mb-3">
+                    Plan Wise 
+                  </p>
+        </div>
+<div className="grid md:grid-cols-4 gap-8 mx-auto mb-12">
+  {plans.map((plan) => (
+    <div key={plan.id} className="group relative">
+      <div
+        className={`
+          relative h-full bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20
+          transform transition-all duration-300 hover:scale-102 hover:bg-white/15 hover:border-white/30
+        `}
+      >
+        {/* Icon placeholder */}
+        <div
+          className={`
+            inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6
+            bg-gradient-to-r ${plan.gradient} shadow-lg
+            transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
+          `}
+        >
+          <span className="w-8 h-8 text-white">★</span>
+        </div>
 
+        {/* Content */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-1">
+              {plan.title}
+            </h3>
+            <p
+              className={`text-sm font-medium bg-gradient-to-r ${plan.gradient} bg-clip-text text-transparent`}
+            >
+              Plan
+            </p>
+            {/* Total amount */}
+            <p className="text-lg font-semibold text-white mt-1">
+              ₹{plan.totalAmount.toLocaleString()}
+            </p>
+          </div>
+               <button
+        
+              onClick={() => handleCreateQuotation(plan.id)}
+      
+            className={`
+              w-full mt-6 py-4 px-6 rounded-2xl font-semibold text-white
+              bg-gradient-to-r ${plan.gradient} shadow-lg
+              transform transition-all duration-300 hover:shadow-xl hover:scale-105
+              flex items-center justify-center gap-2 group/btn
+            `}
+             disabled = {loading}
+          >
+                 {loading ? 'Save...':'Create Quotation'} 
+            <ArrowRight className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
+          </button>
+
+          <p className="text-white/70 leading-relaxed">
+            {plan.description}
+          </p>
+
+          {/* Features */}
+          <div className="space-y-2">
+            {plan.features.map((feature, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 text-sm text-white/60"
+              >
+                <div
+                  className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${plan.gradient}`}
+                ></div>
+                {feature}
+              </div>
+            ))}
+          </div>
+
+          {/* CTA */}
+     
+        </div>
+      </div>
+
+      {/* Floating ping effect */}
+      <div
+        className={`
+          absolute -top-2 -right-2 w-6 h-6 rounded-full 
+          bg-gradient-to-r ${plan.gradient} opacity-0 group-hover:opacity-100
+          transform transition-all duration-500 group-hover:scale-100 scale-0
+        `}
+      >
+        <div className="w-full h-full rounded-full animate-ping bg-gradient-to-r from-white/30 to-transparent"></div>
+      </div>
+    </div>
+  ))}
+</div>
+ <div className="">
+           <p className="text-3xl font-bold text-white mb-3">
+                    Customise Wise 
+                  </p>
+                  </div>
         {/* Services Grid */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-7xl mx-auto mb-12">
+        <div className="grid md:grid-cols-4  gap-8  mx-auto mb-12">
           {services.map((service) => {
             const IconComponent = service.icon;
             return (
               <div key={service.id} className="group relative">
                 {/* Card */}
+
+
+
                 <div
                   className={`
                   relative h-full bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20
@@ -338,7 +552,20 @@ export default function ServicesLanding() {
                         {service.subtitle}
                       </p>
                     </div>
-
+  <button
+                      onClick={() => {
+                        navigate(`${service.navigation}/${id}/${proposalId}`);
+                      }}
+                      className={`
+                      w-full mt-6 py-4 px-6 rounded-2xl font-semibold text-white
+                      bg-gradient-to-r ${service.gradient} shadow-lg
+                      transform transition-all duration-300 hover:shadow-xl hover:scale-105
+                      flex items-center justify-center gap-2 group/btn
+                    `}
+                    >
+                      Get Started
+                      <ArrowRight className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
+                    </button>
                     <p className="text-white/70 leading-relaxed">
                       {service.description}
                     </p>
@@ -359,20 +586,8 @@ export default function ServicesLanding() {
                     </div>
 
                     {/* CTA Button */}
-                    <button
-                      onClick={() => {
-                        navigate(`${service.navigation}/${id}/${proposalId}`);
-                      }}
-                      className={`
-                      w-full mt-6 py-4 px-6 rounded-2xl font-semibold text-white
-                      bg-gradient-to-r ${service.gradient} shadow-lg
-                      transform transition-all duration-300 hover:shadow-xl hover:scale-105
-                      flex items-center justify-center gap-2 group/btn
-                    `}
-                    >
-                      Get Started
-                      <ArrowRight className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
-                    </button>
+                    
+                  
                   </div>
 
                   {/* Hover effect overlay */}
@@ -393,10 +608,21 @@ export default function ServicesLanding() {
                 >
                   <div className="w-full h-full rounded-full animate-ping bg-gradient-to-r from-white/30 to-transparent"></div>
                 </div>
+
+
               </div>
             );
           })}
+
+
+
+
         </div>
+        
+
+
+  
+
 
         {/* Client Orders */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-4">
