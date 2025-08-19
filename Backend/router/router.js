@@ -20,6 +20,7 @@ const {
   verifyOtpAndResetPassword,
   saveCalculatorDataOfPlan,
   saveCalculatorDataOfPlanDetail,
+  saveClientWithPlan,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -90,6 +91,7 @@ router.post("/saveCalculatorData", saveCalculatorData);
 router.post("/saveAdsCampaign", saveAdsCampaign);
 router.post("/saveCalculatorDataofplan", saveCalculatorDataOfPlan);
 router.post("/saveCalculatorDataofplanDetail", saveCalculatorDataOfPlanDetail);
+router.post("/saveClientWithPlan", saveClientWithPlan);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);

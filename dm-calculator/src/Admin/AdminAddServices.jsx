@@ -245,7 +245,7 @@ const AdminAddServices = () => {
                 <select
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onChange={(e) => setSelectedCategoryId(e.target.value)}
-                  value={selectedCategoryId}
+                  value={selectedCategoryId}    
                 >
                   <option value="">-- Select Category --</option>
                   {categories.map((c) => (

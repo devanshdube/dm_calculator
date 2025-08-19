@@ -1042,3 +1042,98 @@ exports.saveCalculatorDataOfPlanDetail = (req, res) => {
     res.status(200).json({ status: "Success", message: "Saved successfully of Plan Detail" });
   });
 };
+
+
+exports.saveClientWithPlan = async (req, res) => {
+  const {
+    client_name,
+    client_organization,
+    email,
+    phone,
+    address,
+    dg_employee,
+    txn_id,
+    plans, // ⬅️ array of plans coming from frontend
+  } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  try {
+    // Step 1: Insert client details
+    const clientQuery = `
+      INSERT INTO dm_calculator_client_details 
+      (client_name, client_organization, email, phone, address, dg_employee, created_at) 
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const clientValues = [
+      client_name,
+      client_organization || null,
+      email || null,
+      phone,
+      address || null,
+      dg_employee,
+      createdAt,
+    ];
+
+    db.query(clientQuery, clientValues, (err, clientResult) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error saving client",
+          error: err,
+        });
+      }
+
+      const client_id = clientResult.insertId;
+
+      // Step 2: Insert multiple plan data
+      const planQuery = `
+        INSERT INTO calculator_transactions 
+        (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at) 
+        VALUES ?
+      `;
+
+      // Prepare bulk insert values
+      const planValues = plans.map((p) => [
+        txn_id, // same txn id for group OR you can generate per plan
+        client_id,
+        p.service_name,
+        p.category_name,
+        p.editing_type_name,
+        p.editing_type_amount,
+        p.quantity,
+        p.include_content_posting,
+        p.include_thumbnail_creation,
+        p.total_amount,
+        p.employee,
+        p.plan_name,
+        createdAt,
+      ]);
+
+      db.query(planQuery, [planValues], (err, planResult) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error saving plans",
+            error: err,
+          });
+        }
+
+        res.status(201).json({
+          status: "Success",
+          message: "Client and multiple Plans saved successfully",
+          client_id,
+          txn_id,
+        });
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
