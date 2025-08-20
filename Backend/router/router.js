@@ -21,6 +21,7 @@ const {
   saveCalculatorDataOfPlan,
   saveCalculatorDataOfPlanDetail,
   saveClientWithPlan,
+  addNotebyplan,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -44,6 +45,7 @@ const {
   getPlanDetails,
   getPlanDetailsById,
   getPlanDataById,
+  getPlanNotes,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -56,6 +58,7 @@ const {
   deleteClientById,
   deleteQuoatationById,
   deletePlanNameDetail,
+  deletePlanNotesbyid,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -65,6 +68,7 @@ const {
   updateClientDetails,
   updatePlandata,
   updatePlanNameDetail,
+  updatePlanNotes,
 } = require("../controller/updateController");
 
 const authenticateToken = require("../middleware/authenticateToken");
@@ -92,6 +96,7 @@ router.post("/saveAdsCampaign", saveAdsCampaign);
 router.post("/saveCalculatorDataofplan", saveCalculatorDataOfPlan);
 router.post("/saveCalculatorDataofplanDetail", saveCalculatorDataOfPlanDetail);
 router.post("/saveClientWithPlan", saveClientWithPlan);
+router.post("/addNotebyplan", addNotebyplan);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -138,6 +143,7 @@ router.get("/getAllPlanData", getPlanData);
 router.get("/getAllPlanDataById/:id", getPlanDataById);
 router.get("/getAllPlanDetails", getPlanDetails);
 router.get("/getAllPlanDetailsById/:id", getPlanDetailsById);
+router.get("/getPlanNotes", getPlanNotes);
 
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);
@@ -168,6 +174,7 @@ router.delete("/deleteQuotationById/:txn_id", deleteQuoatationById);
 
 router.delete("/deletePlanNameDetail/:id", deletePlanNameDetail);
 
+router.delete("/deletePlanNotesbyid/:id", deletePlanNotesbyid);
 
 
 // ---->  DELETE all routes END <----
@@ -180,6 +187,7 @@ router.put("/updateGraphicEntryById/:id", updateCalculatorDataById);
 router.put("/updateClientDetails/:id", updateClientDetails);
 router.put("/updatePlanData/:id", updatePlandata);
 router.put("/updatePlanName/:id", updatePlanNameDetail);
+router.put("/updatePlanNotes/:id", updatePlanNotes);
 
 // ---->  UPDATE all routes END <----
 

@@ -281,3 +281,19 @@ exports.updatePlandata = (req, res) => {
 };
 
 
+exports.updatePlanNotes = async (req, res) => {
+  const { id } = req.params;
+  const { note_name,plan } = req.body;
+
+  db.query(
+    "UPDATE plans_notes SET note_name = ?, plan = ? WHERE id = ?",
+    [note_name,plan, id],
+    (err, result) => {
+      if (err)
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Database error" });
+      res.json({ status: "Success", message: "Note updated successfully" });
+    }
+  );
+};

@@ -1137,3 +1137,38 @@ exports.saveClientWithPlan = async (req, res) => {
   }
 };
 
+
+exports.addNotebyplan = async (req, res) => {
+  const { note_name,plan} = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  if (!note_name || !plan) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "Notes name and plan required",
+    });
+  }
+
+  try {
+    db.query(
+      "INSERT INTO plans_notes (note_name,plan, created_at) VALUES (?, ?,?)",
+      [note_name,plan, createdAt],
+      (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Database error" });
+        }
+
+        res.status(201).json({
+          status: "Success",
+          message: "notes added successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ status: "Failure", message: "Server error", error });
+  }
+};
+

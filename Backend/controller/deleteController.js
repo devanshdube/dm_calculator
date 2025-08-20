@@ -420,3 +420,20 @@ exports.deletePlanData = async (req, res) => {
     });
 
 };
+
+exports.deletePlanNotesbyid = async (req, res) => {
+  const { id } = req.params;
+
+  db.query(
+    "DELETE FROM plans_notes WHERE id = ?",
+    [id],
+    (err, result) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Database error" });
+      }
+      res.json({ status: "Success", message: "Note deleted successfully" });
+    }
+  );
+};
