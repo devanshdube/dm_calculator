@@ -768,6 +768,8 @@ useEffect(() => {
               </div>
             ))}
           </div>
+
+          
 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <Package className="w-5 h-5" />
            Notes Section 

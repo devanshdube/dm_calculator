@@ -16,6 +16,10 @@ import {
   Package,
   Clock,
   CheckCircle,
+    User,
+  X,
+  StickyNote,
+  Notebook,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
@@ -47,6 +51,15 @@ const AdminCalculator = () => {
   const navigate = useNavigate();
   console.log(id, proposalId);
   const [editId, setEditId] = useState(null);
+     const [allPlanNote, setAllPlanNote] = useState([]);
+     const [formData, setFormData] = useState({
+    note_name: "",
+    plan: "Customise",
+
+  });
+    const [selectedNotesId, setSelectedNotesId] = useState(null);
+       const [showModal, setShowModal] = useState(false);
+ const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     axios
@@ -238,12 +251,209 @@ setAddons(initialAddons);
     setTotal(0);
   };
 
-  console.log(selectedService);
-  console.log(selectedCategory);
-  console.log(selectedEditingType);
-  console.log(quantity);
-  console.log(addons);
+  const handleClose = () => {
+    setShowModal(false);
+    setFormData({
+      note_name: "",
+      plan:"",
+   
+   
+    
+    });
+  };
 
+
+  
+
+    const handleShow = () => {
+  
+    setFormData({
+      note_name: "",
+      plan:"Customise",
+     
+      
+    });
+    setIsEditing(false);
+    setShowModal(true);
+  };
+
+   const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+    const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      console.log("Submitting form data:", formData);
+      let response;
+
+      if (isEditing && selectedNotesId) {
+        response = await axios.put(
+          `${baseURL}/auth/api/calculator/updatePlanNotes/${selectedNotesId.id}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data);
+      } else {
+        response = await axios.post(
+          `${baseURL}/auth/api/calculator/addNotebyplan`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data);
+      }
+
+      console.log("API response:", response.data);
+
+      if (response.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: isEditing
+            ? "Note updated successfully!"
+            : "Note added successfully!",
+        }).then(() => {
+          setShowModal(false);
+           getAllPlanNotes();
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text:
+            response.data.message || "Failed to save Note. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving Note:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Status:", error.response.status);
+        Swal.fire({
+          icon: "error",
+          title: `Error ${error.response.status}`,
+          text:
+            error.response.data.message ||
+            "Failed to save note. Please try again.",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to save note. Please try again.",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+    
+  };
+const handleSaveNotes = async () => {
+  try {
+  
+
+    const planNotes = allPlanNote.map((item) => ({
+      note_name: item.note_name,
+      plan: item.plan,
+    }));
+
+    const payload = {   txn_id: proposalId,
+      client_id: id, planNotes };
+
+    await axios.post(
+      `${baseURL}/auth/api/calculator/saveClientIdwiseNotes`,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    Swal.fire({
+      icon: "success",
+      title: "Notes Created",
+      text: `Notes saved successfully!`,
+    });
+
+    fetchData(); // refresh table
+  } catch (err) {
+    console.error("Save error:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Something went wrong while saving the notes.",
+    });
+  }
+};
+
+
+
+  const handleDeleteNote = async (noteId) => {
+const confirm = await Swal.fire({
+  title: "Are you sure?",
+  text: "Do you want to delete this note permanently?",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#d33",
+  cancelButtonColor: "#3085d6",
+  confirmButtonText: "Yes, delete it!",
+});
+
+if (!confirm.isConfirmed) return;
+
+try {
+  const response = await axios.delete(
+    `${baseURL}/auth/api/calculator/deletePlanNotesbyid/${noteId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (response.data.status === "Success") {
+    Swal.fire({
+      icon: "success",
+      title: "Deleted!",
+      text: "Note deleted successfully.",
+    });
+
+    // Refresh client list
+    getAllPlanNotes();
+  } else {
+    Swal.fire({
+      icon: "error",
+      title: "Failed!",
+      text: response.data.message || "Unable to delete note.",
+    });
+  }
+} catch (error) {
+  console.error("Error deleting note:", error);
+  Swal.fire({
+    icon: "error",
+    title: "Error",
+    text: "Something went wrong while deleting note.",
+  });
+}
+};
 
   const fetchData = async () => {
     if (!id || !proposalId) return;
@@ -276,12 +486,62 @@ setAddons(initialAddons);
       }
     }
   };
+  const getAllPlanNotes = async () => {
+
+  try {
+    const response = await axios.get(
+      `${baseURL}/auth/api/calculator/getPlanNotes`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const notes = response.data.data;
+
+const filtered = notes.filter(
+      (note) => String(note.plan) === String(formData.plan) // type safe compare
+    );
+
+    console.log("Filtered Notes:", filtered);
+
+    setAllPlanNote(filtered);
+
+   
+
+  } catch (error) {
+    console.error("Error fetching No plan found:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Failed to fetch No plan found. Please try again.",
+    });
+
+    if (error.response && error.response.status === 401) {
+      Swal.fire({
+        title: "Session Expired",
+        text: "Please login again.",
+        icon: "warning",
+        confirmButtonText: "OK",
+      }).then(() => {
+        dispatch(clearUser());
+        localStorage.removeItem("token");
+        navigate("/");
+      });
+    }
+  }
+};
 
   useEffect(() => {
     fetchData();
+    getAllPlanNotes()
   }, [id, proposalId]);
 
   console.log(getData);
+  
+
+
 
   const handleDelete = async (entryId) => {
     const confirm = await Swal.fire({
@@ -534,6 +794,158 @@ setAddons(initialAddons);
               </div>
             ))}
           </div>
+          
+          
+                    
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <Package className="w-5 h-5" />
+                     Notes Section 
+                    </h3>
+          
+                      <button
+                        onClick={handleShow}
+                      className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+                    >
+                      + Add Notes
+                    </button>
+                      <button
+                        onClick={handleSaveNotes}
+                      className="px-4 py-2 float-end bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition"
+                    >
+                      💾 Save Notes
+                    </button>
+            <div className="space-y-4">
+                      {allPlanNote.map((notes) => (
+                        <div
+                          key={notes.id}
+                          className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
+                            {/* Left Section: Info */}
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 font-semibold text-lg">
+                              
+                                <span>
+                                  → {notes.note_name}
+                                </span>
+                              </div>
+                             
+                            
+                           
+                            </div>
+          
+                            {/* Right Section: Amount + Delete */}
+                            <div className="flex items-center gap-2 sm:gap-4">
+                              <button
+                                              onClick={(e) => {
+                                                e.stopPropagation(); // prevent card onClick
+                                             setSelectedNotesId(notes)
+                                                setFormData({
+                                                  note_name: notes.note_name,
+                                                  plan:notes.plan
+                                                 
+                                                });
+                                                setIsEditing(true);
+                                                setShowModal(true);
+                                              }}
+                                               className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                                title="Edit"  >
+                                               ✎
+                                            </button>
+                              <button
+                                onClick={() => handleDeleteNote(notes.id)}
+                                className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                                title="Delete"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+          
+          
+          
+          
+               {showModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                      {/* Backdrop */}
+                      <div
+                        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+                        onClick={handleClose}
+                      />
+          
+                      {/* Modal */}
+                      <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <StickyNote className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-gray-900">
+                              {isEditing ? "Edit Note" : "Add New Note"}
+                            </h2>
+                          </div>
+                          <button
+                            onClick={handleClose}
+                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+          
+                        {/* Form */}
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                          {/* Note */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <Notebook className="w-4 h-4 inline mr-2" />
+                              Note
+                            </label>
+                      <textarea
+            name="note_name"
+            value={formData.note_name}
+            onChange={handleChange}
+            className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+            placeholder="Enter note details"
+            rows={4} // number of visible lines
+            required
+          ></textarea>
+          </div>
+          
+                
+          
+                          {/* Buttons */}
+                          <div className="flex justify-end gap-3 pt-4">
+                            <button
+                              type="button"
+                              onClick={handleClose}
+                              className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={loading}
+                              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                            >
+                              {loading
+                                ? isEditing
+                                  ? "Updating..."
+                                  : "Saving..."
+                                : isEditing
+                                ? "Update Note"
+                                : "Save Note"}
+                            </button>
+                            
+          
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
 
           {/* <div className="space-y-3">
             {getData.map((order) => (

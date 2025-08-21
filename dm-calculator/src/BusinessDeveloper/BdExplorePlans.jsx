@@ -16,7 +16,7 @@ import {
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 
-function AdminExplorePlans() {
+function BdExplorePlans() {
     const [getPlanData, setGetPlanData] = useState([]);
     const { currentUser, token } = useSelector((state) => state.user);
     const [allPlanNote, setAllPlanNote] = useState([]);
@@ -532,4 +532,4 @@ const handleSubmit = async (e) => {
   )
 }
 
-export default AdminExplorePlans
+export default BdExplorePlans

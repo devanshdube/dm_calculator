@@ -256,14 +256,29 @@ exports.deleteClientById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    db.query(
-      
-      "DELETE FROM dm_calculator_client_details WHERE id = ?",[id],(err, result) => {
-        if (err) {
+    // Step 1: delete notes first
+    const deletePlanClientNotes =
+      "DELETE FROM plan_client_notes WHERE client_id = ?";
+
+    db.query(deletePlanClientNotes, [id], (err1) => {
+      if (err1) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error deleting plan client notes",
+          error: err1,
+        });
+      }
+
+      // Step 2: delete client details
+      const deleteClient =
+        "DELETE FROM dm_calculator_client_details WHERE id = ?";
+
+      db.query(deleteClient, [id], (err2, result) => {
+        if (err2) {
           return res.status(500).json({
             status: "Failure",
-            message: "Database error while deleting entry",
-            error: err,
+            message: "Database error while deleting client entry",
+            error: err2,
           });
         }
 
@@ -276,10 +291,10 @@ exports.deleteClientById = async (req, res) => {
 
         res.status(200).json({
           status: "Success",
-          message: "Client detail deleted successfully",
+          message: "Client notes and details deleted successfully",
         });
-      }
-    );
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",
@@ -288,6 +303,8 @@ exports.deleteClientById = async (req, res) => {
     });
   }
 };
+
+
 exports.deleteQuoatationById = async (req, res) => {
   const { txn_id } = req.params;
 
@@ -360,6 +377,7 @@ exports.deletePlanNameDetail = async (req, res) => {
     "DELETE FROM plan_details  WHERE id = ?";
   const deletePlanData =
     "DELETE FROM plan_data  WHERE plan_id = ?";
+
 
   db.query(deletePlanDetail, [id], (err1, result1) => {
     if (err1) {

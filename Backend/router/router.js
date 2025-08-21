@@ -22,6 +22,8 @@ const {
   saveCalculatorDataOfPlanDetail,
   saveClientWithPlan,
   addNotebyplan,
+  savePlanClientNotes,
+  saveClientIdwiseNotes,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -46,6 +48,7 @@ const {
   getPlanDetailsById,
   getPlanDataById,
   getPlanNotes,
+  getClientNotesbyId,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -97,6 +100,8 @@ router.post("/saveCalculatorDataofplan", saveCalculatorDataOfPlan);
 router.post("/saveCalculatorDataofplanDetail", saveCalculatorDataOfPlanDetail);
 router.post("/saveClientWithPlan", saveClientWithPlan);
 router.post("/addNotebyplan", addNotebyplan);
+router.post("/savePlanClientNotes", savePlanClientNotes);
+router.post("/saveClientIdwiseNotes", saveClientIdwiseNotes);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -144,6 +149,7 @@ router.get("/getAllPlanDataById/:id", getPlanDataById);
 router.get("/getAllPlanDetails", getPlanDetails);
 router.get("/getAllPlanDetailsById/:id", getPlanDetailsById);
 router.get("/getPlanNotes", getPlanNotes);
+router.get("/getClientNotesbyId/:id", getClientNotesbyId);
 
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);

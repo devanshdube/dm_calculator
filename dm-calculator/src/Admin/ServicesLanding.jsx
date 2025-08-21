@@ -25,8 +25,10 @@ export default function ServicesLanding() {
   const navigate = useNavigate();
   const { id, proposalId } = useParams();
   const [getData, setGetData] = useState([]);
+  const [allPlanNote, setAllPlanNote] = useState([]);
   const [getPlanData, setGetPlanData] = useState([]);
   const [getAdsData, setGetAdsData] = useState([]);
+   const [planName,setPlanName] = useState('');
   const [clientData, setClientData] = useState([]);
     const [loading, setLoading] = useState(false);
 const { currentUser, token } = useSelector((state) => state.user);
@@ -137,6 +139,36 @@ const { currentUser, token } = useSelector((state) => state.user);
       }
     }
   };
+
+const getAllPlanNotes = async (planTitle) => {
+  try {
+    const response = await axios.get(
+      `${baseURL}/auth/api/calculator/getPlanNotes`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const notes = response.data.data;
+
+    // filter for this plan only
+    const filtered = notes.filter(
+      (note) => String(note.plan) === String(planTitle)
+    );
+
+    return filtered; // ⬅️ return directly instead of setting state
+  } catch (error) {
+    console.error("Error fetching plan notes:", error);
+    return [];
+  }
+};
+
+
+
+
+
 
   console.log(clientData);
   const clientName = clientData?.client_name;
@@ -268,11 +300,23 @@ const groupByPlan = (data) => {
 
   const plans = groupByPlan(getPlanData);
 // When "Create Quotation" button is clicked
-const handleCreateQuotation = async (planId) => {
+const handleCreateQuotation = async (plan) => {
   try {
+    // fetch notes for this plan immediately (don’t wait for setState)
+    const filteredNotes = await getAllPlanNotes(plan.title);
+
+    if (filteredNotes.length === 0) {
+      Swal.fire({
+        icon: "info",
+        title: "No Notes",
+        text: "No notes found for this plan.",
+      });
+      return;
+    }
+
     // Step 1: filter plan-wise data
     const filteredPlanData = getPlanData.filter(
-      (item) => item.plan_id === planId
+      (item) => item.plan_id === plan.id
     );
 
     if (filteredPlanData.length === 0) {
@@ -284,35 +328,36 @@ const handleCreateQuotation = async (planId) => {
       return;
     }
 
-    // Step 2: loop through filtered data and save
-    for (const item of filteredPlanData) {
-      const payload = {
-        txn_id: proposalId,
-        client_id: id,
-        service_name: item.service_name,
-        category_name: item.category_name,
-        editing_type_name: item.editing_type_name,
-        editing_type_amount: item.editing_type_amount,
-        quantity: item.quantity,
-        include_content_posting: item.include_content_posting,
-        include_thumbnail_creation: item.include_thumbnail_creation,
-        total_amount: item.total_amount,
-        plan_name: item.plan_name,
-        employee: userName,
-      };
+    const plans = filteredPlanData.map((item) => ({
+    
+      service_name: item.service_name,
+      category_name: item.category_name,
+      editing_type_name: item.editing_type_name,
+      editing_type_amount: item.editing_type_amount,
+      quantity: item.quantity,
+      include_content_posting: item.include_content_posting,
+      include_thumbnail_creation: item.include_thumbnail_creation,
+      total_amount: item.total_amount,
+      plan_name: item.plan_name,
+      employee: userName,
+    }));
 
-      await axios.post(
-        `${baseURL}/auth/api/calculator/saveCalculatorData`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-    }
+    const planNotes = filteredNotes.map((item) => ({
+      note_name: item.note_name,
+      plan: item.plan,
+    }));
 
-    // Step 3: success message
+    const payload = {   txn_id: proposalId,
+      client_id: id,plans, planNotes };
+
+    await axios.post(
+      `${baseURL}/auth/api/calculator/savePlanClientNotes`,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
     Swal.fire({
       icon: "success",
       title: "Quotation Created",
@@ -329,6 +374,7 @@ const handleCreateQuotation = async (planId) => {
     });
   }
 };
+
 
 
   return (
@@ -457,7 +503,7 @@ const handleCreateQuotation = async (planId) => {
           </div>
                <button
         
-              onClick={() => handleCreateQuotation(plan.id)}
+              onClick={() => handleCreateQuotation(plan)}
       
             className={`
               w-full mt-6 py-4 px-6 rounded-2xl font-semibold text-white

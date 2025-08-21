@@ -1053,7 +1053,8 @@ exports.saveClientWithPlan = async (req, res) => {
     address,
     dg_employee,
     txn_id,
-    plans, // ⬅️ array of plans coming from frontend
+    plans, // array of plans
+    planNotes, // array of notes
   } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
@@ -1087,16 +1088,14 @@ exports.saveClientWithPlan = async (req, res) => {
 
       const client_id = clientResult.insertId;
 
-      // Step 2: Insert multiple plan data
+      // Step 2: Insert plans
       const planQuery = `
         INSERT INTO calculator_transactions 
         (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at) 
-        VALUES ?
-      `;
+        VALUES ?`;
 
-      // Prepare bulk insert values
       const planValues = plans.map((p) => [
-        txn_id, // same txn id for group OR you can generate per plan
+        txn_id,
         client_id,
         p.service_name,
         p.category_name,
@@ -1111,7 +1110,7 @@ exports.saveClientWithPlan = async (req, res) => {
         createdAt,
       ]);
 
-      db.query(planQuery, [planValues], (err, planResult) => {
+      db.query(planQuery, [planValues], (err) => {
         if (err) {
           return res.status(500).json({
             status: "Failure",
@@ -1120,11 +1119,35 @@ exports.saveClientWithPlan = async (req, res) => {
           });
         }
 
-        res.status(201).json({
-          status: "Success",
-          message: "Client and multiple Plans saved successfully",
-          client_id,
+        // Step 3: Insert notes
+        const noteClientQuery = `
+          INSERT INTO plan_client_notes 
+          (txn_id, client_id, note_name, created_at) 
+          VALUES ?`;
+
+        const noteClientValues = planNotes.map((p) => [
           txn_id,
+          client_id,
+          p.note_name,
+          createdAt,
+        ]);
+
+        db.query(noteClientQuery, [noteClientValues], (err) => {
+          if (err) {
+            return res.status(500).json({
+              status: "Failure",
+              message: "Error saving notes",
+              error: err,
+            });
+          }
+
+          // ✅ Final response (only once)
+          res.status(201).json({
+            status: "Success",
+            message: "Client, Plans, and Notes saved successfully",
+            client_id,
+            txn_id,
+          });
         });
       });
     });
@@ -1136,6 +1159,7 @@ exports.saveClientWithPlan = async (req, res) => {
     });
   }
 };
+
 
 
 exports.addNotebyplan = async (req, res) => {
@@ -1170,5 +1194,121 @@ exports.addNotebyplan = async (req, res) => {
   } catch (error) {
     res.status(500).json({ status: "Failure", message: "Server error", error });
   }
+};
+
+exports.savePlanClientNotes = (req, res) => {
+  const { txn_id, client_id, plans, planNotes } = req.body;
+
+  if (!txn_id || !client_id || !plans || plans.length === 0) {
+    return res.status(400).json({ status: "Failure", message: "Missing required data" });
+  }
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  // Step 1: Insert Plans (calculator_transactions)
+  const planQuery = `
+    INSERT INTO calculator_transactions 
+    (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at) 
+    VALUES ?
+  `;
+
+  const planValues = plans.map((p) => [
+    txn_id,
+    client_id,
+    p.service_name,
+    p.category_name,
+    p.editing_type_name,
+    p.editing_type_amount,
+    p.quantity,
+    p.include_content_posting,
+    p.include_thumbnail_creation,
+    p.total_amount,
+    p.employee,
+    p.plan_name && p.plan_name.trim() !== "" ? p.plan_name : "Customise",
+    createdAt,
+  ]);
+
+  db.query(planQuery, [planValues], (err) => {
+    if (err) {
+      console.error("Error saving plans:", err);
+      return res.status(500).json({
+        status: "Failure",
+        message: "Error saving plans",
+        error: err,
+      });
+    }
+
+    // Step 2: Insert Notes (plan_client_notes)
+    if (planNotes && planNotes.length > 0) {
+      const noteClientQuery = `
+        INSERT INTO plan_client_notes 
+        (txn_id, client_id, note_name,created_at) 
+        VALUES ?
+      `;
+
+      const noteClientValues = planNotes.map((n) => [
+        txn_id,
+        client_id,
+        n.note_name,
+    
+        createdAt,
+      ]);
+
+      db.query(noteClientQuery, [noteClientValues], (err) => {
+        if (err) {
+          console.error("Error saving notes:", err);
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error saving notes",
+            error: err,
+          });
+        }
+
+        return res.status(200).json({ status: "Success", message: "Plans & Notes saved successfully" });
+      });
+    } else {
+      return res.status(200).json({ status: "Success", message: "Plans saved successfully (no notes provided)" });
+    }
+  });
+};
+
+
+exports.saveClientIdwiseNotes = (req, res) => {
+  const { txn_id, client_id, planNotes } = req.body;
+
+  if (!txn_id || !client_id) {
+    return res.status(400).json({ status: "Failure", message: "Missing required data" });
+  }
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  // Step 1: Insert Plans (calculator_transactions)
+  const NotesQuery = `
+    INSERT INTO plan_client_notes 
+        (txn_id, client_id, note_name,created_at) 
+        VALUES ?
+  `;
+
+  const NotesValues = planNotes.map((n) => [
+        txn_id,
+        client_id,
+        n.note_name,
+    
+        createdAt,
+      ]);
+
+  db.query(NotesQuery, [NotesValues], (err) => {
+    if (err) {
+      console.error("Error saving Client Notes:", err);
+      return res.status(500).json({
+        status: "Failure",
+        message: "Error saving Client Notes",
+        error: err,
+      });
+    }
+
+      return res.status(200).json({ status: "Success", message: "Client Notes saved successfully (no notes provided)" });
+    
+  });
 };
 
