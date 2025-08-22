@@ -23,6 +23,7 @@ export default function QuotationBD() {
   const [serviceData, setServiceData] = useState([]);
   const [graphicData, setGraphicData] = useState([]);
   const [adsData, setAdsData] = useState([]);
+    const [notesData, setNotesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clientData, setClientData] = useState([]);
   const [imagesLoaded, setImagesLoaded] = useState({
@@ -84,6 +85,34 @@ export default function QuotationBD() {
       }
     }
   };
+    const fetchClientNotes = async () => {
+      try {
+        const res = await axios.get(
+          `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (res.data.status === "Success") {
+          setNotesData(res.data.data);
+        }
+      } catch (error) {
+        if (error.response?.status === 401) {
+          Swal.fire({
+            title: "Session Expired",
+            text: "Please login again.",
+            icon: "warning",
+          }).then(() => {
+            dispatch(clearUser());
+            localStorage.removeItem("token");
+            navigate("/");
+          });
+        }
+      }
+    };
 
   const clientName = clientData?.client_name;
   const clientAddress = clientData?.address;
@@ -92,6 +121,7 @@ export default function QuotationBD() {
   useEffect(() => {
     fetchServices();
     fetchClient();
+    fetchClientNotes();
   }, [id, txn_id]);
 
   useEffect(() => {
@@ -178,6 +208,12 @@ export default function QuotationBD() {
           >
             🖨️ Print
           </button>
+           <button
+            onClick={() =>navigate(`/BD/AddService/${id}/${txn_id}`)}
+            className="bg-orange-600 text-white rounded-full px-4 py-2"
+          >
+            ✏️ Edit
+          </button>
           <button
             onClick={() => navigate("/admin/dashboard")}
             className="bg-teal-600 text-white rounded-full px-4 py-2"
@@ -238,7 +274,7 @@ export default function QuotationBD() {
                         </p>
                       </div>
                       <div className="text-end">
-                        <h2 className="text-2xl font-bold">Quotation</h2>
+                    <h2 className="text-2xl font-bold">{serviceData[0].plan_name} Plan</h2>
                         <p>{moment().format("DD/MM/YYYY")}</p>
                         <p>Quote #: {txn_id}</p>
                       </div>
@@ -460,6 +496,19 @@ export default function QuotationBD() {
                         </p>
                       )}
                     </section>
+
+                            <h2 className="text-lg font-bold">Notes</h2>
+  {notesData.length > 0 ? (
+    <ul className="list-disc pl-5">
+      {notesData.map((note) => (
+        <li key={note.id} className="text-sm text-gray-700 font-bold">
+          {note.note_name}
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p className="text-gray-500 italic">No notes added.</p>
+  )}
                   </div>
                 </div>
                 <div className="h-[45rem]"></div>

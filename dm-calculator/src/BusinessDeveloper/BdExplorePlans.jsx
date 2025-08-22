@@ -267,7 +267,7 @@ const handleSubmit = async (e) => {
       });
 
       setShowModal(false);
-      navigate(`/admin/client/service/history/${client_id}`); // ⬅️ API ka client_id
+      navigate(`/BD/client/service/history/${client_id}`); // ⬅️ API ka client_id
     } else {
       Swal.fire({
         icon: "error",

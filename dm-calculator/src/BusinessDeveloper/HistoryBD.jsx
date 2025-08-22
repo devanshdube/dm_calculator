@@ -186,7 +186,7 @@ try {
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 lg:gap-0">
           <div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              History
+             Quotation History
             </h2>
             <button
               onClick={() => navigate(-1)}
@@ -297,7 +297,7 @@ try {
                             // }
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                            Quotation
+                          Review
                           </button>
                            <button
                             onClick={() => handleDeletequotation(item.txn_id)}

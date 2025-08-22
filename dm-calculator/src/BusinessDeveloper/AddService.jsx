@@ -12,6 +12,8 @@ import {
   Package,
   IndianRupee,
   User,
+    StickyNote,
+  Notebook,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -26,8 +28,12 @@ export default function AddService() {
   const { id, proposalId } = useParams();
   const [getData, setGetData] = useState([]);
   const [getAdsData, setGetAdsData] = useState([]);
+    const [getPlanData, setGetPlanData] = useState([]);
   const [clientData, setClientData] = useState([]);
-  const { token } = useSelector((state) => state.user);
+  const [loading, setLoading] = useState(false);
+  
+const { currentUser, token } = useSelector((state) => state.user);
+  const userName = currentUser?.name;
   const dispatch = useDispatch();
   console.log(id, proposalId);
 
@@ -187,10 +193,68 @@ export default function AddService() {
     }
   };
 
+    const fetchPlanData = async () => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getAllPlanData`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.data.status === "Success") {
+        console.log(res.data.data);
+        setGetPlanData(res.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
+
+  const getAllPlanNotes = async (planTitle) => {
+  try {
+    const response = await axios.get(
+      `${baseURL}/auth/api/calculator/getPlanNotes`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const notes = response.data.data;
+
+    // filter for this plan only
+    const filtered = notes.filter(
+      (note) => String(note.plan) === String(planTitle)
+    );
+
+    return filtered; // ⬅️ return directly instead of setting state
+  } catch (error) {
+    console.error("Error fetching plan notes:", error);
+    return [];
+  }
+};
+
   useEffect(() => {
     fetchClient();
     fetchData();
     fetchAdsData();
+    fetchPlanData();
   }, [id, proposalId]);
 
   // Table Total Amount
@@ -218,6 +282,114 @@ export default function AddService() {
   const totalAmount = grandTotal + grandAdsTotal;
   console.log(totalAmount);
 
+  const groupByPlan = (data) => {
+  console.log(data);
+  
+  const grouped = {};
+
+  data.forEach((item) => {
+    if (!grouped[item.plan_id]) {
+      grouped[item.plan_id] = {
+        id: item.plan_id,
+        title: item.plan_name,
+        subtitle: "Custom Plan", // you can make this dynamic if needed
+        description: `Includes ${item.plan_name} services tailored to your needs.`,
+        gradient: "from-green-500 to-teal-600", // default or dynamic
+        navigation: "/admin/dynamicPlan",
+        features: [],
+        totalAmount: 0, // new field for amount
+      };
+    }
+
+    grouped[item.plan_id].features.push(
+      `${item.service_name} - ${item.category_name}`
+    );
+
+    // Add the amount (make sure item.amount is a number)
+    grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
+  });
+
+  return Object.values(grouped);
+};
+
+  const plans = groupByPlan(getPlanData);
+// When "Create Quotation" button is clicked
+const handleCreateQuotation = async (plan) => {
+  try {
+    // fetch notes for this plan immediately (don’t wait for setState)
+    const filteredNotes = await getAllPlanNotes(plan.title);
+
+    if (filteredNotes.length === 0) {
+      Swal.fire({
+        icon: "info",
+        title: "No Notes",
+        text: "No notes found for this plan.",
+      });
+      return;
+    }
+
+    // Step 1: filter plan-wise data
+    const filteredPlanData = getPlanData.filter(
+      (item) => item.plan_id === plan.id
+    );
+
+    if (filteredPlanData.length === 0) {
+      Swal.fire({
+        icon: "info",
+        title: "No Data",
+        text: "No services found for this plan.",
+      });
+      return;
+    }
+
+    const plans = filteredPlanData.map((item) => ({
+    
+      service_name: item.service_name,
+      category_name: item.category_name,
+      editing_type_name: item.editing_type_name,
+      editing_type_amount: item.editing_type_amount,
+      quantity: item.quantity,
+      include_content_posting: item.include_content_posting,
+      include_thumbnail_creation: item.include_thumbnail_creation,
+      total_amount: item.total_amount,
+      plan_name: item.plan_name,
+      employee: userName,
+    }));
+
+    const planNotes = filteredNotes.map((item) => ({
+      note_name: item.note_name,
+      plan: item.plan,
+    }));
+
+    const payload = {   txn_id: proposalId,
+      client_id: id,plans, planNotes };
+
+    await axios.post(
+      `${baseURL}/auth/api/calculator/savePlanClientNotes`,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    Swal.fire({
+      icon: "success",
+      title: "Quotation Created",
+      text: `Plan quotation saved successfully!`,
+    });
+
+    fetchData(); // refresh table
+  } catch (err) {
+    console.error("Save error:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Something went wrong while saving the quotation.",
+    });
+  }
+};
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -242,7 +414,7 @@ export default function AddService() {
         <div className="mb-12">
           {/* Back Button */}
           <button
-            onClick={() => navigate("/BD/dashboard")}
+            onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 group"
           >
             <ArrowLeft className="w-5 h-5 transform transition-transform group-hover:-translate-x-1" />
@@ -301,9 +473,109 @@ export default function AddService() {
             </div>
           </div>
         </div>
+<div className="">
+           <p className="text-3xl font-bold text-white mb-3">
+                    Plan Wise 
+                  </p>
+        </div>
+<div className="grid md:grid-cols-4 gap-8 mx-auto mb-12">
+  {plans.map((plan) => (
+    <div key={plan.id} className="group relative">
+      <div
+        className={`
+          relative h-full bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20
+          transform transition-all duration-300 hover:scale-102 hover:bg-white/15 hover:border-white/30
+        `}
+      >
+        {/* Icon placeholder */}
+        <div
+          className={`
+            inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6
+            bg-gradient-to-r ${plan.gradient} shadow-lg
+            transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
+          `}
+        >
+          <span className="w-8 h-8 text-white">★</span>
+        </div>
+
+        {/* Content */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-1">
+              {plan.title}
+            </h3>
+            <p
+              className={`text-sm font-medium bg-gradient-to-r ${plan.gradient} bg-clip-text text-transparent`}
+            >
+              Plan
+            </p>
+            {/* Total amount */}
+            <p className="text-lg font-semibold text-white mt-1">
+              ₹{plan.totalAmount.toLocaleString()}
+            </p>
+          </div>
+               <button
+        
+              onClick={() => handleCreateQuotation(plan)}
+      
+            className={`
+              w-full mt-6 py-4 px-6 rounded-2xl font-semibold text-white
+              bg-gradient-to-r ${plan.gradient} shadow-lg
+              transform transition-all duration-300 hover:shadow-xl hover:scale-105
+              flex items-center justify-center gap-2 group/btn
+            `}
+             disabled = {loading}
+          >
+                 {loading ? 'Save...':'Create Quotation'} 
+            <ArrowRight className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
+          </button>
+
+          <p className="text-white/70 leading-relaxed">
+            {plan.description}
+          </p>
+
+          {/* Features */}
+          <div className="space-y-2">
+            {plan.features.map((feature, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 text-sm text-white/60"
+              >
+                <div
+                  className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${plan.gradient}`}
+                ></div>
+                {feature}
+              </div>
+            ))}
+          </div>
+
+          {/* CTA */}
+     
+        </div>
+      </div>
+
+      {/* Floating ping effect */}
+      <div
+        className={`
+          absolute -top-2 -right-2 w-6 h-6 rounded-full 
+          bg-gradient-to-r ${plan.gradient} opacity-0 group-hover:opacity-100
+          transform transition-all duration-500 group-hover:scale-100 scale-0
+        `}
+      >
+        <div className="w-full h-full rounded-full animate-ping bg-gradient-to-r from-white/30 to-transparent"></div>
+      </div>
+    </div>
+  ))}
+</div>
+ <div className="">
+           <p className="text-3xl font-bold text-white mb-3">
+                    Customise Wise 
+                  </p>
+                  </div>
+
 
         {/* Services Grid */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-7xl mx-auto mb-12">
+        <div className="grid md:grid-cols-4  gap-8  mx-auto mb-12">
           {services.map((service) => {
             const IconComponent = service.icon;
             return (

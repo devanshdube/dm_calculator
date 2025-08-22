@@ -597,7 +597,7 @@ try {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Enter organization name"
-                    required
+                    
                   />
                 </div>
 
@@ -614,7 +614,7 @@ try {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Enter email address"
-                    required
+                   
                   />
                 </div>
 

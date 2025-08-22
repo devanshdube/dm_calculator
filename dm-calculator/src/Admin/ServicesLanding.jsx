@@ -32,6 +32,7 @@ export default function ServicesLanding() {
   const [clientData, setClientData] = useState([]);
     const [loading, setLoading] = useState(false);
 const { currentUser, token } = useSelector((state) => state.user);
+  const [showModal, setShowModal] = useState(false);
   const userName = currentUser?.name;
   const dispatch = useDispatch();
   console.log(id, proposalId);
@@ -237,6 +238,8 @@ const getAllPlanNotes = async (planTitle) => {
     }
   };
 
+  
+
   useEffect(() => {
     fetchClient();
     fetchData();
@@ -401,7 +404,7 @@ const handleCreateQuotation = async (plan) => {
         <div className="mb-12">
           {/* Back Button */}
           <button
-            onClick={() => navigate("/admin/dashboard")}
+            onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 group"
           >
             <ArrowLeft className="w-5 h-5 transform transition-transform group-hover:-translate-x-1" />
@@ -409,7 +412,7 @@ const handleCreateQuotation = async (plan) => {
           </button>
 
           {/* Top Stats Row */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
             {/* Total Amount */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-4">
@@ -458,7 +461,21 @@ const handleCreateQuotation = async (plan) => {
                 </div>
               </div>
             </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-slate-700 rounded-xl flex items-center justify-center">
+                  <Package className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-white/60 text-sm font-medium">
+                    Quotation 
+                  </p>
+                  <p className="text-3xl font-bold text-white">{finalLength}</p>
+                </div>
+              </div>
+            </div>
           </div>
+          
         </div>
         <div className="">
            <p className="text-3xl font-bold text-white mb-3">
@@ -667,7 +684,6 @@ const handleCreateQuotation = async (plan) => {
         
 
 
-  
 
 
         {/* Client Orders */}
@@ -773,6 +789,46 @@ const handleCreateQuotation = async (plan) => {
             </table>
           </div>
         </div>
+          {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+              <button
+                onClick={() => setShowModal(false)}
+                className="absolute top-2 right-3 text-red-600 hover:text-gray-500 text-xl font-bold"
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <h2 className="text-lg font-semibold mb-4 text-center">
+                Select Quotation Type
+              </h2>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/admin/quotation/${id}/${proposalId}?gst=1`
+                    );
+                    setShowModal(false);
+                  }}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  With GST (18%)
+                </button>
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/admin/quotation/${id}/${proposalId}?gst=0`
+                    );
+                    setShowModal(false);
+                  }}
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  Without GST
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

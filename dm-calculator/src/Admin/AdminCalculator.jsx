@@ -535,7 +535,7 @@ const filtered = notes.filter(
 
   useEffect(() => {
     fetchData();
-    getAllPlanNotes()
+    getAllPlanNotes();
   }, [id, proposalId]);
 
   console.log(getData);
