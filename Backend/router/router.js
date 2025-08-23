@@ -27,6 +27,7 @@ const {
   assignQuotation,
   setDoneQty,
   incrementDoneQty,
+  reassignQuotation,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -56,6 +57,7 @@ const {
   getAssignmentByTxn,
   getAssignedQuotations,
   getProgressByTxn,
+  getAssignedQuotationsByEmployeeName,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -79,7 +81,7 @@ const {
   updatePlandata,
   updatePlanNameDetail,
   updatePlanNotes,
-  reassignQuotation,
+  // reassignQuotation,
 } = require("../controller/updateController");
 
 const authenticateToken = require("../middleware/authenticateToken");
@@ -172,6 +174,10 @@ router.get(
 router.get("/retrieveUser", retrieveUser);
 router.get("/getAssignmentByTxn/:txn_id", getAssignmentByTxn);
 router.get("/getAssignedQuotations", getAssignedQuotations);
+router.get(
+  "/assigned-quotations/by-employee/:employee_name",
+  getAssignedQuotationsByEmployeeName
+);
 router.get("/progress/by-txn/:txn_id", getProgressByTxn);
 // ---->  Get all routes END <----
 
@@ -207,6 +213,7 @@ router.put("/updatePlanData/:id", updatePlandata);
 router.put("/updatePlanName/:id", updatePlanNameDetail);
 router.put("/updatePlanNotes/:id", updatePlanNotes);
 router.put("/reassignQuotation", reassignQuotation);
+// router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----
 
 router.get("/optional-service-amounts", optionalServiceAmounts);

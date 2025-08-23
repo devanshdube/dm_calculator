@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const { sendAssignmentEmail, TZ } = require("./sendEmails");
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
@@ -13,7 +14,19 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAILSENDER,
     pass: process.env.EMAILPASSWORD,
   },
+  logger: true, // nodemailer internal logger
+  debug: true, // include SMTP traffic in logs
 });
+
+// verify the connection at server start
+(async () => {
+  try {
+    const ok = await transporter.verify();
+    console.log("[MAIL] Transporter verify:", ok ? "OK" : "UNKNOWN");
+  } catch (e) {
+    console.error("[MAIL] Transporter verify FAILED:", e);
+  }
+})();
 
 exports.register = async (req, res) => {
   const { employee_name, employee_role, employee_email, employee_password } =
@@ -1324,54 +1337,400 @@ exports.saveClientIdwiseNotes = (req, res) => {
 
 //NEW Work
 
+// function isEmail(v) {
+//   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v || "");
+// }
+
+// async function sendAssignmentEmail({
+//   to,
+//   assigneeName,
+//   clientName,
+//   clientId,
+//   txnId,
+//   deadline,
+//   baseUrl,
+// }) {
+//   if (!isEmail(to)) {
+//     console.warn("[MAIL] Invalid/empty email:", to);
+//     return;
+//   }
+//   if (!process.env.EMAILSENDER) {
+//     console.error("[MAIL] Missing env EMAILSENDER");
+//     return;
+//   }
+
+//   // Gmail typically requires From to match the authenticated account
+//   const from = process.env.EMAILSENDER;
+
+//   const prettyDeadline = deadline
+//     ? moment(deadline).format("YYYY-MM-DD")
+//     : "Not set";
+//   const subject = `New Quotation Assigned • TXN ${txnId}`;
+//   const html = `
+//     <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.5">
+//       <h2 style="margin:0 0 8px">Quotation Assigned</h2>
+//       <p>Hi <b>${assigneeName || "Team"}</b>,</p>
+//       <p>You have been assigned a quotation.</p>
+//       <table style="border-collapse:collapse">
+//         <tr><td style="padding:4px 8px"><b>Client</b></td><td style="padding:4px 8px">${
+//           clientName || "N/A"
+//         } (ID: ${clientId})</td></tr>
+//         <tr><td style="padding:4px 8px"><b>Transaction</b></td><td style="padding:4px 8px">${txnId}</td></tr>
+//         <tr><td style="padding:4px 8px"><b>Deadline</b></td><td style="padding:4px 8px">${prettyDeadline}</td></tr>
+//       </table>
+//       ${
+//         baseUrl
+//           ? `<p><a href="${baseUrl}" target="_blank" rel="noreferrer">Open Quotation</a></p>`
+//           : ""
+//       }
+//       <p>— System Notification</p>
+//     </div>
+//   `;
+
+//   try {
+//     const info = await transporter.sendMail({
+//       from,
+//       to,
+//       subject,
+//       html,
+//     });
+//     console.log("[MAIL] Sent:", {
+//       messageId: info.messageId,
+//       accepted: info.accepted,
+//       rejected: info.rejected,
+//       response: info.response,
+//     });
+//     if (info.rejected && info.rejected.length) {
+//       throw new Error("Rejected recipients: " + info.rejected.join(", "));
+//     }
+//   } catch (err) {
+//     console.error("[MAIL] sendMail error:", err);
+//     throw err; // bubble up if you want to handle upstream
+//   }
+// }
+
 exports.assignQuotation = (req, res) => {
-  try {
-    const { client_id, txn_id, user_id } = req.body;
+  (async () => {
+    try {
+      const { client_id, txn_id, user_id, deadline } = req.body;
+      if (!client_id || !txn_id || !user_id)
+        return res
+          .status(400)
+          .json({ status: "Failure", message: "Missing ID(s)" });
+      if (deadline && !/^\d{4}-\d{2}-\d{2}$/.test(deadline))
+        return res.status(400).json({
+          status: "Failure",
+          message: "Invalid deadline (YYYY-MM-DD)",
+        });
 
-    if (!client_id || !txn_id || !user_id) {
-      return res
-        .status(400)
-        .json({ status: "Failure", message: "Missing ID(s)" });
+      const createdAt = moment().tz(TZ).format("YYYY-MM-DD HH:mm:ss");
+      const insertQuery = `
+        INSERT INTO assign_quotation
+          (client_id, txn_id, user_id, deadline, created_at,
+           reminder_start_sent, reminder_mid_sent, reminder_day_before_sent)
+        VALUES (?, ?, ?, ?, ?, 0, 0, 0)
+      `;
+      db.query(
+        insertQuery,
+        [client_id, txn_id, user_id, deadline || null, createdAt],
+        async (err, result) => {
+          if (err) {
+            console.error("DB Error:", err);
+            return res
+              .status(500)
+              .json({ status: "Failure", message: "Database Error" });
+          }
+
+          // Fetch assignee & client
+          const [assignee] = await new Promise((resolve, reject) => {
+            db.query(
+              "SELECT employee_name, employee_email FROM dm_calculator_employees WHERE id = ? LIMIT 1",
+              [user_id],
+              (e, rows) => (e ? reject(e) : resolve(rows || []))
+            );
+          });
+          const [client] = await new Promise((resolve, reject) => {
+            db.query(
+              "SELECT client_name FROM dm_calculator_client_details WHERE id = ? LIMIT 1",
+              [client_id],
+              (e, rows) => (e ? reject(e) : resolve(rows || []))
+            );
+          });
+
+          // Send the "start" mail immediately and mark start_sent = 1
+          try {
+            if (assignee?.employee_email) {
+              await sendAssignmentEmail({
+                to: assignee.employee_email,
+                assigneeName: assignee.employee_name,
+                clientName: client?.client_name,
+                clientId: client_id,
+                txnId: txn_id,
+                deadline,
+                baseUrl: process.env.PUBLIC_APP_URL,
+              });
+              db.query(
+                "UPDATE assign_quotation SET reminder_start_sent = 1 WHERE id = ?",
+                [result.insertId]
+              );
+            } else {
+              console.warn("[MAIL] No assignee email for user_id:", user_id);
+            }
+          } catch (mailErr) {
+            console.error("[MAIL] assign send error:", mailErr);
+          }
+
+          return res.status(201).json({
+            status: "Success",
+            message: "Quotation assigned & start reminder sent",
+            data: {
+              id: result.insertId,
+              client_id,
+              txn_id,
+              user_id,
+              deadline: deadline || null,
+              created_at: createdAt,
+            },
+          });
+        }
+      );
+    } catch (error) {
+      console.error("Server Error:", error);
+      res
+        .status(500)
+        .json({ status: "Failure", message: "Internal Server Error" });
     }
+  })();
+};
 
-    const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+exports.reassignQuotation = (req, res) => {
+  (async () => {
+    try {
+      const { txn_id, user_id, deadline } = req.body;
+      if (!txn_id || !user_id)
+        return res
+          .status(400)
+          .json({ status: "Failure", message: "Missing ID(s)" });
+      if (deadline && !/^\d{4}-\d{2}-\d{2}$/.test(deadline))
+        return res.status(400).json({
+          status: "Failure",
+          message: "Invalid deadline (YYYY-MM-DD)",
+        });
 
-    const insertQuery = `
-      INSERT INTO assign_quotation (client_id, txn_id, user_id, created_at)
-      VALUES (?, ?, ?, ?)
-    `;
+      // fetch existing to detect changes
+      const [existing] = await new Promise((resolve, reject) => {
+        db.query(
+          "SELECT id, user_id AS old_user, deadline AS old_deadline FROM assign_quotation WHERE txn_id = ? LIMIT 1",
+          [txn_id],
+          (e, rows) => (e ? reject(e) : resolve(rows || []))
+        );
+      });
+      if (!existing)
+        return res.status(404).json({
+          status: "Failure",
+          message: "No assignment found to update",
+        });
 
-    db.query(
-      insertQuery,
-      [client_id, txn_id, user_id, createdAt],
-      (err, result) => {
+      const now = moment().tz(TZ).format("YYYY-MM-DD HH:mm:ss");
+      const q = `
+        UPDATE assign_quotation
+        SET user_id = ?, ${deadline ? "deadline = ?," : ""}
+            updated_at = ?,
+            version = CAST(CAST(COALESCE(NULLIF(version,''),'1') AS UNSIGNED) + 1 AS CHAR)
+        WHERE txn_id = ?
+      `;
+      const params = deadline
+        ? [user_id, deadline, now, txn_id]
+        : [user_id, now, txn_id];
+
+      db.query(q, params, async (err) => {
         if (err) {
-          console.error("Database Error:", err);
+          console.error("DB Error:", err);
           return res
             .status(500)
-            .json({ status: "Failure", message: "Database Error", error: err });
+            .json({ status: "Failure", message: "Database Error" });
         }
 
-        return res.status(201).json({
+        // If assignee or deadline changed → reset mid/day-before flags
+        const changedUser = Number(existing.old_user) !== Number(user_id);
+        const changedDeadline =
+          deadline && String(existing.old_deadline || "") !== String(deadline);
+        if (changedUser || changedDeadline) {
+          db.query(
+            "UPDATE assign_quotation SET reminder_mid_sent = 0, reminder_day_before_sent = 0, reminder_start_sent = 0 WHERE id = ?",
+            [existing.id]
+          );
+        }
+
+        // send "start" again on reassign and mark start_sent = 1
+        try {
+          const [assignee] = await new Promise((resolve, reject) => {
+            db.query(
+              "SELECT employee_name, employee_email FROM dm_calculator_employees WHERE id = ? LIMIT 1",
+              [user_id],
+              (e, rows) => (e ? reject(e) : resolve(rows || []))
+            );
+          });
+          const [client] = await new Promise((resolve, reject) => {
+            db.query(
+              "SELECT client_name FROM dm_calculator_client_details WHERE id = ? LIMIT 1",
+              [existing.client_id || null],
+              (e, rows) => (e ? reject(e) : resolve(rows || []))
+            );
+          });
+
+          // fetch client_id if not in existing
+          let clientId = existing.client_id;
+          if (!clientId) {
+            const [row2] = await new Promise((resolve, reject) => {
+              db.query(
+                "SELECT client_id FROM assign_quotation WHERE txn_id = ? LIMIT 1",
+                [txn_id],
+                (e, rows) => (e ? reject(e) : resolve(rows || []))
+              );
+            });
+            clientId = row2?.client_id;
+          }
+
+          if (assignee?.employee_email) {
+            await sendAssignmentEmail({
+              to: assignee.employee_email,
+              assigneeName: assignee.employee_name,
+              clientName: client?.client_name,
+              clientId,
+              txnId: txn_id,
+              deadline: deadline || existing.old_deadline,
+              baseUrl: process.env.PUBLIC_APP_URL,
+            });
+            db.query(
+              "UPDATE assign_quotation SET reminder_start_sent = 1 WHERE id = ?",
+              [existing.id]
+            );
+          }
+        } catch (mailErr) {
+          console.error("[MAIL] reassign send error:", mailErr);
+        }
+
+        return res.status(200).json({
           status: "Success",
-          message: "Quotation assigned successfully",
-          data: {
-            id: result.insertId,
-            client_id,
-            txn_id,
-            user_id,
-            created_at: createdAt,
-          },
+          message: "Quotation re-assigned & start reminder sent",
         });
-      }
-    );
-  } catch (error) {
-    console.error("Server Error:", error);
-    return res
-      .status(500)
-      .json({ status: "Failure", message: "Internal Server Error" });
-  }
+      });
+    } catch (e) {
+      console.error("Server Error:", e);
+      res
+        .status(500)
+        .json({ status: "Failure", message: "Internal Server Error" });
+    }
+  })();
 };
+
+// exports.assignQuotation = (req, res) => {
+//   (async () => {
+//     try {
+//       const { client_id, txn_id, user_id, deadline } = req.body;
+
+//       if (!client_id || !txn_id || !user_id) {
+//         return res
+//           .status(400)
+//           .json({ status: "Failure", message: "Missing ID(s)" });
+//       }
+//       if (deadline && !/^\d{4}-\d{2}-\d{2}$/.test(deadline)) {
+//         return res.status(400).json({
+//           status: "Failure",
+//           message: "Invalid deadline format (YYYY-MM-DD)",
+//         });
+//       }
+
+//       const createdAt = moment()
+//         .tz("Asia/Kolkata")
+//         .format("YYYY-MM-DD HH:mm:ss");
+//       const insertQuery = `
+//         INSERT INTO assign_quotation (client_id, txn_id, user_id, deadline, created_at)
+//         VALUES (?, ?, ?, ?, ?)
+//       `;
+
+//       db.query(
+//         insertQuery,
+//         [client_id, txn_id, user_id, deadline || null, createdAt],
+//         async (err, result) => {
+//           if (err) {
+//             console.error("Database Error:", err);
+//             return res.status(500).json({
+//               status: "Failure",
+//               message: "Database Error",
+//               error: err,
+//             });
+//           }
+
+//           try {
+//             // Fetch assignee & client
+//             const [assignee] = await new Promise((resolve, reject) => {
+//               db.query(
+//                 "SELECT employee_name, employee_email FROM dm_calculator_employees WHERE id = ? LIMIT 1",
+//                 [user_id],
+//                 (e, rows) => (e ? reject(e) : resolve(rows || []))
+//               );
+//             });
+//             const [client] = await new Promise((resolve, reject) => {
+//               db.query(
+//                 "SELECT client_name FROM dm_calculator_client_details WHERE id = ? LIMIT 1",
+//                 [client_id],
+//                 (e, rows) => (e ? reject(e) : resolve(rows || []))
+//               );
+//             });
+
+//             // DEBUG: log who we’re emailing
+//             console.log(
+//               "[MAIL] Preparing to send to:",
+//               assignee?.employee_email
+//             );
+
+//             // ***** IMPORTANT while debugging: await this *****
+//             if (assignee?.employee_email) {
+//               await sendAssignmentEmail({
+//                 to: assignee.employee_email,
+//                 assigneeName: assignee.employee_name,
+//                 clientName: client?.client_name,
+//                 clientId: client_id,
+//                 txnId: txn_id,
+//                 deadline,
+//                 baseUrl: process.env.PUBLIC_APP_URL,
+//               });
+//             } else {
+//               console.warn(
+//                 "[MAIL] Assignee email not found for user_id:",
+//                 user_id
+//               );
+//             }
+//           } catch (mailErr) {
+//             console.error("[MAIL] Mail send error:", mailErr);
+//             // You can choose to still return success for the assignment itself:
+//             // return res.status(500).json({ status:"Failure", message:"Mail failed", error: String(mailErr) });
+//           }
+
+//           return res.status(201).json({
+//             status: "Success",
+//             message: "Quotation assigned successfully",
+//             data: {
+//               id: result.insertId,
+//               client_id,
+//               txn_id,
+//               user_id,
+//               deadline: deadline || null,
+//               created_at: createdAt,
+//             },
+//           });
+//         }
+//       );
+//     } catch (error) {
+//       console.error("Server Error:", error);
+//       return res
+//         .status(500)
+//         .json({ status: "Failure", message: "Internal Server Error" });
+//     }
+//   })();
+// };
 
 // NEW WORK FOR Remainder work progress
 
@@ -1527,3 +1886,54 @@ exports.incrementDoneQty = (req, res) => {
     }
   );
 };
+
+// module.exports = { sendAssignmentEmail, sendReminderEmail, TZ };
+
+// exports.assignQuotation = (req, res) => {
+//   try {
+//     const { client_id, txn_id, user_id } = req.body;
+
+//     if (!client_id || !txn_id || !user_id) {
+//       return res
+//         .status(400)
+//         .json({ status: "Failure", message: "Missing ID(s)" });
+//     }
+
+//     const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+//     const insertQuery = `
+//       INSERT INTO assign_quotation (client_id, txn_id, user_id, created_at)
+//       VALUES (?, ?, ?, ?)
+//     `;
+
+//     db.query(
+//       insertQuery,
+//       [client_id, txn_id, user_id, createdAt],
+//       (err, result) => {
+//         if (err) {
+//           console.error("Database Error:", err);
+//           return res
+//             .status(500)
+//             .json({ status: "Failure", message: "Database Error", error: err });
+//         }
+
+//         return res.status(201).json({
+//           status: "Success",
+//           message: "Quotation assigned successfully",
+//           data: {
+//             id: result.insertId,
+//             client_id,
+//             txn_id,
+//             user_id,
+//             created_at: createdAt,
+//           },
+//         });
+//       }
+//     );
+//   } catch (error) {
+//     console.error("Server Error:", error);
+//     return res
+//       .status(500)
+//       .json({ status: "Failure", message: "Internal Server Error" });
+//   }
+// };

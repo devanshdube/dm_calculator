@@ -1025,7 +1025,7 @@ exports.getClientNotesbyId = async (req, res) => {
 exports.retrieveUser = async (req, res) => {
   try {
     const getQuery = `
-      SELECT id, employee_name 
+      SELECT id, employee_name, employee_role, employee_email
       FROM dm_calculator_employees 
       WHERE employee_role = 'BD'
     `;
@@ -1140,6 +1140,58 @@ exports.getAssignedQuotations = async (req, res) => {
         status: "Success",
         message: "Assigned quotations retrieved successfully",
         data: results,
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+exports.getAssignedQuotationsByEmployeeName = async (req, res) => {
+  try {
+    const { employee_name } = req.params;
+
+    if (!employee_name) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "employee_name is required" });
+    }
+
+    const getQuery = `
+      SELECT 
+        aq.id,
+        aq.client_id,
+        aq.txn_id,
+        aq.user_id,
+        aq.created_at,
+        aq.version,
+        aq.updated_at,
+        c.client_name,
+        e.employee_name
+      FROM assign_quotation aq
+      JOIN dm_calculator_client_details c 
+        ON aq.client_id = c.id
+      JOIN dm_calculator_employees e 
+        ON aq.user_id = e.id
+      WHERE e.employee_name = ?
+      ORDER BY aq.created_at DESC
+    `;
+
+    db.query(getQuery, [employee_name], (err, results) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Internal Server Error" });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "Assigned quotations retrieved successfully",
+        data: results, // [] if none
       });
     });
   } catch (error) {

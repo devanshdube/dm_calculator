@@ -9,29 +9,30 @@ import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
-import QuotationTypeModal from "./QuotationTypeModal";
+import ServiceProgressTableBD from "./ServiceProgressTableBD";
 
-const History = () => {
+const AssignQuotationBD = () => {
   const baseURL = `http://localhost:5555`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
-  const [clientData, setClientData] = useState([]);
+  // const [clientData, setClientData] = useState([]);
   const { id } = useParams();
-  const { token } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+  const { currentUser, token } = useSelector((state) => state.user);
   const [keyword, setKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const clientPerPage = 5;
   console.log(id);
+  console.log(currentUser);
   const [showModal, setShowModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
-  const [assignModal, setAssignModal] = useState(false);
+  const [userID, setUserID] = useState(null);
 
   const fetchAllClientServices = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientTxnHistory/${id}`,
+        `${baseURL}/auth/api/calculator/assigned-quotations/by-employee/${currentUser.name}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -39,14 +40,13 @@ const History = () => {
           },
         }
       );
+
       if (res.data.status === "Success") {
-        console.log(res.data);
         setFetchServices(res.data.data);
       }
     } catch (error) {
       console.log(error);
       if (error.response && error.response.status === 401) {
-        // Token is invalid or expired
         Swal.fire({
           title: "Session Expired",
           text: "Please login again.",
@@ -60,106 +60,24 @@ const History = () => {
       }
     }
   };
+
   console.log(fetchServices);
 
-  const fetchClient = async () => {
-    try {
-      const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientDetailsById/${id}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (res.data.status === "Success") {
-        console.log(res.data.data);
-        setClientData(res.data.data);
-      }
-    } catch (error) {
-      console.log(error);
-      if (error.response && error.response.status === 401) {
-        // Token is invalid or expired
-        Swal.fire({
-          title: "Session Expired",
-          text: "Please login again.",
-          icon: "warning",
-          confirmButtonText: "OK",
-        }).then(() => {
-          dispatch(clearUser());
-          localStorage.removeItem("token");
-          navigate("/");
-        });
-      }
-    }
-  };
-  const handleDeletequotation = async (quotationId) => {
-    const confirm = await Swal.fire({
-      title: "Are you sure?",
-      text: "Do you want to delete this quotation permanently?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!",
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    try {
-      const response = await axios.delete(
-        `${baseURL}/auth/api/calculator/deleteQuotationById/${quotationId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.status === "Success") {
-        Swal.fire({
-          icon: "success",
-          title: "Deleted!",
-          text: "Quatation deleted successfully.",
-        });
-
-        // Refresh client list
-        fetchClient();
-        fetchAllClientServices();
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Failed!",
-          text: response.data.message || "Unable to delete client.",
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting client:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Something went wrong while deleting client.",
-      });
-    }
-  };
-
-  console.log(clientData);
-  const clientName = clientData.client_name;
-  console.log(clientName);
-
   useEffect(() => {
-    fetchClient();
     fetchAllClientServices();
   }, []);
 
   const filteredItems = fetchServices.filter((row) => {
-    const matchesKeyword =
-      row?.txn_id &&
-      row.txn_id.toLowerCase().includes(keyword.trim().toLowerCase());
+    if (!keyword.trim()) return true;
 
-    return matchesKeyword;
+    const searchTerm = keyword.trim().toLowerCase();
+    return (
+      (row?.txn_id && row.txn_id.toLowerCase().includes(searchTerm)) ||
+      (row?.client_name && row.client_name.toLowerCase().includes(searchTerm))
+    );
   });
+
+  console.log("Filtered:", filteredItems.length, filteredItems);
 
   const totalPages = Math.ceil(filteredItems.length / clientPerPage);
 
@@ -175,22 +93,26 @@ const History = () => {
 
   const showApiData = filterPagination();
 
-  const handleAssignClick = (row) => {
+  const handleOpenProgress = (row) => {
     const cid = row?.client_id ?? null;
     const txn = row?.txn_id ?? null;
+    const uid = row?.user_id ?? null;
 
     if (!cid || !txn) {
       Swal.fire({
         icon: "warning",
         title: "Missing Information",
-        text: !cid ? "Client ID not found." : "Transaction ID not found.",
+        text: !cid
+          ? "Client ID not found for this row."
+          : "Transaction ID not found for this row.",
       });
       return;
     }
 
     setSelectedClient(cid);
     setSelectedTxn(txn);
-    setAssignModal(true);
+    setUserID(uid);
+    setShowModal(true);
   };
 
   return (
@@ -207,35 +129,10 @@ const History = () => {
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 lg:gap-0">
           <div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Quotation History
+              Assign Quotation List
             </h2>
-            <button
-              onClick={() => navigate(-1)}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-500/25"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Go Back
-            </button>
-            <button
-              onClick={() => {
-                localStorage.setItem("activeTab", "assign"); // tab select karne ke liye
-                navigate("/admin/dashboard"); // dashboard open karne ke liye
-              }}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition mx-2"
-            >
-              Assign List
-            </button>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            {/* <div className="relative group">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-hover:text-purple-400 transition-colors" />
-              <select className="w-full sm:w-auto pl-10 pr-8 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 backdrop-blur-sm hover:bg-gray-700/50 transition-all text-sm">
-                <option>All Activities</option>
-                <option>Completed</option>
-                <option>Pending</option>
-                <option>Active</option>
-              </select>
-            </div> */}
             <div className="relative group">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-hover:text-cyan-400 transition-colors" />
               <input
@@ -260,7 +157,7 @@ const History = () => {
                 <thead>
                   <tr className="border-b border-gray-700/50">
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      INDEX
+                      SNo.
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       Date
@@ -271,12 +168,9 @@ const History = () => {
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       TXN ID
                     </th>
-                    {/* <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      Service
-                    </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      Status
-                    </th> */}
+                      User Name
+                    </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       Action
                     </th>
@@ -305,7 +199,7 @@ const History = () => {
                         </td>
                         <td className="py-5 px-6">
                           <div className="font-semibold text-white text-lg group-hover:text-cyan-300 transition-colors">
-                            {clientName}
+                            {item.client_name}
                           </div>
                         </td>
                         <td className="py-5 px-6">
@@ -314,28 +208,28 @@ const History = () => {
                           </div>
                         </td>
                         <td className="py-5 px-6">
+                          <div className="font-semibold text-white text-lg group-hover:text-cyan-300 transition-colors">
+                            {item.employee_name}
+                          </div>
+                        </td>
+                        <td className="py-5 px-6">
                           <button
-                            onClick={() => handleAssignClick(item)}
-                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-900 to-red-500 text-white shadow-lg shadow-orange-500/25"
+                            onClick={() => handleOpenProgress(item)}
+                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                            Assign
+                            View / Update Progress
                           </button>
-                          <button
+
+                          {/* <button
                             onClick={() => {
-                              setSelectedClient(item.client_id);
-                              setSelectedTxn(item.txn_id);
-                              setShowModal(true);
+                              //   setSelectedClient(item.client_id);
+                              //   setSelectedTxn(item.txn_id);
+                              //   setShowModal(true);
                             }}
-                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25 mx-2"
+                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                            Review
-                          </button>
-                          <button
-                            onClick={() => handleDeletequotation(item.txn_id)}
-                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-500 text-white shadow-lg shadow-red-500/25 mx-2"
-                          >
-                            Delete
-                          </button>
+                            Quotation
+                          </button> */}
                         </td>
                       </tr>
                     ))
@@ -354,59 +248,38 @@ const History = () => {
             </div>
           </div>
         </div>
-        <QuotationTypeModal
-          open={assignModal}
-          onClose={() => setAssignModal(false)}
-          clientId={selectedClient}
-          txnId={selectedTxn}
-          baseURL={baseURL}
-          token={token}
-          onDone={() => {
-            // optional refresh
-            fetchAllClientServices();
-          }}
-        />
 
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="relative bg-white w-[95%] max-w-6xl rounded-2xl shadow-xl p-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="absolute top-2 right-3 text-red-600 hover:text-gray-500 text-xl font-bold"
-                aria-label="Close"
+                className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-2xl"
               >
                 ×
               </button>
-              <h2 className="text-lg font-semibold mb-4 text-center">
-                Select Quotation Type
-              </h2>
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={() => {
-                    navigate(
-                      `/admin/quotation/${selectedClient}/${selectedTxn}?gst=1`
-                    );
-                    setShowModal(false);
-                  }}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  With GST (18%)
-                </button>
-                <button
-                  onClick={() => {
-                    navigate(
-                      `/admin/quotation/${selectedClient}/${selectedTxn}?gst=0`
-                    );
-                    setShowModal(false);
-                  }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                >
-                  Without GST
-                </button>
+
+              <div className="mb-3">
+                <h3 className="text-xl font-semibold">
+                  Progress — TXN:{" "}
+                  <span className="text-emerald-600">{selectedTxn}</span>
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Client ID: {selectedClient}
+                </p>
               </div>
+
+              <ServiceProgressTableBD
+                baseURL={baseURL}
+                token={token}
+                clientId={selectedClient}
+                txnId={selectedTxn}
+                currentEmployeeId={userID}
+              />
             </div>
           </div>
         )}
+
         <PaginationContainer>
           <ReactPaginate
             previousLabel={"Previous"}
@@ -421,47 +294,12 @@ const History = () => {
             forcePage={currentPage}
           />
         </PaginationContainer>
-
-        {/* Stats Section */}
-        {/* <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl p-8">
-          <h3 className="text-2xl font-bold text-white mb-6 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-            Quick Stats
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center p-6 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl border border-blue-500/30 hover:from-blue-500/30 hover:to-cyan-500/30 transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
-                12
-              </div>
-              <div className="text-gray-300 font-medium">Total Clients</div>
-            </div>
-            <div className="text-center p-6 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl border border-green-500/30 hover:from-green-500/30 hover:to-emerald-500/30 transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-2">
-                8
-              </div>
-              <div className="text-gray-300 font-medium">Active Projects</div>
-            </div>
-            <div className="text-center p-6 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl border border-purple-500/30 hover:from-purple-500/30 hover:to-violet-500/30 transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-violet-400 bg-clip-text text-transparent mb-2">
-                $485K
-              </div>
-              <div className="text-gray-300 font-medium">Total Revenue</div>
-            </div>
-            <div className="text-center p-6 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl border border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30 transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent mb-2">
-                24
-              </div>
-              <div className="text-gray-300 font-medium">
-                Completed Projects
-              </div>
-            </div>
-          </div>
-        </div> */}
       </div>
     </div>
   );
 };
 
-export default History;
+export default AssignQuotationBD;
 const PaginationContainer = styled.div`
   .pagination {
     display: flex;
@@ -469,6 +307,7 @@ const PaginationContainer = styled.div`
     padding: 10px;
     list-style: none;
     border-radius: 5px;
+    margin-bottom: 1.5rem;
   }
 
   .pagination li {
