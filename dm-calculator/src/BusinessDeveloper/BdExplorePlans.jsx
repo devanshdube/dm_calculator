@@ -190,6 +190,8 @@ const handleSubmit = async (e) => {
   setLoading(true);
 
   const proposalId = Date.now(); // txn_id
+  
+  
 
   try {
     // Step 1: filter plan-wise data

@@ -12,6 +12,7 @@ import {
   Package,
   IndianRupee,
   User,
+  Notebook,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -449,11 +450,12 @@ const handleCreateQuotation = async (plan) => {
 
             {/* Active Orders */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-slate-700 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
                   <Package className="w-6 h-6 text-white" />
                 </div>
-                <div>
+                <div>    
                   <p className="text-white/60 text-sm font-medium">
                     Total Orders
                   </p>
@@ -461,19 +463,31 @@ const handleCreateQuotation = async (plan) => {
                 </div>
               </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-slate-700 rounded-xl flex items-center justify-center">
-                  <Package className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-white/60 text-sm font-medium">
-                    Quotation 
-                  </p>
-                  <p className="text-3xl font-bold text-white">{finalLength}</p>
-                </div>
-              </div>
-            </div>
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+  {finalLength ? (
+    <button
+      onClick={() => {
+        setShowModal(true);
+      }}
+      className="w-full text-left"
+    >
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 bg-gradient-to-r from-red-700 to-pink-600 rounded-xl flex items-center justify-center">
+          <Notebook className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <p className="text-white text-md font-medium">Quotation</p>
+          <p className="text-3xl font-bold text-white  flex items-center justify-center gap-2 group/btn">Preview
+             <ArrowRight className="w-4 h-4 text-white transform transition-transform group-hover/btn:translate-x-1" /></p>
+         
+        </div>
+      </div>
+    </button>
+  ) : (
+    <p className="text-white/60">Not quotation created</p>
+  )}
+</div>
+
           </div>
           
         </div>

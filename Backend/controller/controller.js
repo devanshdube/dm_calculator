@@ -206,7 +206,7 @@ exports.login = async (req, res) => {
           role: user.employee_role,
         },
         JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "24h" }
       );
 
       return res.json({

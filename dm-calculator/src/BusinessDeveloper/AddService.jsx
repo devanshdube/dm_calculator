@@ -31,6 +31,7 @@ export default function AddService() {
     const [getPlanData, setGetPlanData] = useState([]);
   const [clientData, setClientData] = useState([]);
   const [loading, setLoading] = useState(false);
+    const [showModal, setShowModal] = useState(false);
   
 const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;
@@ -422,7 +423,7 @@ const handleCreateQuotation = async (plan) => {
           </button>
 
           {/* Top Stats Row */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
             {/* Total Amount */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-4">
@@ -471,6 +472,32 @@ const handleCreateQuotation = async (plan) => {
                 </div>
               </div>
             </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+  {finalLength ? (
+    <button
+      onClick={() => {
+        setShowModal(true);
+      }}
+      className="w-full text-left"
+    >
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 bg-gradient-to-r from-red-700 to-pink-600 rounded-xl flex items-center justify-center">
+          <Notebook className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          
+            <p className="text-white text-md font-medium">Quotation</p>
+                    <p className="text-3xl font-bold text-white  flex items-center justify-center gap-2 group/btn">Preview
+                       <ArrowRight className="w-4 h-4 text-white transform transition-transform group-hover/btn:translate-x-1" /></p>
+        </div>
+      </div>
+    </button>
+  ) : (
+    <p className="text-white/60">Not quotation created</p>
+  )}
+</div>
+
           </div>
         </div>
 <div className="">
@@ -772,6 +799,47 @@ const handleCreateQuotation = async (plan) => {
             </table>
           </div>
         </div>
+
+            {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+              <button
+                onClick={() => setShowModal(false)}
+                className="absolute top-2 right-3 text-red-600 hover:text-gray-500 text-xl font-bold"
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <h2 className="text-lg font-semibold mb-4 text-center">
+                Select Quotation Type
+              </h2>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/BD/quotation/${id}/${proposalId}?gst=1`
+                    );
+                    setShowModal(false);
+                  }}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  With GST (18%)
+                </button>
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/BD/quotation/${id}/${proposalId}?gst=0`
+                    );
+                    setShowModal(false);
+                  }}
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  Without GST
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

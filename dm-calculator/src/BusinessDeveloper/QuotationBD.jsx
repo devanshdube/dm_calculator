@@ -88,7 +88,7 @@ export default function QuotationBD() {
     const fetchClientNotes = async () => {
       try {
         const res = await axios.get(
-          `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}`,
+          `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${txn_id}`,
           {
             headers: {
               "Content-Type": "application/json",

@@ -317,6 +317,7 @@ exports.deleteQuoatationById = async (req, res) => {
 
   const deleteCalculatorQuery = "DELETE FROM calculator_transactions WHERE txn_id = ?";
   const deleteAdsCampaignQuery = "DELETE FROM ads_campaign_details WHERE txn_id = ?";
+  const deleteNotesClient = "DELETE FROM plan_client_notes WHERE txn_id = ?";
 
   db.query(deleteCalculatorQuery, [txn_id], (err1, result1) => {
     if (err1) {
@@ -336,29 +337,43 @@ exports.deleteQuoatationById = async (req, res) => {
         });
       }
 
-      const deletedFromCalculator = result1.affectedRows > 0;
-      const deletedFromAds = result2.affectedRows > 0;
+      db.query(deleteNotesClient, [txn_id], (err3, result3) => {
+        if (err3) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error deleting from plan_client_notes",
+            error: err3,
+          });
+        }
 
-      if (!deletedFromCalculator && !deletedFromAds) {
-        return res.status(404).json({
-          status: "Failure",
-          message: "No transaction found with the given txn_id",
+        const deletedFromCalculator = result1.affectedRows > 0;
+        const deletedFromAds = result2.affectedRows > 0;
+        const deletedFromNotes = result3.affectedRows > 0;
+
+        if (!deletedFromCalculator && !deletedFromAds && !deletedFromNotes) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No transaction found with the given txn_id",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          message: `Transaction deleted from ${
+            [
+              deletedFromCalculator ? "calculator_transactions" : null,
+              deletedFromAds ? "ads_campaign_details" : null,
+              deletedFromNotes ? "plan_client_notes" : null,
+            ]
+              .filter(Boolean)
+              .join(", ")
+          } successfully`,
         });
-      }
-
-      res.status(200).json({
-        status: "Success",
-        message: `Transaction deleted from ${
-          deletedFromCalculator && deletedFromAds
-            ? "both tables"
-            : deletedFromCalculator
-            ? "calculator_transactions"
-            : "ads_campaign_details"
-        } successfully`,
       });
     });
   });
 };
+
 
 
 exports.deletePlanNameDetail = async (req, res) => {

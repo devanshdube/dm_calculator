@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Calendar, Search, Filter } from "lucide-react";
+import { Calendar, Search, Filter, PenTool, Edit, Mail, User, X, IndianRupee } from "lucide-react";
 import ReactPaginate from "react-paginate";
 import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,6 +15,17 @@ const AdminServicesHistory = () => {
   const clientPerPage = 7;
   const [serviceData, setServiceData] = useState([]);
   const { currentUser, token } = useSelector((state) => state.user);
+    const [formData, setFormData] = useState({
+    	editing_type_id: "",
+    editing_type_name: "",
+    amount: "",
+   
+
+  });
+  const [showModal, setShowModal] = useState(false); 
+    const [loading, setLoading] = useState(false);
+  
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   console.log(currentUser);
@@ -57,6 +68,93 @@ const AdminServicesHistory = () => {
   }, []);
 
   console.log(serviceData);
+
+  const handleClose = () => {
+    setShowModal(false);
+    setFormData({
+      	editing_type_id: "",
+      editing_type_name: "",
+      amount: "",
+     
+    });
+  };
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      console.log("Submitting form data:", formData);
+      let response;
+
+     response = await axios.put(
+          `${baseURL}/auth/api/calculator/updateServiceData/${formData.editing_type_id}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+      console.log("API response:", response.data);
+
+      if (response.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Service Editing Type updated successfully!"
+        
+        }).then(() => {
+          setShowModal(false);
+          fetchData();
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text:
+            response.data.message || "Failed to editing type. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving client:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Status:", error.response.status);
+        Swal.fire({
+          icon: "error",
+          title: `Error ${error.response.status}`,
+          text:
+            error.response.data.message ||
+            "Failed to update service editing type. Please try again.",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to update service editing type. Please try again.",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+    
+  };
+
+
+
 
   const handleDelete = async (row) => {
     try {
@@ -202,10 +300,29 @@ const AdminServicesHistory = () => {
                             Update
                           </button>
                         </td> */}
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 ">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // prevent card onClick
+              
+                                      setFormData({
+                                        	editing_type_id: item.editing_type_id,
+                                        editing_type_name:
+                                          item.editing_type_name,
+                                        amount: item.amount,
+                                       
+                                       
+                                      });
+                                      
+                                      setShowModal(true);
+                                    }}
+                                    className="inline-block px-3 py-2 mx-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25"
+                                  >
+                                    Edit
+                                  </button>
                           <button
                             onClick={() => handleDelete(item)}
-                            className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800"
+                            className="inline-block px-3 py-2 mt-1 rounded-full text-sm font-medium bg-red-100 text-red-800"
                           >
                             Delete
                           </button>
@@ -236,6 +353,97 @@ const AdminServicesHistory = () => {
             </PaginationContainer>
           </div>
         </div>
+          {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+              onClick={handleClose}
+            />
+
+            {/* Modal */}
+            <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <User className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {"Edit Client"}
+                  </h2>
+                </div>
+                <button
+                  onClick={handleClose}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                {/* Client Name */}
+               
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Edit className="w-4 h-4 inline mr-2" />
+                    Editing Type
+                  </label>
+                  <input
+                    type="text"
+                    name="editing_type_name"
+                    value={formData.editing_type_name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter organization name"
+                    required
+                  />
+                </div>
+
+                {/* amount */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <IndianRupee className="w-4 h-4 inline mr-2" />
+                    Amount 
+                  </label>
+                  <input
+                    type="amount"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter amount "
+                    required
+                  />
+                </div>
+
+
+                {/* Buttons */}
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  
+                  
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                  >
+                    {loading ? "Saving..." : "Save Client"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
@@ -328,69 +536,3 @@ const PaginationContainer = styled.div`
     }
   }
 `;
-//   const history = [
-//     {
-//       id: 1,
-//       date: "2024-06-05",
-//       client: "Acme Corporation",
-//       action: "Service Delivered",
-//       service: "Web Development",
-//       status: "Completed",
-//       amount: "$15,000",
-//     },
-//     {
-//       id: 2,
-//       date: "2024-06-04",
-//       client: "TechStart Inc",
-//       action: "Proposal Sent",
-//       service: "Mobile App Development",
-//       status: "Pending",
-//       amount: "$25,000",
-//     },
-//     {
-//       id: 3,
-//       date: "2024-06-03",
-//       client: "Global Solutions",
-//       action: "Contract Signed",
-//       service: "Digital Marketing",
-//       status: "Active",
-//       amount: "$8,000",
-//     },
-//     {
-//       id: 4,
-//       date: "2024-06-02",
-//       client: "Acme Corporation",
-//       action: "Meeting Scheduled",
-//       service: "Brand Identity Design",
-//       status: "Scheduled",
-//       amount: "$12,000",
-//     },
-//     {
-//       id: 5,
-//       date: "2024-06-01",
-//       client: "TechStart Inc",
-//       action: "Initial Contact",
-//       service: "E-commerce Solution",
-//       status: "Follow-up",
-//       amount: "$30,000",
-//     },
-//   ];
-
-//   const getStatusColor = (status) => {
-//     switch (status.toLowerCase()) {
-//       case "active":
-//         return "bg-green-100 text-green-800";
-//       case "prospect":
-//         return "bg-blue-100 text-blue-800";
-//       case "completed":
-//         return "bg-green-100 text-green-800";
-//       case "pending":
-//         return "bg-yellow-100 text-yellow-800";
-//       case "scheduled":
-//         return "bg-purple-100 text-purple-800";
-//       case "follow-up":
-//         return "bg-orange-100 text-orange-800";
-//       default:
-//         return "bg-gray-100 text-gray-800";
-//     }
-//   };

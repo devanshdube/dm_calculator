@@ -72,6 +72,7 @@ const {
   updatePlandata,
   updatePlanNameDetail,
   updatePlanNotes,
+  updateServiceData,
 } = require("../controller/updateController");
 
 const authenticateToken = require("../middleware/authenticateToken");
@@ -149,7 +150,7 @@ router.get("/getAllPlanDataById/:id", getPlanDataById);
 router.get("/getAllPlanDetails", getPlanDetails);
 router.get("/getAllPlanDetailsById/:id", getPlanDetailsById);
 router.get("/getPlanNotes", getPlanNotes);
-router.get("/getClientNotesbyId/:id", getClientNotesbyId);
+router.get("/getClientNotesbyId/:client_id/:txn_id", getClientNotesbyId);
 
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);
@@ -194,6 +195,8 @@ router.put("/updateClientDetails/:id", updateClientDetails);
 router.put("/updatePlanData/:id", updatePlandata);
 router.put("/updatePlanName/:id", updatePlanNameDetail);
 router.put("/updatePlanNotes/:id", updatePlanNotes);
+
+router.put("/updateServiceData/:editing_type_id", updateServiceData);
 
 // ---->  UPDATE all routes END <----
 
