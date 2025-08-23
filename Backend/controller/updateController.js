@@ -181,14 +181,11 @@ exports.updatePlanNameDetail = async (req, res) => {
       message: "Missing id parameter",
     });
   }
-  
 
-  const updatePlanDetail =
-    "UPDATE plan_details SET plan_name = ? WHERE id = ?";
-  const updatePlanData =
-    "UPDATE plan_data SET plan_name = ? WHERE plan_id = ?";
+  const updatePlanDetail = "UPDATE plan_details SET plan_name = ? WHERE id = ?";
+  const updatePlanData = "UPDATE plan_data SET plan_name = ? WHERE plan_id = ?";
 
-  db.query(updatePlanDetail, [plan_name,id], (err1, result1) => {
+  db.query(updatePlanDetail, [plan_name, id], (err1, result1) => {
     if (err1) {
       return res.status(500).json({
         status: "Failure",
@@ -197,7 +194,7 @@ exports.updatePlanNameDetail = async (req, res) => {
       });
     }
 
-    db.query(updatePlanData, [plan_name,id], (err2, result2) => {
+    db.query(updatePlanData, [plan_name, id], (err2, result2) => {
       if (err2) {
         return res.status(500).json({
           status: "Failure",
@@ -214,15 +211,9 @@ exports.updatePlanNameDetail = async (req, res) => {
   });
 };
 
-
-
-
-
-
 exports.updatePlandata = (req, res) => {
   const { id } = req.params;
   const {
-   
     service_name,
     category_name,
     editing_type_name,
@@ -254,7 +245,6 @@ exports.updatePlandata = (req, res) => {
   `;
 
   const values = [
-      
     service_name,
     category_name,
     editing_type_name,
@@ -280,14 +270,13 @@ exports.updatePlandata = (req, res) => {
   });
 };
 
-
 exports.updatePlanNotes = async (req, res) => {
   const { id } = req.params;
-  const { note_name,plan } = req.body;
+  const { note_name, plan } = req.body;
 
   db.query(
     "UPDATE plans_notes SET note_name = ?, plan = ? WHERE id = ?",
-    [note_name,plan, id],
+    [note_name, plan, id],
     (err, result) => {
       if (err)
         return res
@@ -296,4 +285,51 @@ exports.updatePlanNotes = async (req, res) => {
       res.json({ status: "Success", message: "Note updated successfully" });
     }
   );
+};
+
+// NEW Work
+
+exports.reassignQuotation = (req, res) => {
+  try {
+    const { txn_id, user_id } = req.body;
+    if (!txn_id || !user_id) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Missing ID(s)" });
+    }
+
+    const now = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+    const q = `
+      UPDATE assign_quotation
+      SET
+        user_id = ?,
+        updated_at = ?,
+        version = CAST(CAST(COALESCE(NULLIF(version,''),'1') AS UNSIGNED) + 1 AS CHAR)
+      WHERE txn_id = ?
+    `;
+
+    db.query(q, [user_id, now, txn_id], (err, result) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Database Error" });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No assignment found to update",
+        });
+      }
+      return res.status(200).json({
+        status: "Success",
+        message: "Quotation re-assigned successfully",
+      });
+    });
+  } catch (e) {
+    console.error("Server Error:", e);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
 };

@@ -35,10 +35,7 @@ const AdminRouter = () => {
               path="calculator/:id/:proposalId"
               element={<AdminCalculator />}
             />
-            <Route
-              path="add-plan"
-              element={<AdminAddPlan />}
-            />
+            <Route path="add-plan" element={<AdminAddPlan />} />
             <Route
               path="Adscalculator/:id/:proposalId"
               element={<AdsCampaignCalculator />}
@@ -49,7 +46,6 @@ const AdminRouter = () => {
             />
             <Route path="client/service/history/:id" element={<History />} />
             <Route path="quotation/:id/:txn_id" element={<Quotation />} />
-
 
             <Route path="plan-details/:id" element={<AdminPlanHistory />} />
           </Routes>

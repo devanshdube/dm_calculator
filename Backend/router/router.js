@@ -24,6 +24,9 @@ const {
   addNotebyplan,
   savePlanClientNotes,
   saveClientIdwiseNotes,
+  assignQuotation,
+  setDoneQty,
+  incrementDoneQty,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -49,6 +52,10 @@ const {
   getPlanDataById,
   getPlanNotes,
   getClientNotesbyId,
+  retrieveUser,
+  getAssignmentByTxn,
+  getAssignedQuotations,
+  getProgressByTxn,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -72,6 +79,7 @@ const {
   updatePlandata,
   updatePlanNameDetail,
   updatePlanNotes,
+  reassignQuotation,
 } = require("../controller/updateController");
 
 const authenticateToken = require("../middleware/authenticateToken");
@@ -102,6 +110,7 @@ router.post("/saveClientWithPlan", saveClientWithPlan);
 router.post("/addNotebyplan", addNotebyplan);
 router.post("/savePlanClientNotes", savePlanClientNotes);
 router.post("/saveClientIdwiseNotes", saveClientIdwiseNotes);
+router.post("/assignQuotation", assignQuotation);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -159,7 +168,11 @@ router.get(
   authenticateToken,
   getClientsTxnHistoryByEmployee
 );
-
+//NEW work
+router.get("/retrieveUser", retrieveUser);
+router.get("/getAssignmentByTxn/:txn_id", getAssignmentByTxn);
+router.get("/getAssignedQuotations", getAssignedQuotations);
+router.get("/progress/by-txn/:txn_id", getProgressByTxn);
 // ---->  Get all routes END <----
 
 // ---->  DELETE all routes START <----
@@ -182,7 +195,6 @@ router.delete("/deletePlanNameDetail/:id", deletePlanNameDetail);
 
 router.delete("/deletePlanNotesbyid/:id", deletePlanNotesbyid);
 
-
 // ---->  DELETE all routes END <----
 
 // ---->  UPDATE all routes START <----
@@ -194,10 +206,12 @@ router.put("/updateClientDetails/:id", updateClientDetails);
 router.put("/updatePlanData/:id", updatePlandata);
 router.put("/updatePlanName/:id", updatePlanNameDetail);
 router.put("/updatePlanNotes/:id", updatePlanNotes);
-
+router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----
 
 router.get("/optional-service-amounts", optionalServiceAmounts);
 
+router.patch("/progress/set-done", setDoneQty);
+router.patch("/progress/increment", incrementDoneQty);
 
 module.exports = router;

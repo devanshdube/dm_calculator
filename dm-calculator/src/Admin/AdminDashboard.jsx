@@ -10,6 +10,7 @@ import {
   ShieldPlus,
   PlaneIcon,
   List,
+  UserPlus,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +18,7 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 import AdminAddPlan from "./AdminAddPlan";
 import AdminExplorePlans from "./AdminExplorePlans";
+const AssignQuotation = lazy(() => import("./AssignQuotation"));
 const AllHistory = lazy(() => import("./AllHistory"));
 const RegisterBD = lazy(() => import("./RegisterBD"));
 const AdminClientDetails = lazy(() => import("./AdminClientDetails"));
@@ -52,10 +54,11 @@ const AdminDashboard = () => {
     // { id: "AddServices", label: "Add Graphic Services", icon: Plus },
     { id: "AddServices", label: "Graphic", icon: Plus },
     { id: "servicehistory", label: "Graphic Service History", icon: Clock },
-    { id: "addplan", label: "Add Plan", icon: List},
-    { id: "exploreplan", label: "Explore Plans", icon: List},
+    { id: "addplan", label: "Add Plan", icon: List },
+    { id: "exploreplan", label: "Explore Plans", icon: List },
     { id: "registerbd", label: "Register BD", icon: ShieldPlus },
     { id: "history", label: "History", icon: Clock },
+    { id: "assign", label: "Assign", icon: UserPlus },
   ];
 
   const handleLogout = () => {
@@ -216,6 +219,7 @@ const AdminDashboard = () => {
           {activeTab === "addplan" && <AdminAddPlan />}
           {activeTab === "exploreplan" && <AdminExplorePlans />}
           {activeTab === "history" && <AllHistory />}
+          {activeTab === "assign" && <AssignQuotation />}
         </div>
       </main>
 

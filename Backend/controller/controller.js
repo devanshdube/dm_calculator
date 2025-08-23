@@ -277,12 +277,10 @@ exports.forgotPassword = async (req, res) => {
 
       await passwordOtpEmail(user.employee_email, otp);
 
-      return res
-        .status(200)
-        .json({
-          status: "Success",
-          message: `OTP sent to ${user.employee_email}`,
-        });
+      return res.status(200).json({
+        status: "Success",
+        message: `OTP sent to ${user.employee_email}`,
+      });
     });
   } catch (error) {
     console.error("Error processing forgot password request:", error);
@@ -900,9 +898,9 @@ exports.saveCalculatorData = (req, res) => {
     include_content_posting,
     include_thumbnail_creation,
     total_amount,
-    employee,plan_name || "Customise",
+    employee,
+    plan_name || "Customise",
     createdAt,
-    
   ];
 
   db.query(query, values, (err, result) => {
@@ -956,11 +954,10 @@ exports.saveAdsCampaign = async (req, res) => {
   });
 };
 
-
 exports.saveCalculatorDataOfPlan = (req, res) => {
   const {
-   plan_id,
-   plan_name,
+    plan_id,
+    plan_name,
     service_name,
     category_name,
     editing_type_name,
@@ -991,7 +988,8 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
   `;
 
   const values = [
-    plan_id,plan_name,
+    plan_id,
+    plan_name,
     service_name,
     category_name,
     editing_type_name,
@@ -1007,17 +1005,19 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
   db.query(query, values, (err, result) => {
     if (err) {
       console.error("Insert Error:", err);
-      return res.status(500).json({ status: "Failure", message: "Plan  error" });
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Plan  error" });
     }
 
-    res.status(200).json({ status: "Success", message: "Saved successfully of Plan" });
+    res
+      .status(200)
+      .json({ status: "Success", message: "Saved successfully of Plan" });
   });
 };
 
 exports.saveCalculatorDataOfPlanDetail = (req, res) => {
-  const {
-   plan_name,
-  } = req.body;
+  const { plan_name } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
@@ -1028,21 +1028,22 @@ exports.saveCalculatorDataOfPlanDetail = (req, res) => {
     ) VALUES (?, ?)
   `;
 
-  const values = [
-    plan_name,
-    createdAt
-  ];
+  const values = [plan_name, createdAt];
 
   db.query(query, values, (err, result) => {
     if (err) {
       console.error("Insert Error:", err);
-      return res.status(500).json({ status: "Failure", message: "Plan  error" });
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Plan  error" });
     }
 
-    res.status(200).json({ status: "Success", message: "Saved successfully of Plan Detail" });
+    res.status(200).json({
+      status: "Success",
+      message: "Saved successfully of Plan Detail",
+    });
   });
 };
-
 
 exports.saveClientWithPlan = async (req, res) => {
   const {
@@ -1160,10 +1161,8 @@ exports.saveClientWithPlan = async (req, res) => {
   }
 };
 
-
-
 exports.addNotebyplan = async (req, res) => {
-  const { note_name,plan} = req.body;
+  const { note_name, plan } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
@@ -1177,7 +1176,7 @@ exports.addNotebyplan = async (req, res) => {
   try {
     db.query(
       "INSERT INTO plans_notes (note_name,plan, created_at) VALUES (?, ?,?)",
-      [note_name,plan, createdAt],
+      [note_name, plan, createdAt],
       (err, result) => {
         if (err) {
           return res
@@ -1200,7 +1199,9 @@ exports.savePlanClientNotes = (req, res) => {
   const { txn_id, client_id, plans, planNotes } = req.body;
 
   if (!txn_id || !client_id || !plans || plans.length === 0) {
-    return res.status(400).json({ status: "Failure", message: "Missing required data" });
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "Missing required data" });
   }
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
@@ -1250,7 +1251,7 @@ exports.savePlanClientNotes = (req, res) => {
         txn_id,
         client_id,
         n.note_name,
-    
+
         createdAt,
       ]);
 
@@ -1264,20 +1265,27 @@ exports.savePlanClientNotes = (req, res) => {
           });
         }
 
-        return res.status(200).json({ status: "Success", message: "Plans & Notes saved successfully" });
+        return res.status(200).json({
+          status: "Success",
+          message: "Plans & Notes saved successfully",
+        });
       });
     } else {
-      return res.status(200).json({ status: "Success", message: "Plans saved successfully (no notes provided)" });
+      return res.status(200).json({
+        status: "Success",
+        message: "Plans saved successfully (no notes provided)",
+      });
     }
   });
 };
-
 
 exports.saveClientIdwiseNotes = (req, res) => {
   const { txn_id, client_id, planNotes } = req.body;
 
   if (!txn_id || !client_id) {
-    return res.status(400).json({ status: "Failure", message: "Missing required data" });
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "Missing required data" });
   }
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
@@ -1290,12 +1298,12 @@ exports.saveClientIdwiseNotes = (req, res) => {
   `;
 
   const NotesValues = planNotes.map((n) => [
-        txn_id,
-        client_id,
-        n.note_name,
-    
-        createdAt,
-      ]);
+    txn_id,
+    client_id,
+    n.note_name,
+
+    createdAt,
+  ]);
 
   db.query(NotesQuery, [NotesValues], (err) => {
     if (err) {
@@ -1307,8 +1315,215 @@ exports.saveClientIdwiseNotes = (req, res) => {
       });
     }
 
-      return res.status(200).json({ status: "Success", message: "Client Notes saved successfully (no notes provided)" });
-    
+    return res.status(200).json({
+      status: "Success",
+      message: "Client Notes saved successfully (no notes provided)",
+    });
   });
 };
 
+//NEW Work
+
+exports.assignQuotation = (req, res) => {
+  try {
+    const { client_id, txn_id, user_id } = req.body;
+
+    if (!client_id || !txn_id || !user_id) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Missing ID(s)" });
+    }
+
+    const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+    const insertQuery = `
+      INSERT INTO assign_quotation (client_id, txn_id, user_id, created_at)
+      VALUES (?, ?, ?, ?)
+    `;
+
+    db.query(
+      insertQuery,
+      [client_id, txn_id, user_id, createdAt],
+      (err, result) => {
+        if (err) {
+          console.error("Database Error:", err);
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Database Error", error: err });
+        }
+
+        return res.status(201).json({
+          status: "Success",
+          message: "Quotation assigned successfully",
+          data: {
+            id: result.insertId,
+            client_id,
+            txn_id,
+            user_id,
+            created_at: createdAt,
+          },
+        });
+      }
+    );
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+// NEW WORK FOR Remainder work progress
+
+exports.setDoneQty = (req, res) => {
+  const {
+    client_id,
+    txn_id,
+    service_name,
+    category_name,
+    editing_type_name = "",
+    planned_qty, // send the latest planned (from history) to keep in sync
+    done_qty, // new absolute value
+    user_id, // employee who updates
+  } = req.body;
+
+  if (
+    !client_id ||
+    !txn_id ||
+    !service_name ||
+    !category_name ||
+    planned_qty == null ||
+    done_qty == null ||
+    !user_id
+  ) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "Missing fields" });
+  }
+
+  const planned = Math.max(0, parseInt(planned_qty, 10) || 0);
+  let done = Math.max(0, parseInt(done_qty, 10) || 0);
+  if (done > planned) done = planned;
+
+  const now = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const upsert = `
+    INSERT INTO service_progress
+      (client_id, txn_id, service_name, category_name, editing_type_name, planned_qty, done_qty, last_updated_by, created_at, updated_at)
+    VALUES
+      (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      planned_qty = VALUES(planned_qty),
+      done_qty = VALUES(done_qty),
+      last_updated_by = VALUES(last_updated_by),
+      updated_at = VALUES(updated_at)
+  `;
+
+  db.query(
+    upsert,
+    [
+      client_id,
+      txn_id,
+      service_name,
+      category_name,
+      editing_type_name,
+      planned,
+      done,
+      user_id,
+      now,
+      now,
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("DB Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Database Error" });
+      }
+      return res.status(200).json({
+        status: "Success",
+        message: "Progress saved",
+        data: {
+          client_id,
+          txn_id,
+          service_name,
+          category_name,
+          editing_type_name,
+          planned_qty: planned,
+          done_qty: done,
+        },
+      });
+    }
+  );
+};
+
+exports.incrementDoneQty = (req, res) => {
+  const {
+    client_id,
+    txn_id,
+    service_name,
+    category_name,
+    editing_type_name = "",
+    planned_qty,
+    delta,
+    user_id,
+  } = req.body;
+
+  if (
+    !client_id ||
+    !txn_id ||
+    !service_name ||
+    !category_name ||
+    planned_qty == null ||
+    delta == null ||
+    !user_id
+  ) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "Missing fields" });
+  }
+
+  const planned = Math.max(0, parseInt(planned_qty, 10) || 0);
+  const step = parseInt(delta, 10) || 0;
+  const now = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  // Use one statement: create-if-missing with 0, then increment and clamp
+  const q = `
+    INSERT INTO service_progress
+      (client_id, txn_id, service_name, category_name, editing_type_name, planned_qty, done_qty, last_updated_by, created_at, updated_at)
+    VALUES
+      (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      planned_qty = VALUES(planned_qty),
+      done_qty = GREATEST(0, LEAST(VALUES(planned_qty), done_qty + ?)),
+      last_updated_by = VALUES(last_updated_by),
+      updated_at = VALUES(updated_at)
+  `;
+
+  db.query(
+    q,
+    [
+      client_id,
+      txn_id,
+      service_name,
+      category_name,
+      editing_type_name,
+      planned,
+      user_id,
+      now,
+      now,
+      step,
+    ],
+    (err) => {
+      if (err) {
+        console.error("DB Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Database Error" });
+      }
+      return res
+        .status(200)
+        .json({ status: "Success", message: "Progress updated" });
+    }
+  );
+};
