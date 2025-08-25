@@ -50,7 +50,7 @@ const AdminDashboard = () => {
     // { id: "AddADSCamp", label: "Add Ads Campaigns", icon: CheckCircle },
     { id: "AddADSCamp", label: "Campaigns", icon: CheckCircle },
     // { id: "AddServices", label: "Add Graphic Services", icon: Plus },
-    { id: "AddServices", label: "Graphic", icon: Plus },
+    { id: "AddServices", label: "Creatives & SEO Service", icon: Plus },
     { id: "servicehistory", label: "Graphic Service History", icon: Clock },
     { id: "addplan", label: "Add Plan", icon: List},
     { id: "exploreplan", label: "Explore Plans", icon: List},

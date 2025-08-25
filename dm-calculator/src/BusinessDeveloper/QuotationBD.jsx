@@ -305,7 +305,7 @@ export default function QuotationBD() {
                                   <thead className="bg-indigo-100">
                                     <tr>
                                       <th className="border px-3 py-2 text-left">
-                                        Editing Type
+                                        Creative Type
                                       </th>
                                       <th className="border px-3 py-2 text-right">
                                         Quantity

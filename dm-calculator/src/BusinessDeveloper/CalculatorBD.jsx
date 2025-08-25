@@ -268,6 +268,16 @@ setAddons(initialAddons);
       [name]: value,
     }));
   };
+   const handleClose = () => {
+    setShowModal(false);
+    setFormData({
+      note_name: "",
+      plan:"",
+   
+   
+    
+    });
+  };
 
     const handleSubmit = async (e) => {
     e.preventDefault();

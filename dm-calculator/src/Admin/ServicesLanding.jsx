@@ -188,6 +188,7 @@ const getAllPlanNotes = async (planTitle) => {
       );
       console.log(data.data);
       setGetData(data.data);
+      setPlanName(data.data[0].plan_name)
     } catch (error) {
       console.log(error);
       if (error.response && error.response.status === 401) {
@@ -799,6 +800,34 @@ const handleCreateQuotation = async (plan) => {
                    
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div className="bg-white/10 backdrop-blur-sm mt-4 rounded-2xl p-6 border border-white/20">
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+             Plan Detail
+            </span>
+            <span className="text-lg font-semibold text-green-400">
+             {planName}
+            </span>
+          </h3>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto text-left text-sm text-white">
+              <thead className="text-white/70 border-b border-white/20">
+                <tr>
+                  <th className="p-3">Plan Name</th>
+               
+                     <th className="p-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+    
+                    <td className="p-3">{planName}</td>
+                    
               </tbody>
             </table>
           </div>

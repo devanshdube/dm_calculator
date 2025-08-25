@@ -470,3 +470,72 @@ exports.deletePlanNotesbyid = async (req, res) => {
     }
   );
 };
+
+exports.deletePlanDataByService = async (req, res) => {
+  const { id } = req.params;
+  
+
+  if (!id) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "Missing id parameter",
+    });
+  }
+  
+
+
+  const deletePlanData =
+    "DELETE FROM plan_data  WHERE id = ?";
+
+
+
+    db.query(deletePlanData, [id], (err2, result2) => {
+      if (err2) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error delete plan data service",
+          error: err2,
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        message: ` delete of plan data service in successfully`,
+      });
+    });
+
+};
+exports.deletePlanbyChangeNotes = async (req, res) => {
+  const { txn_id } = req.params;
+  
+
+  if (!txn_id) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "Missing txn_id parameter",
+    });
+  }
+  
+
+
+  const deletePlanData =
+    "DELETE FROM plan_client_notes  WHERE txn_id = ?";
+
+
+
+    db.query(deletePlanData, [txn_id], (err2, result2) => {
+      if (err2) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error delete plan_client_notes ",
+          error: err2,
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        message: ` delete of plan_client_notes  in successfully`,
+      });
+    });
+
+};

@@ -90,6 +90,22 @@ useEffect(() => {
     .catch(err => console.error(err));
 }, []);
 
+useEffect(() => {
+  if (selectedService === "Video Services") {
+    setAddons({
+      thumbnail_creation: true,
+      content_posting: true,
+    });
+  } else if (selectedService === "Graphics Design") {
+    setAddons({
+      content_posting: true,
+      thumbnail_creation: false,
+    });
+  } else {
+    setAddons({});
+  }
+}, [selectedService]);
+
 // useEffect(() => {
 //   if (data.length && optionalServices.length) {
 //     const filtered = filterOptionalServices(data);
@@ -689,30 +705,72 @@ const filtered = notes.filter(
             />
           </div>
 
-          <di1v className="space-y-4">
-         {optionalServices.map((opt) => {
-  const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-  return (
-    <div key={key}>
-      <label className="block font-semibold">{opt.editing_type_name}?</label>
-      <div className="flex gap-4 mt-2">
-        <button
-          className={`px-4 py-2 rounded ${addons[key] ? "bg-green-600 text-white" : "bg-gray-300 text-black"}`}
-          onClick={() => setAddons(prev => ({ ...prev, [key]: true }))}
-        >
-          YES
-        </button>
-        <button
-          className={`px-4 py-2 rounded ${!addons[key] ? "bg-red-600 text-white" : "bg-gray-300 text-black"}`}
-          onClick={() => setAddons(prev => ({ ...prev, [key]: false }))}
-        >
-          NO
-        </button>
-      </div>
-    </div>
-  );
-})}
-          </di1v>
+{selectedService === "Video Services" && optionalServices?.length > 0 && (
+  <div className="space-y-4">
+    {optionalServices.map((opt) => {
+      const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+      return (
+        <div key={key}>
+          <label className="block font-semibold">{opt.editing_type_name}?</label>
+          <div className="flex gap-4 mt-2">
+            <button
+              type="button"
+              className={`px-4 py-2 rounded ${
+                addons[key] ? "bg-green-600 text-white" : "bg-gray-300 text-black"
+              }`}
+              onClick={() => setAddons((prev) => ({ ...prev, [key]: true }))}
+            >
+              YES
+            </button>
+            <button
+              type="button"
+              className={`px-4 py-2 rounded ${
+                !addons[key] ? "bg-red-600 text-white" : "bg-gray-300 text-black"
+              }`}
+              onClick={() => setAddons((prev) => ({ ...prev, [key]: false }))}
+            >
+              NO
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
+
+{selectedService === "Graphics Design" && optionalServices?.length > 0 && (
+  <div className="space-y-4">
+    {optionalServices.map((opt) => {
+      const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+      return (
+        <div key={key}>
+          <label className="block font-semibold">{opt.editing_type_name}?</label>
+          <div className="flex gap-4 mt-2">
+            <button
+              type="button"
+              className={`px-4 py-2 rounded ${
+                addons[key] ? "bg-green-600 text-white" : "bg-gray-300 text-black"
+              }`}
+              onClick={() => setAddons((prev) => ({ ...prev, [key]: true }))}
+            >
+              YES
+            </button>
+            <button
+              type="button"
+              className={`px-4 py-2 rounded ${
+                !addons[key] ? "bg-red-600 text-white" : "bg-gray-300 text-black"
+              }`}
+              onClick={() => setAddons((prev) => ({ ...prev, [key]: false }))}
+            >
+              NO
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
+
 
           <button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"

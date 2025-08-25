@@ -310,7 +310,7 @@ exports.updateServiceData = async (req, res) => {
       if (err)
         return res
           .status(500)
-          .json({ status: "Failure", message: "Database error" });
+          .json({status: "Failure", message: "Database error" });
       res.json({ status: "Success", message: "Edit updated successfully" });
     }
   );

@@ -639,10 +639,10 @@ exports.insertClientDetails = async (req, res) => {
 
   if (
     !client_name ||
-    !client_organization ||
-    !email ||
+    
+   
     !phone ||
-    !address ||
+    
     !dg_employee
   ) {
     return res

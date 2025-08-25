@@ -311,10 +311,7 @@ console.log(selectedPlan);
           </button>
 
         
-            <div className="text-xl font-semibold text-center text-green-300 mt-4">
-              Total Amount: ₹{grandTotal.toLocaleString()}
-            </div>
-         
+        
           {/* Client Orders */}
 
           <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">

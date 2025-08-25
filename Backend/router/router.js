@@ -62,6 +62,8 @@ const {
   deleteQuoatationById,
   deletePlanNameDetail,
   deletePlanNotesbyid,
+  deletePlanDataByService,
+  deletePlanbyChangeNotes,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -183,6 +185,10 @@ router.delete("/deletePlanNameDetail/:id", deletePlanNameDetail);
 
 router.delete("/deletePlanNotesbyid/:id", deletePlanNotesbyid);
 
+router.delete("/deletePlanDataByService/:id", deletePlanDataByService);
+
+router.delete("/deletePlanbyChangeNotes/:txn_id", deletePlanbyChangeNotes);
+
 
 // ---->  DELETE all routes END <----
 
@@ -196,7 +202,7 @@ router.put("/updatePlanData/:id", updatePlandata);
 router.put("/updatePlanName/:id", updatePlanNameDetail);
 router.put("/updatePlanNotes/:id", updatePlanNotes);
 
-router.put("/updateServiceData/:editing_type_id", updateServiceData);
+router.put("/updateServiceData/:editing_type_id",updateServiceData);
 
 // ---->  UPDATE all routes END <----
 

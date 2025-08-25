@@ -258,7 +258,7 @@ try {
   const getAllClients = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientDetailsEmp/${employeeName}`,
+        `${baseURL}/auth/api/calculator/getClientDetails`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

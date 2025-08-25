@@ -308,7 +308,7 @@ const AdminServicesHistory = () => {
                                       setFormData({
                                         	editing_type_id: item.editing_type_id,
                                         editing_type_name:
-                                          item.editing_type_name,
+                                         item.editing_type_name,
                                         amount: item.amount,
                                        
                                        
