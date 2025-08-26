@@ -88,10 +88,10 @@ export default function Quotation() {
   const fetchClientNotes = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientNotesbyId`,
+        `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${txn_id}`,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json", 
             Authorization: `Bearer ${token}`,
           },
         }

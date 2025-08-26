@@ -30,6 +30,7 @@ export default function AddService() {
   const [getAdsData, setGetAdsData] = useState([]);
     const [getPlanData, setGetPlanData] = useState([]);
   const [clientData, setClientData] = useState([]);
+     const [planName,setPlanName] = useState('');
   const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
   
@@ -143,6 +144,7 @@ const { currentUser, token } = useSelector((state) => state.user);
       );
       console.log(data.data);
       setGetData(data.data);
+            setPlanName(data.data[0].plan_name)
     } catch (error) {
       console.log(error);
       if (error.response && error.response.status === 401) {
@@ -390,7 +392,136 @@ const handleCreateQuotation = async (plan) => {
   }
 };
 
+const handleDeleteClientPlanData = async (txn_id) => {
+  const confirm = await Swal.fire({
+    title: "Are you sure?",
+    text: "Do you want to delete this client plan data permanently?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, delete it!",
+  });
 
+  if (confirm.isConfirmed) {
+    try {
+      const res = await axios.delete(`${baseURL}/auth/api/calculator/deleteClientAllPlanData/${txn_id}`);
+
+      if (res.data.status === "Success") {
+        Swal.fire("Deleted!", "Plan has been deleted.", "success");
+        
+        // ✅ Refresh your list instead of reload
+ 
+  
+      setGetData([]);
+      setPlanName('')
+      } else {
+        Swal.fire("Error!", res.data.message || "Failed to delete plan.", "error");
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      Swal.fire("Error!", "Something went wrong while deleting.", "error");
+    }
+  }
+};
+
+
+
+  const handleDelete = async (entryId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this entry?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteGraphicEntryById/${entryId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+        setGetData((prev) => prev.filter((item) => item.id !== entryId));
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Entry has been deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: result.message || "Failed to delete entry.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "An error occurred while deleting entry.",
+      });
+    }
+  };
+
+
+ 
+   const handleDeleteads = async (entryId) => {
+      const confirm = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you really want to delete this entry?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#e11d48", // red
+        cancelButtonColor: "#6b7280", // gray
+        confirmButtonText: "Yes, delete it!",
+      });
+  
+      if (!confirm.isConfirmed) return;
+  
+      try {
+        const res = await axios.delete(
+          `${baseURL}/auth/api/calculator/deleteAdsCampaignEntryById/${entryId}`
+        );
+  
+        const result = res.data;
+  
+        if (result.status === "Success") {
+          setGetData((prev) => prev.filter((item) => item.id !== entryId));
+  
+          Swal.fire({
+            icon: "success",
+            title: "Deleted!",
+            text: "Entry has been deleted.",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+          fetchAdsData()
+          setGetAdsData([])
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Failed!",
+            text: result.message || "Failed to delete entry.",
+          });
+        }
+      } catch (error) {
+        console.error("Error deleting entry:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "An error occurred while deleting entry.",
+        });
+      }
+    };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -741,7 +872,15 @@ const handleCreateQuotation = async (plan) => {
        onClick={() =>    navigate(`/BD/calculator/${id}/${proposalId}`)}
 >
   Edit
-</button></td>   
+</button>
+
+  <button
+                      onClick={() => handleDelete(order.id)}
+                      className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                      title="Delete"
+                    >
+                      Delete
+                    </button></td>   
                   </tr>
                 ))}
               </tbody>
@@ -792,12 +931,56 @@ const handleCreateQuotation = async (plan) => {
        onClick={() =>    navigate(`/BD/Adscalculator/${id}/${proposalId}`)}
 >
   Edit
-</button></td>  
+</button>
+ <button
+                      onClick={() => handleDeleteads(order.id)}
+                      className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                      title="Delete"
+                    >
+                      Delete
+                    </button>
+</td>  
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+           <div className="bg-white/10 backdrop-blur-sm mt-4 rounded-2xl p-6 border border-white/20">
+                    <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <Package className="w-5 h-5" />
+                       Plan Detail
+                      </span>
+                      <span className="text-lg font-semibold text-green-400">
+                       {planName}
+                      </span>
+                    </h3>
+          
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full table-auto text-left text-sm text-white">
+                        <thead className="text-white/70 border-b border-white/20">
+                          <tr>
+                            <th className="p-3">Plan Name</th>
+                         
+                               <th className="p-3">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+              
+                              <td className="p-3">{planName}</td>
+                                       <td className="p-3">                   
+                                  {planName?<button
+                                                   onClick={() => handleDeleteClientPlanData(proposalId)}
+                                                   className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                                                   title="Delete"
+                                                 >
+                                                   ×
+                                                   </button> : null } </td>
+           
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
         </div>
 
             {showModal && (

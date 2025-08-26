@@ -539,3 +539,73 @@ exports.deletePlanbyChangeNotes = async (req, res) => {
     });
 
 };
+
+
+exports.deleteClientAllPlanData = async (req, res) => {
+  const { txn_id } = req.params;
+
+  if (!txn_id) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "Missing txn_id parameter",
+    });
+  }
+
+  const deleteCalculatorQuery = "DELETE FROM calculator_transactions WHERE txn_id = ?";
+  const deleteAdsCampaignQuery = "DELETE FROM ads_campaign_details WHERE txn_id = ?";
+  const deleteNotesClient = "DELETE FROM plan_client_notes WHERE txn_id = ?";
+
+  db.query(deleteCalculatorQuery, [txn_id], (err1, result1) => {
+    if (err1) {
+      return res.status(500).json({
+        status: "Failure",
+        message: "Error deleting from calculator_transactions",
+        error: err1,
+      });
+    }
+
+    db.query(deleteAdsCampaignQuery, [txn_id], (err2, result2) => {
+      if (err2) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error deleting from ads_campaign_details",
+          error: err2,
+        });
+      }
+
+      db.query(deleteNotesClient, [txn_id], (err3, result3) => {
+        if (err3) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error deleting from plan_client_notes",
+            error: err3,
+          });
+        }
+
+        const deletedFromCalculator = result1.affectedRows > 0;
+        const deletedFromAds = result2.affectedRows > 0;
+        const deletedFromNotes = result3.affectedRows > 0;
+
+        if (!deletedFromCalculator && !deletedFromAds && !deletedFromNotes) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No transaction found with the given txn_id",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          message: `Transaction deleted from ${
+            [
+              deletedFromCalculator ? "calculator_transactions" : null,
+              deletedFromAds ? "ads_campaign_details" : null,
+              deletedFromNotes ? "plan_client_notes" : null,
+            ]
+              .filter(Boolean)
+              .join(", ")
+          } successfully`,
+        });
+      });
+    });
+  });
+};
