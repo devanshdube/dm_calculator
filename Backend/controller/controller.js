@@ -1741,9 +1741,9 @@ exports.setDoneQty = (req, res) => {
     service_name,
     category_name,
     editing_type_name = "",
-    planned_qty, // send the latest planned (from history) to keep in sync
-    done_qty, // new absolute value
-    user_id, // employee who updates
+    planned_qty,
+    done_qty,
+    user_id,
   } = req.body;
 
   if (
@@ -1760,6 +1760,11 @@ exports.setDoneQty = (req, res) => {
       .json({ status: "Failure", message: "Missing fields" });
   }
 
+  // ✅ normalize
+  const svc = (service_name || "").trim();
+  const cat = (category_name || "").trim();
+  const edit = (editing_type_name || "").trim(); // default '' OK
+
   const planned = Math.max(0, parseInt(planned_qty, 10) || 0);
   let done = Math.max(0, parseInt(done_qty, 10) || 0);
   if (done > planned) done = planned;
@@ -1768,9 +1773,9 @@ exports.setDoneQty = (req, res) => {
 
   const upsert = `
     INSERT INTO service_progress
-      (client_id, txn_id, service_name, category_name, editing_type_name, planned_qty, done_qty, last_updated_by, created_at, updated_at)
-    VALUES
-      (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (client_id, txn_id, service_name, category_name, editing_type_name,
+       planned_qty, done_qty, last_updated_by, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
       planned_qty = VALUES(planned_qty),
       done_qty = VALUES(done_qty),
@@ -1783,16 +1788,16 @@ exports.setDoneQty = (req, res) => {
     [
       client_id,
       txn_id,
-      service_name,
-      category_name,
-      editing_type_name,
+      svc, // 👈 normalized values
+      cat,
+      edit,
       planned,
       done,
       user_id,
       now,
       now,
     ],
-    (err, result) => {
+    (err) => {
       if (err) {
         console.error("DB Error:", err);
         return res
@@ -1805,9 +1810,9 @@ exports.setDoneQty = (req, res) => {
         data: {
           client_id,
           txn_id,
-          service_name,
-          category_name,
-          editing_type_name,
+          service_name: svc,
+          category_name: cat,
+          editing_type_name: edit,
           planned_qty: planned,
           done_qty: done,
         },
@@ -1815,6 +1820,88 @@ exports.setDoneQty = (req, res) => {
     }
   );
 };
+
+// exports.setDoneQty = (req, res) => {
+//   const {
+//     client_id,
+//     txn_id,
+//     service_name,
+//     category_name,
+//     editing_type_name = "",
+//     planned_qty, // send the latest planned (from history) to keep in sync
+//     done_qty, // new absolute value
+//     user_id, // employee who updates
+//   } = req.body;
+
+//   if (
+//     !client_id ||
+//     !txn_id ||
+//     !service_name ||
+//     !category_name ||
+//     planned_qty == null ||
+//     done_qty == null ||
+//     !user_id
+//   ) {
+//     return res
+//       .status(400)
+//       .json({ status: "Failure", message: "Missing fields" });
+//   }
+
+//   const planned = Math.max(0, parseInt(planned_qty, 10) || 0);
+//   let done = Math.max(0, parseInt(done_qty, 10) || 0);
+//   if (done > planned) done = planned;
+
+//   const now = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+//   const upsert = `
+//     INSERT INTO service_progress
+//       (client_id, txn_id, service_name, category_name, editing_type_name, planned_qty, done_qty, last_updated_by, created_at, updated_at)
+//     VALUES
+//       (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//     ON DUPLICATE KEY UPDATE
+//       planned_qty = VALUES(planned_qty),
+//       done_qty = VALUES(done_qty),
+//       last_updated_by = VALUES(last_updated_by),
+//       updated_at = VALUES(updated_at)
+//   `;
+
+//   db.query(
+//     upsert,
+//     [
+//       client_id,
+//       txn_id,
+//       service_name,
+//       category_name,
+//       editing_type_name,
+//       planned,
+//       done,
+//       user_id,
+//       now,
+//       now,
+//     ],
+//     (err, result) => {
+//       if (err) {
+//         console.error("DB Error:", err);
+//         return res
+//           .status(500)
+//           .json({ status: "Failure", message: "Database Error" });
+//       }
+//       return res.status(200).json({
+//         status: "Success",
+//         message: "Progress saved",
+//         data: {
+//           client_id,
+//           txn_id,
+//           service_name,
+//           category_name,
+//           editing_type_name,
+//           planned_qty: planned,
+//           done_qty: done,
+//         },
+//       });
+//     }
+//   );
+// };
 
 exports.incrementDoneQty = (req, res) => {
   const {

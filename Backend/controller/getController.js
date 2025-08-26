@@ -1120,6 +1120,7 @@ exports.getAssignedQuotations = async (req, res) => {
           ON aq.client_id = c.id
       JOIN dm_calculator_employees e 
           ON aq.user_id = e.id
+          ORDER BY aq.id DESC
     `;
 
     db.query(getQuery, (err, results) => {

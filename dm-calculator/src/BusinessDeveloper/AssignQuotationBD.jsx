@@ -115,6 +115,14 @@ const AssignQuotationBD = () => {
     setShowModal(true);
   };
 
+  useEffect(() => {
+    if (showModal) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => (document.body.style.overflow = prev);
+    }
+  }, [showModal]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -250,8 +258,16 @@ const AssignQuotationBD = () => {
         </div>
 
         {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="relative bg-white w-[95%] max-w-6xl rounded-2xl shadow-xl p-4">
+          <div
+            className="fixed inset-0 z-50 grid place-items-center bg-black/50
+               motion-safe:transition-opacity motion-safe:duration-200"
+          >
+            <div
+              className="relative bg-white w-[95%] max-w-6xl rounded-2xl shadow-xl
+                 p-4 max-h-[85vh] overflow-y-auto transform-gpu
+                 motion-safe:transition-all motion-safe:duration-200
+                 will-change-transform"
+            >
               <button
                 onClick={() => setShowModal(false)}
                 className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-2xl"
