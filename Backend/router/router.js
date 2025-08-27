@@ -28,6 +28,9 @@ const {
   setDoneQty,
   incrementDoneQty,
   reassignQuotation,
+  createTeam,
+  addMembersToTeam,
+  assignQuotationToTeam,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -58,6 +61,9 @@ const {
   getAssignedQuotations,
   getProgressByTxn,
   getAssignedQuotationsByEmployeeName,
+  retrieveTeam,
+  retrieveTeamById,
+  getAssignmentsSummary,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -71,6 +77,8 @@ const {
   deleteQuoatationById,
   deletePlanNameDetail,
   deletePlanNotesbyid,
+  removeMemberFromTeam,
+  deleteTeam,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -113,6 +121,9 @@ router.post("/addNotebyplan", addNotebyplan);
 router.post("/savePlanClientNotes", savePlanClientNotes);
 router.post("/saveClientIdwiseNotes", saveClientIdwiseNotes);
 router.post("/assignQuotation", assignQuotation);
+router.post("/createTeam", createTeam);
+router.post("/addMembersToTeam/:id/members", addMembersToTeam);
+router.post("/assignQuotationToTeam", assignQuotationToTeam);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -179,6 +190,9 @@ router.get(
   getAssignedQuotationsByEmployeeName
 );
 router.get("/progress/by-txn/:txn_id", getProgressByTxn);
+router.get("/retrieveTeam", retrieveTeam);
+router.get("/retrieveTeamById/:id", retrieveTeamById);
+router.get("/getAssignmentsSummary/:txn_id", getAssignmentsSummary);
 // ---->  Get all routes END <----
 
 // ---->  DELETE all routes START <----
@@ -200,6 +214,13 @@ router.delete("/deleteQuotationById/:txn_id", deleteQuoatationById);
 router.delete("/deletePlanNameDetail/:id", deletePlanNameDetail);
 
 router.delete("/deletePlanNotesbyid/:id", deletePlanNotesbyid);
+
+router.delete(
+  "/removeMemberFromTeam/:teamId/members/:memberId",
+  removeMemberFromTeam
+);
+
+router.delete("/deleteTeam/:id", deleteTeam);
 
 // ---->  DELETE all routes END <----
 

@@ -1,6 +1,7 @@
 import React, { lazy, useEffect, useState } from "react";
 import {
   User,
+  Users,
   Clock,
   CheckCircle,
   Plus,
@@ -18,6 +19,7 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 import AdminAddPlan from "./AdminAddPlan";
 import AdminExplorePlans from "./AdminExplorePlans";
+import CreateTeam from "./CreateTeam";
 const AssignQuotation = lazy(() => import("./AssignQuotation"));
 const AllHistory = lazy(() => import("./AllHistory"));
 const RegisterBD = lazy(() => import("./RegisterBD"));
@@ -59,6 +61,7 @@ const AdminDashboard = () => {
     { id: "registerbd", label: "Register BD", icon: ShieldPlus },
     { id: "history", label: "History", icon: Clock },
     { id: "assign", label: "Assign", icon: UserPlus },
+    { id: "createteam", label: "Team", icon: Users },
   ];
 
   const handleLogout = () => {
@@ -220,6 +223,7 @@ const AdminDashboard = () => {
           {activeTab === "exploreplan" && <AdminExplorePlans />}
           {activeTab === "history" && <AllHistory />}
           {activeTab === "assign" && <AssignQuotation />}
+          {activeTab === "createteam" && <CreateTeam />}
         </div>
       </main>
 

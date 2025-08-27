@@ -1068,7 +1068,7 @@ exports.getAssignmentByTxn = (req, res) => {
     }
 
     const q = `
-      SELECT aq.id, aq.client_id, aq.txn_id, aq.user_id, aq.created_at, aq.updated_at, aq.version,
+      SELECT aq.id, aq.client_id, aq.txn_id, aq.user_id, aq.deadline, aq.created_at, aq.updated_at, aq.version,
              e.employee_name
       FROM assign_quotation aq
       LEFT JOIN dm_calculator_employees e ON e.id = aq.user_id
@@ -1102,28 +1102,98 @@ exports.getAssignmentByTxn = (req, res) => {
   }
 };
 
+// exports.getAssignedQuotations = async (req, res) => {
+//   try {
+//     const getQuery = `
+//       SELECT
+//         aq.id,
+//         aq.client_id,
+//         aq.txn_id,
+//         aq.user_id,
+//         aq.created_at,
+//         aq.version,
+//         aq.updated_at,
+//         c.client_name,
+//         e.employee_name
+//       FROM assign_quotation aq
+//       JOIN dm_calculator_client_details c
+//           ON aq.client_id = c.id
+//       JOIN dm_calculator_employees e
+//           ON aq.user_id = e.id
+//           ORDER BY aq.id DESC
+//     `;
+
+//     db.query(getQuery, (err, results) => {
+//       if (err) {
+//         console.error("Database Error:", err);
+//         return res
+//           .status(500)
+//           .json({ status: "Failure", message: "Internal Server Error" });
+//       }
+
+//       if (results.length === 0) {
+//         return res
+//           .status(404)
+//           .json({ status: "Failure", message: "No assigned quotations found" });
+//       }
+
+//       return res.status(200).json({
+//         status: "Success",
+//         message: "Assigned quotations retrieved successfully",
+//         data: results,
+//       });
+//     });
+//   } catch (error) {
+//     console.error("Server Error:", error);
+//     return res
+//       .status(500)
+//       .json({ status: "Failure", message: "Internal Server Error" });
+//   }
+// };
+
 exports.getAssignedQuotations = async (req, res) => {
   try {
+    // OPTIONAL query params (future friendly):
+    //   ?mode=single|team   -> server-side filter
+    const { mode } = req.query;
+    const where = [];
+    const params = [];
+    if (mode === "single") {
+      where.push("aq.assignment_mode = 'single'");
+    } else if (mode === "team") {
+      where.push("aq.assignment_mode = 'team'");
+    }
+    const whereSQL = where.length ? `WHERE ${where.join(" AND ")}` : "";
+
     const getQuery = `
-      SELECT 
+      SELECT
         aq.id,
         aq.client_id,
         aq.txn_id,
         aq.user_id,
+        aq.assignment_mode,
+        aq.team_id,
+        aq.assign_group_id,
+        aq.deadline,
         aq.created_at,
+        aq.created_at AS txn_date,   -- alias for your UI date
         aq.version,
         aq.updated_at,
         c.client_name,
-        e.employee_name
+        e.employee_name,
+        t.name AS team_name
       FROM assign_quotation aq
-      JOIN dm_calculator_client_details c 
-          ON aq.client_id = c.id
-      JOIN dm_calculator_employees e 
-          ON aq.user_id = e.id
-          ORDER BY aq.id DESC
+      JOIN dm_calculator_client_details c
+        ON c.id = aq.client_id
+      JOIN dm_calculator_employees e
+        ON e.id = aq.user_id
+      LEFT JOIN teams t
+        ON t.id = aq.team_id
+      ${whereSQL}
+      ORDER BY aq.id DESC
     `;
 
-    db.query(getQuery, (err, results) => {
+    db.query(getQuery, params, (err, results) => {
       if (err) {
         console.error("Database Error:", err);
         return res
@@ -1131,10 +1201,14 @@ exports.getAssignedQuotations = async (req, res) => {
           .json({ status: "Failure", message: "Internal Server Error" });
       }
 
-      if (results.length === 0) {
-        return res
-          .status(404)
-          .json({ status: "Failure", message: "No assigned quotations found" });
+      // Prefer returning empty list with Success (frontend simpler),
+      // but keep your old behavior if you want:
+      if (!results.length) {
+        return res.status(200).json({
+          status: "Success",
+          message: "No assigned quotations found",
+          data: [],
+        });
       }
 
       return res.status(200).json({
@@ -1231,6 +1305,155 @@ exports.getProgressByTxn = (req, res) => {
       status: "Success",
       message: "Progress fetched",
       data: rows,
+    });
+  });
+};
+
+// NEW WORK FOR Teams Members
+
+// USE API retrieveUser
+exports.retrieveTeam = async (req, res) => {
+  try {
+    const getQuery = `SELECT id, name, created_at FROM teams ORDER BY id DESC`;
+
+    db.query(getQuery, (err, results) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Internal Server Error" });
+      }
+
+      if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ status: "Failure", message: "TEAM not found" });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "TEAM retrieved successfully",
+        data: results,
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+exports.retrieveTeamById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const qTeam = `SELECT id, name, created_at FROM teams WHERE id = ? LIMIT 1`;
+
+    db.query(qTeam, [id], (err, rows) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Internal Server Error" });
+      }
+
+      if (!rows.length) {
+        return res
+          .status(404)
+          .json({ status: "Failure", message: "Team not found" });
+      }
+
+      const team = rows[0];
+
+      const qMembers = `
+        SELECT e.id, e.employee_name, e.employee_email
+        FROM team_members tm
+        JOIN dm_calculator_employees e ON e.id = tm.employee_id
+        WHERE tm.team_id = ?
+        ORDER BY e.employee_name ASC
+      `;
+
+      db.query(qMembers, [id], (mErr, mRows) => {
+        if (mErr) {
+          console.error("Database Error:", mErr);
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Internal Server Error" });
+        }
+
+        return res.status(200).json({
+          status: "Success",
+          message: "Team retrieved successfully",
+          data: {
+            ...team,
+            members: mRows,
+          },
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+exports.getAssignmentsSummary = (req, res) => {
+  const { txn_id } = req.params;
+  const sql = `
+    SELECT aq.id, aq.txn_id, aq.user_id, aq.team_id, aq.assignment_mode, aq.deadline,
+           e.employee_name, e.employee_email, t.name as team_name
+    FROM assign_quotation aq
+    JOIN dm_calculator_employees e ON e.id = aq.user_id
+    LEFT JOIN teams t ON t.id = aq.team_id
+    WHERE aq.txn_id = ?
+    ORDER BY e.employee_name ASC
+  `;
+  db.query(sql, [txn_id], (err, rows = []) => {
+    if (err)
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Internal Server Error" });
+    if (!rows.length)
+      return res
+        .status(404)
+        .json({ status: "Failure", message: "No assignment found" });
+
+    const distinctTeam = [
+      ...new Set(rows.map((r) => r.team_id).filter(Boolean)),
+    ];
+    const hasTeam = distinctTeam.length === 1;
+    const allTeamMode = rows.every(
+      (r) => r.assignment_mode === "team" && r.team_id
+    );
+    const isSingle =
+      rows.length === 1 &&
+      rows[0].assignment_mode === "single" &&
+      !rows[0].team_id;
+    const mode = isSingle
+      ? "single"
+      : allTeamMode && hasTeam
+      ? "team"
+      : "mixed";
+
+    return res.status(200).json({
+      status: "Success",
+      message: "Summary fetched",
+      data: {
+        mode,
+        total: rows.length,
+        team: hasTeam ? { id: rows[0].team_id, name: rows[0].team_name } : null,
+        assignees: rows.map((r) => ({
+          id: r.id,
+          user_id: r.user_id,
+          name: r.employee_name,
+          email: r.employee_email,
+          via_team: !!r.team_id,
+          deadline: r.deadline,
+        })),
+      },
     });
   });
 };

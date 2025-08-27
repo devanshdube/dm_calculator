@@ -386,7 +386,8 @@ export default function ServiceProgressTable({
                   <td className="py-2 pr-4">{row.category_name}</td>
                   <td className="py-2 pr-4">{row.planned_qty}</td>
                   <td className="py-2 pr-4">
-                    <input
+                    {row.done_qty}
+                    {/* <input
                       type="number"
                       min={0}
                       max={row.planned_qty}
@@ -402,7 +403,7 @@ export default function ServiceProgressTable({
                         }));
                       }}
                       className="w-24 px-2 py-1 border rounded"
-                    />
+                    /> */}
                   </td>
                   <td className="py-2 pr-4">{remaining}</td>
                 </tr>
@@ -421,13 +422,13 @@ export default function ServiceProgressTable({
 
       {/* Single Save Button */}
       <div className="mt-4 flex justify-end">
-        <button
+        {/* <button
           onClick={handleSaveAll}
           disabled={saving}
           className="px-6 py-2 bg-green-600 text-white rounded disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save All Changes"}
-        </button>
+        </button> */}
       </div>
     </div>
   );
