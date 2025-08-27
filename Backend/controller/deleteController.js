@@ -378,7 +378,6 @@ exports.deleteQuoatationById = async (req, res) => {
 
 exports.deletePlanNameDetail = async (req, res) => {
   const { id } = req.params;
-  
 
   if (!id) {
     return res.status(400).json({
@@ -386,19 +385,16 @@ exports.deletePlanNameDetail = async (req, res) => {
       message: "Missing id parameter",
     });
   }
-  
 
-  const deletePlanDetail =
-    "DELETE FROM plan_details  WHERE id = ?";
-  const deletePlanData =
-    "DELETE FROM plan_data  WHERE plan_id = ?";
-
+  const deletePlanDetail = "DELETE FROM plan_details WHERE id = ?";
+  const deletePlanData = "DELETE FROM plan_data WHERE plan_id = ?";
+  const deletePlanNotes = "DELETE FROM plans_notes WHERE plan_id = ?";
 
   db.query(deletePlanDetail, [id], (err1, result1) => {
     if (err1) {
       return res.status(500).json({
         status: "Failure",
-        message: "Error delete plan detail",
+        message: "Error deleting plan detail",
         error: err1,
       });
     }
@@ -407,18 +403,29 @@ exports.deletePlanNameDetail = async (req, res) => {
       if (err2) {
         return res.status(500).json({
           status: "Failure",
-          message: "Error delete plan data",
+          message: "Error deleting plan data",
           error: err2,
         });
       }
 
-      res.status(200).json({
-        status: "Success",
-        message: ` delete of plan_name in successfully`,
+      db.query(deletePlanNotes, [id], (err3, result3) => {
+        if (err3) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error deleting plan notes",
+            error: err3,
+          });
+        }
+
+        return res.status(200).json({
+          status: "Success",
+          message: "Plan deleted successfully from plan_details, plan_data, and plans_notes",
+        });
       });
     });
   });
 };
+
 exports.deletePlanData = async (req, res) => {
   const { id } = req.params;
   

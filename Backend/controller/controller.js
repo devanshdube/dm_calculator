@@ -1015,33 +1015,34 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
 };
 
 exports.saveCalculatorDataOfPlanDetail = (req, res) => {
-  const {
-   plan_name,
-  } = req.body;
+  const { plan_name } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
   const query = `
     INSERT INTO plan_details (
-    	plan_name,
+      plan_name,
       created_at
     ) VALUES (?, ?)
   `;
 
-  const values = [
-    plan_name,
-    createdAt
-  ];
+  const values = [plan_name, createdAt];
 
   db.query(query, values, (err, result) => {
     if (err) {
       console.error("Insert Error:", err);
-      return res.status(500).json({ status: "Failure", message: "Plan  error" });
+      return res.status(500).json({ status: "Failure", message: "Plan error" });
     }
 
-    res.status(200).json({ status: "Success", message: "Saved successfully of Plan Detail" });
+    // ✅ return insertId for navigation
+    res.status(200).json({ 
+      status: "Success", 
+      message: "Saved successfully of Plan Detail",
+      insertId: result.insertId   // <-- return this
+    });
   });
 };
+
 
 
 exports.saveClientWithPlan = async (req, res) => {
@@ -1136,7 +1137,7 @@ exports.saveClientWithPlan = async (req, res) => {
           if (err) {
             return res.status(500).json({
               status: "Failure",
-              message: "Error saving notes",
+              message: "Error saving notes and if notes are not exist please create",
               error: err,
             });
           }
@@ -1163,21 +1164,21 @@ exports.saveClientWithPlan = async (req, res) => {
 
 
 exports.addNotebyplan = async (req, res) => {
-  const { note_name,plan} = req.body;
+  const { note_name,plan,plan_id} = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  if (!note_name || !plan) {
+  if (!note_name || !plan ) {
     return res.status(400).json({
       status: "Failure",
-      message: "Notes name and plan required",
+      message: "Notes name , plan required",
     });
   }
 
   try {
     db.query(
-      "INSERT INTO plans_notes (note_name,plan, created_at) VALUES (?, ?,?)",
-      [note_name,plan, createdAt],
+      "INSERT INTO plans_notes (note_name,plan,plan_id, created_at) VALUES (?,?, ?,?)",
+      [note_name,plan,plan_id, createdAt],
       (err, result) => {
         if (err) {
           return res

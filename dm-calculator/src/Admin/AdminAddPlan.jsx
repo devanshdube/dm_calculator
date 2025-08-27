@@ -25,7 +25,7 @@ import { useNavigate } from "react-router-dom";
 
 
 const AdminAddPlan = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;
@@ -142,7 +142,16 @@ const handleSave = () => {
   setLoading(true);
 console.log(selectedPlan);
 
- 
+
+  if (!selectedPlan) {
+    Swal.fire({
+      icon: "warning",  // use "warning" instead of "alert"
+      title: "Plan name required",
+      text: "Please enter a plan name",
+    });
+    setLoading(false); // stop loader
+    return; // prevent saving
+  }
  
   const payload = {
    
@@ -154,23 +163,29 @@ console.log(selectedPlan);
     : axios.post(`${baseURL}/auth/api/calculator/saveCalculatorDataofplanDetail`, payload);
 
   request
-    .then((res) => {
-      resetForm();
-      if (res.data.status === "Success") {
-        Swal.fire({
-          icon: "success",
-          title: editId ? "Updated!" : "Saved!",
-          text: editId ? "Entry updated successfully" : "Saved successfully",
-        });
-        fetchData();
-        setLoading(false);
-        setSelectedPlan('')
-      }
-    })
-    .catch((err) => {
+  .then((res) => {
+    resetForm();
+    if (res.data.status === "Success") {
+      Swal.fire({
+        icon: "success",
+        title: editId ? "Updated!" : "Saved!",
+        text: editId ? "Entry updated successfully" : "Saved successfully",
+      });
+
+      fetchData();
       setLoading(false);
-      console.error("Save error:", err);
-    });
+      setSelectedPlan('');
+
+      // ✅ navigate using insertId (only if it's a new insert, not update)
+      if (!editId && res.data.insertId) {
+        navigate(`/admin/plan-details/${res.data.insertId}`);
+      }
+    }
+  })
+  .catch((err) => {
+    setLoading(false);
+    console.error("Save error:", err);
+  });
 };
 
 
@@ -289,6 +304,7 @@ console.log(selectedPlan);
                 setSelectedPlan(e.target.value);
               }}
               placeholder="Enter the Plan Name"
+              
             />
               
           </div>

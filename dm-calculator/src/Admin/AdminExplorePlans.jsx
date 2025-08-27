@@ -35,7 +35,7 @@ function AdminExplorePlans() {
      dg_employee: employeeName,
    });
   const userName = currentUser?.name;
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate(); 
 
 
@@ -283,7 +283,7 @@ const handleSubmit = async (e) => {
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "Something went wrong while saving the quotation.",
+      text: err.response.data.message,
     });
   } finally {
     setLoading(false);

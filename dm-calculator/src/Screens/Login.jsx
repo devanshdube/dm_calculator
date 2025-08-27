@@ -15,7 +15,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const baseURL = "http://localhost:5555";
+  const baseURL = "https://dmcalculator.dentalguru.software";
 
   const handleSubmit = async (e) => {
     e.preventDefault();

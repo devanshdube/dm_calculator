@@ -27,7 +27,7 @@ import { useNavigate } from "react-router-dom";
 
 
 const AdminPlanHistory = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;
@@ -47,6 +47,8 @@ const AdminPlanHistory = () => {
 const [formData, setFormData] = useState({
     note_name: "",
     plan: "",
+    plan_id:"",
+  
 
   });
     const [selectedNotesId, setSelectedNotesId] = useState(null);
@@ -119,6 +121,7 @@ useEffect(() => {
     setFormData({
       note_name: "",
       plan: "",
+      plan_id:"",
    
     
     });
@@ -132,6 +135,7 @@ useEffect(() => {
     setFormData({
       note_name: "",
       plan: planName, 
+      plan_id:id,
       
     });
     setIsEditing(false);
@@ -585,12 +589,32 @@ useEffect(() => {
           <h2 className="text-3xl font-bold text-white text-center mb-6">
             🧮  Add Plans Of {planName}
           </h2>
-    <button
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
-          >
-            ← Go Back
-          </button>
+<button
+  onClick={() => {
+    if (getData && getData.length > 0) {
+      if (allPlanNote.length > 0) {
+        navigate(-1); // ✅ If data + notes exist → go back
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "No Notes Found",
+          text: "Please create notes before going back.",
+        });
+      }
+    } else {
+      Swal.fire({
+        icon: "warning",
+        title: "No Plan Data",
+        text: "Plan data is missing, cannot go back.",
+      });
+    }
+  }}
+  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+>
+  ← Go Back
+</button>
+
+
 
      
           <div>
@@ -867,7 +891,8 @@ useEffect(() => {
                                    setSelectedNotesId(notes)
                                       setFormData({
                                         note_name: notes.note_name,
-                                        plan:notes.plan
+                                        plan:notes.plan,
+                                        plan_id:id
                                        
                                       });
                                       setIsEditing(true);

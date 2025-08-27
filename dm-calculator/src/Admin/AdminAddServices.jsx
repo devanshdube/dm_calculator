@@ -6,7 +6,7 @@ import { clearUser } from "../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
 
 const AdminAddServices = () => {
-  const baseURL = "http://localhost:5555";
+  const baseURL = "https://dmcalculator.dentalguru.software";
   const { token } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();

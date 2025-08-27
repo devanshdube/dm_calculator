@@ -7,7 +7,7 @@ import { clearUser } from "../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
 
 const AdminAdsCampign = () => {
-  const baseURL = "http://localhost:5555";
+  const baseURL = "https://dmcalculator.dentalguru.software";
   const [formData, setFormData] = useState({
     ads_category: "",
     amt_range_start: "",

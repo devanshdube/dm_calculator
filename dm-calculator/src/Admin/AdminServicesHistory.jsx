@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 
 const AdminServicesHistory = () => {
-  const baseURL = "http://localhost:5555";
+  const baseURL = "https://dmcalculator.dentalguru.software";
   const [keyword, setKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const clientPerPage = 7;
@@ -370,7 +370,7 @@ const AdminServicesHistory = () => {
                     <User className="w-5 h-5 text-blue-600" />
                   </div>
                   <h2 className="text-xl font-semibold text-gray-900">
-                    {"Edit Client"}
+                    {"Edit Service"}
                   </h2>
                 </div>
                 <button
@@ -437,7 +437,7 @@ const AdminServicesHistory = () => {
                     disabled={loading}
                     className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
                   >
-                    {loading ? "Saving..." : "Save Client"}
+                    {loading ? "Saving..." : "Save Service"}
                   </button>
                 </div>
               </form>

@@ -181,14 +181,16 @@ exports.updatePlanNameDetail = async (req, res) => {
       message: "Missing id parameter",
     });
   }
-  
 
   const updatePlanDetail =
     "UPDATE plan_details SET plan_name = ? WHERE id = ?";
   const updatePlanData =
     "UPDATE plan_data SET plan_name = ? WHERE plan_id = ?";
+  const updatePlanDataNotes =
+    "UPDATE plans_notes SET plan = ? WHERE plan_id = ?";
 
-  db.query(updatePlanDetail, [plan_name,id], (err1, result1) => {
+  // First query - update plan_details
+  db.query(updatePlanDetail, [plan_name, id], (err1, result1) => {
     if (err1) {
       return res.status(500).json({
         status: "Failure",
@@ -197,7 +199,8 @@ exports.updatePlanNameDetail = async (req, res) => {
       });
     }
 
-    db.query(updatePlanData, [plan_name,id], (err2, result2) => {
+    // Second query - update plan_data
+    db.query(updatePlanData, [plan_name, id], (err2, result2) => {
       if (err2) {
         return res.status(500).json({
           status: "Failure",
@@ -206,13 +209,26 @@ exports.updatePlanNameDetail = async (req, res) => {
         });
       }
 
-      res.status(200).json({
-        status: "Success",
-        message: ` updated of plan_name in successfully`,
+      // Third query - update plans_notes
+      db.query(updatePlanDataNotes, [plan_name, id], (err3, result3) => {
+        if (err3) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error updating plan data note",
+            error: err3,
+          });
+        }
+
+        // ✅ All queries successful
+        res.status(200).json({
+          status: "Success",
+          message: "Plan name updated successfully in all tables",
+        });
       });
     });
   });
 };
+
 
 
 
@@ -283,11 +299,11 @@ exports.updatePlandata = (req, res) => {
 
 exports.updatePlanNotes = async (req, res) => {
   const { id } = req.params;
-  const { note_name,plan } = req.body;
+  const { note_name,plan,plan_id } = req.body;
 
   db.query(
-    "UPDATE plans_notes SET note_name = ?, plan = ? WHERE id = ?",
-    [note_name,plan, id],
+    "UPDATE plans_notes SET note_name = ?, plan = ?,plan_id= ? WHERE id = ?",
+    [note_name,plan,plan_id, id],
     (err, result) => {
       if (err)
         return res
