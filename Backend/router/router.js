@@ -65,6 +65,7 @@ const {
   deletePlanDataByService,
   deletePlanbyChangeNotes,
   deleteClientAllPlanData,
+  deletePlanClientNotes,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -191,6 +192,8 @@ router.delete("/deletePlanDataByService/:id", deletePlanDataByService);
 router.delete("/deletePlanbyChangeNotes/:txn_id", deletePlanbyChangeNotes);
 
 router.delete("/deleteClientAllPlanData/:txn_id", deleteClientAllPlanData);
+
+router.delete("/deletePlanClientNotes/:id", deletePlanClientNotes);
 
 
 

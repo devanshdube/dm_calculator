@@ -193,21 +193,21 @@ const handleSave = () => {
   let include_content_posting = 0;
   let include_thumbnail_creation = 0;
 
-  optionalServices.forEach((opt) => {
-    const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-    if (addons[key]) {
-      const amount = parseFloat(opt.amount);
+    optionalServices.forEach((opt) => {
+      const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+      if (addons[key]) {
+        const amount = parseFloat(opt.amount);
       const totalForThisAddon = amount * quantity; // ✅ multiply by quantity
 
-      optionalTotal += totalForThisAddon;
+        optionalTotal += totalForThisAddon;
 
-      if (key === "content_posting") {
+        if (key === "content_posting") {
         include_content_posting = amount; // Send unit amount, not total
-      } else if (key === "thumbnail_creation") {
+        } else if (key === "thumbnail_creation") {
         include_thumbnail_creation = amount; // Send unit amount, not total
+        }
       }
-    }
-  });
+    });
 
   const finalAmount = baseAmount + optionalTotal;
   setTotal(finalAmount);

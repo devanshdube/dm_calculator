@@ -1283,33 +1283,67 @@ exports.saveClientIdwiseNotes = (req, res) => {
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  // Step 1: Insert Plans (calculator_transactions)
-  const NotesQuery = `
-    INSERT INTO plan_client_notes 
-        (txn_id, client_id, note_name,created_at) 
-        VALUES ?
+  // Step 1: Check duplicates before inserting
+  const checkQuery = `
+    SELECT note_name 
+    FROM plan_client_notes 
+    WHERE txn_id = ? AND client_id = ?
   `;
 
-  const NotesValues = planNotes.map((n) => [
-        txn_id,
-        client_id,
-        n.note_name,
-    
-        createdAt,
-      ]);
-
-  db.query(NotesQuery, [NotesValues], (err) => {
-    if (err) {
-      console.error("Error saving Client Notes:", err);
+  db.query(checkQuery, [txn_id, client_id], (checkErr, existingRows) => {
+    if (checkErr) {
       return res.status(500).json({
         status: "Failure",
-        message: "Error saving Client Notes",
-        error: err,
+        message: "Error checking existing notes",
+        error: checkErr,
       });
     }
 
-      return res.status(200).json({ status: "Success", message: "Client Notes saved successfully (no notes provided)" });
-    
+    // Extract existing note names
+    const existingNotes = existingRows.map(row => row.note_name.toLowerCase());
+
+    // Filter out duplicates
+    const filteredNotes = planNotes.filter(
+      (n) => !existingNotes.includes(n.note_name.toLowerCase())
+    );
+
+    if (filteredNotes.length === 0) {
+      return res.status(200).json({
+        status: "Success",
+        message: "No new notes to save (all duplicates skipped)",
+      });
+    }
+
+    // Step 2: Insert only new notes
+    const NotesQuery = `
+      INSERT INTO plan_client_notes 
+          (txn_id, client_id, note_name, created_at) 
+          VALUES ?
+    `;
+
+    const NotesValues = filteredNotes.map((n) => [
+      txn_id,
+      client_id,
+      n.note_name,
+      createdAt,
+    ]);
+
+    db.query(NotesQuery, [NotesValues], (insertErr) => {
+      if (insertErr) {
+        console.error("Error saving Client Notes:", insertErr);
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error saving Client Notes",
+          error: insertErr,
+        });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: `${filteredNotes.length} Client Notes saved successfully (duplicates skipped)`,
+      });
+    });
   });
 };
+
 

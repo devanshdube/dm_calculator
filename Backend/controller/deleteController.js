@@ -616,3 +616,20 @@ exports.deleteClientAllPlanData = async (req, res) => {
     });
   });
 };
+
+exports.deletePlanClientNotes = async (req, res) => {
+  const { id } = req.params;
+
+  db.query(
+    "DELETE FROM plan_client_notes WHERE id = ?",
+    [id],
+    (err, result) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Database error" });
+      }
+      res.json({ status: "Success", message: "Note Client deleted successfully" });
+    }
+  );
+};

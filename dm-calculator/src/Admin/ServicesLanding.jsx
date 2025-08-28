@@ -32,6 +32,7 @@ export default function ServicesLanding() {
    const [planName,setPlanName] = useState('');
   const [clientData, setClientData] = useState([]);
     const [loading, setLoading] = useState(false);
+ const [notesData, setNotesData] = useState([]);
 const { currentUser, token } = useSelector((state) => state.user);
   const [showModal, setShowModal] = useState(false);
   const userName = currentUser?.name;
@@ -240,13 +241,43 @@ const getAllPlanNotes = async (planTitle) => {
     }
   };
 
+    const fetchClientNotes = async () => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${proposalId}`,
+        {
+          headers: {
+            "Content-Type": "application/json", 
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.data.status === "Success") {
+        setNotesData(res.data.data);
+      }
+    } catch (error) {
+      if (error.response?.status === 401) {
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
+
   
 
   useEffect(() => {
     fetchClient();
     fetchData();
     fetchAdsData();
-    fetchPlanData()
+    fetchPlanData();
+    fetchClientNotes();
   }, []);
 
   // Table Total Amount
@@ -370,6 +401,8 @@ const handleCreateQuotation = async (plan) => {
     });
 
     fetchData(); // refresh table
+   fetchClientNotes();
+
   } catch (err) {
     console.error("Save error:", err);
     Swal.fire({
@@ -401,6 +434,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
   
       setGetData([]);
       setPlanName('')
+      setNotesData([])
+   fetchClientNotes();
+
       } else {
         Swal.fire("Error!", res.data.message || "Failed to delete plan.", "error");
       }
@@ -443,6 +479,8 @@ const handleDeleteClientPlanData = async (txn_id) => {
           timer: 2000,
           showConfirmButton: false,
         });
+   fetchClientNotes();
+
       } else {
         Swal.fire({
           icon: "error",
@@ -456,6 +494,53 @@ const handleDeleteClientPlanData = async (txn_id) => {
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
+      });
+    }
+  };
+  const handleDeleteClientNote = async (noteId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this note ?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deletePlanClientNotes/${noteId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+      
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "note has been deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        fetchClientNotes();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: result.message || "Failed to delete note.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "An error occurred while deleting note.",
       });
     }
   };
@@ -494,6 +579,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
           });
           fetchAdsData()
           setGetAdsData([])
+        fetchClientNotes();
+
+          
         } else {
           Swal.fire({
             icon: "error",
@@ -972,16 +1060,52 @@ const handleDeleteClientPlanData = async (txn_id) => {
                 </tr>
               </thead>
               <tbody>
-    
-                    <td className="p-3">{planName}</td>
+    <tr>
+
+        <td className="p-3">{planName}</td>
                              <td className="p-3">                   
                         {planName?<button
                                          onClick={() => handleDeleteClientPlanData(proposalId)}
-                                         className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                                         className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
                                          title="Delete"
                                        >
-                                         ×
+                                         Delete
                                          </button> : null } </td>
+    </tr>
+                  
+ 
+              </tbody>
+            </table>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto text-left text-sm text-white">
+              <thead className="text-white/70 border-b border-white/20">
+                <tr>
+                      
+                  <th className="p-3">Plan Client Note</th>
+               
+                     <th className="p-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+    {notesData.map((note,index) => (
+      <tr
+                    key={note.id}
+                    className="hover:bg-white/10 border-b border-white/10 transition-colors"
+                  >
+                        
+                    <td className="p-3" >{note.note_name}</td>
+  
+                             <td className="p-3">                   
+                        <button
+                                         onClick={() => handleDeleteClientNote(note.id)}
+                                         className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                                         title="Delete"
+                                       >
+                                     Delete
+                                         </button> </td>
+                                         </tr>
+                                           ))}
  
               </tbody>
             </table>
