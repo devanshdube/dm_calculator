@@ -24,6 +24,13 @@ const {
   addNotebyplan,
   savePlanClientNotes,
   saveClientIdwiseNotes,
+  assignQuotation,
+  setDoneQty,
+  incrementDoneQty,
+  reassignQuotation,
+  createTeam,
+  addMembersToTeam,
+  assignQuotationToTeam,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -49,6 +56,14 @@ const {
   getPlanDataById,
   getPlanNotes,
   getClientNotesbyId,
+  retrieveUser,
+  getAssignmentByTxn,
+  getAssignedQuotations,
+  getProgressByTxn,
+  getAssignedQuotationsByEmployeeName,
+  retrieveTeam,
+  retrieveTeamById,
+  getAssignmentsSummary,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -62,9 +77,8 @@ const {
   deleteQuoatationById,
   deletePlanNameDetail,
   deletePlanNotesbyid,
-  deletePlanDataByService,
-  deletePlanbyChangeNotes,
-  deleteClientAllPlanData,
+  removeMemberFromTeam,
+  deleteTeam,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -75,7 +89,7 @@ const {
   updatePlandata,
   updatePlanNameDetail,
   updatePlanNotes,
-  updateServiceData,
+  // reassignQuotation,
 } = require("../controller/updateController");
 
 const authenticateToken = require("../middleware/authenticateToken");
@@ -106,6 +120,10 @@ router.post("/saveClientWithPlan", saveClientWithPlan);
 router.post("/addNotebyplan", addNotebyplan);
 router.post("/savePlanClientNotes", savePlanClientNotes);
 router.post("/saveClientIdwiseNotes", saveClientIdwiseNotes);
+router.post("/assignQuotation", assignQuotation);
+router.post("/createTeam", createTeam);
+router.post("/addMembersToTeam/:id/members", addMembersToTeam);
+router.post("/assignQuotationToTeam", assignQuotationToTeam);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -163,7 +181,18 @@ router.get(
   authenticateToken,
   getClientsTxnHistoryByEmployee
 );
-
+//NEW work
+router.get("/retrieveUser", retrieveUser);
+router.get("/getAssignmentByTxn/:txn_id", getAssignmentByTxn);
+router.get("/getAssignedQuotations", getAssignedQuotations);
+router.get(
+  "/assigned-quotations/by-employee/:employee_name",
+  getAssignedQuotationsByEmployeeName
+);
+router.get("/progress/by-txn/:txn_id", getProgressByTxn);
+router.get("/retrieveTeam", retrieveTeam);
+router.get("/retrieveTeamById/:id", retrieveTeamById);
+router.get("/getAssignmentsSummary/:txn_id", getAssignmentsSummary);
 // ---->  Get all routes END <----
 
 // ---->  DELETE all routes START <----
@@ -186,13 +215,12 @@ router.delete("/deletePlanNameDetail/:id", deletePlanNameDetail);
 
 router.delete("/deletePlanNotesbyid/:id", deletePlanNotesbyid);
 
-router.delete("/deletePlanDataByService/:id", deletePlanDataByService);
+router.delete(
+  "/removeMemberFromTeam/:teamId/members/:memberId",
+  removeMemberFromTeam
+);
 
-router.delete("/deletePlanbyChangeNotes/:txn_id", deletePlanbyChangeNotes);
-
-router.delete("/deleteClientAllPlanData/:txn_id", deleteClientAllPlanData);
-
-
+router.delete("/deleteTeam/:id", deleteTeam);
 
 // ---->  DELETE all routes END <----
 
@@ -205,12 +233,13 @@ router.put("/updateClientDetails/:id", updateClientDetails);
 router.put("/updatePlanData/:id", updatePlandata);
 router.put("/updatePlanName/:id", updatePlanNameDetail);
 router.put("/updatePlanNotes/:id", updatePlanNotes);
-
-router.put("/updateServiceData/:editing_type_id",updateServiceData);
-
+router.put("/reassignQuotation", reassignQuotation);
+// router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----
 
 router.get("/optional-service-amounts", optionalServiceAmounts);
 
+router.patch("/progress/set-done", setDoneQty);
+router.patch("/progress/increment", incrementDoneQty);
 
 module.exports = router;

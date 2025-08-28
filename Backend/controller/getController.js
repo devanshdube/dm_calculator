@@ -432,7 +432,6 @@ exports.getClientTxnHistory = async (req, res) => {
   });
 };
 
-
 // exports.getClientServiceHistory = async (req, res) => {
 //   const { client_id, txn_id } = req.params;
 
@@ -542,10 +541,6 @@ WHERE ad.txn_id = ? AND ad.client_id = ?
     });
   });
 };
-
-
-
-
 
 exports.getAllClientsTxnHistory = async (req, res) => {
   const query = `
@@ -809,25 +804,55 @@ exports.optionalServiceAmounts = (req, res) => {
     if (err) {
       console.error("Database error in optionalServiceAmounts:", err);
       return res.status(500).json({
-        status: 'error',
-        message: 'Internal Server Error',
+        status: "error",
+        message: "Internal Server Error",
       });
     }
 
     res.status(200).json({
-      status: 'success',
+      status: "success",
       data: rows,
     });
   });
 };
 
-
 exports.getPlanData = async (req, res) => {
-  
+  try {
+    db.query("SELECT * FROM plan_data", (err, results) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
+        });
+      }
 
+      if (results.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No plan found",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        data: results,
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+exports.getPlanDataById = async (req, res) => {
+  const { id } = req.params;
   try {
     db.query(
-      "SELECT * FROM plan_data",
+      "SELECT * FROM plan_data WHERE plan_id = ?",
+      [id],
       (err, results) => {
         if (err) {
           return res.status(500).json({
@@ -858,72 +883,30 @@ exports.getPlanData = async (req, res) => {
     });
   }
 };
-exports.getPlanDataById = async (req, res) => {  
- const {id} = req.params;
-  try {
-    db.query(
-      "SELECT * FROM plan_data WHERE plan_id = ?",[id],
-      (err, results) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error",
-            error: err,
-          });
-        }
-
-        if (results.length === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No plan found",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          data: results,
-        });
-      }
-    );
-  } catch (error) {
-    res.status(500).json({
-      status: "Failure",
-      message: "Server error",
-      error,
-    });
-  }
-};
-
-
 
 exports.getPlanDetails = async (req, res) => {
-  
-
   try {
-    db.query(
-      "SELECT * FROM plan_details",
-      (err, results) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error",
-            error: err,
-          });
-        }
-
-        if (results.length === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No plan found",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          data: results,
+    db.query("SELECT * FROM plan_details", (err, results) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
         });
       }
-    );
+
+      if (results.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No plan found",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        data: results,
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",
@@ -933,12 +916,12 @@ exports.getPlanDetails = async (req, res) => {
   }
 };
 exports.getPlanDetailsById = async (req, res) => {
-  
-const {id} = req.params;
+  const { id } = req.params;
 
   try {
     db.query(
-      "SELECT * FROM plan_details WHERE id = ?",[id],
+      "SELECT * FROM plan_details WHERE id = ?",
+      [id],
       (err, results) => {
         if (err) {
           return res.status(500).json({
@@ -971,32 +954,28 @@ const {id} = req.params;
 };
 
 exports.getPlanNotes = async (req, res) => {
-  
   try {
-    db.query(
-      "SELECT * FROM plans_notes",
-      (err, results) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error",
-            error: err,
-          });
-        }
-
-        if (results.length === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No plan found",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          data: results,
+    db.query("SELECT * FROM plans_notes", (err, results) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
         });
       }
-    );
+
+      if (results.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No plan found",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        data: results,
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",
@@ -1006,11 +985,20 @@ exports.getPlanNotes = async (req, res) => {
   }
 };
 exports.getClientNotesbyId = async (req, res) => {
+<<<<<<< HEAD
    const { client_id, txn_id } = req.params;
   try {
     db.query(
       "SELECT * FROM plan_client_notes WHERE client_id = ? AND txn_id = ?",
       [client_id,txn_id],(err, results) => {
+=======
+  const { id } = req.params;
+  try {
+    db.query(
+      "SELECT * FROM plan_client_notes WHERE client_id = ?",
+      [id],
+      (err, results) => {
+>>>>>>> remainder
         if (err) {
           return res.status(500).json({
             status: "Failure",
@@ -1039,4 +1027,441 @@ exports.getClientNotesbyId = async (req, res) => {
       error,
     });
   }
+};
+
+//NEW Work
+exports.retrieveUser = async (req, res) => {
+  try {
+    const getQuery = `
+      SELECT id, employee_name, employee_role, employee_email
+      FROM dm_calculator_employees 
+      WHERE employee_role = 'BD'
+    `;
+
+    db.query(getQuery, (err, results) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Internal Server Error" });
+      }
+
+      if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ status: "Failure", message: "Users not found" });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "Users retrieved successfully",
+        data: results,
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+exports.getAssignmentByTxn = (req, res) => {
+  try {
+    const { txn_id } = req.params;
+    if (!txn_id) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Missing txn_id" });
+    }
+
+    const q = `
+      SELECT aq.id, aq.client_id, aq.txn_id, aq.user_id, aq.deadline, aq.created_at, aq.updated_at, aq.version,
+             e.employee_name
+      FROM assign_quotation aq
+      LEFT JOIN dm_calculator_employees e ON e.id = aq.user_id
+      WHERE aq.txn_id = ?
+      LIMIT 1
+    `;
+
+    db.query(q, [txn_id], (err, rows) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Internal Server Error" });
+      }
+      if (!rows.length) {
+        return res
+          .status(404)
+          .json({ status: "Failure", message: "No assignment found" });
+      }
+      return res.status(200).json({
+        status: "Success",
+        message: "Assignment fetched",
+        data: rows[0],
+      });
+    });
+  } catch (e) {
+    console.error("Server Error:", e);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+// exports.getAssignedQuotations = async (req, res) => {
+//   try {
+//     const getQuery = `
+//       SELECT
+//         aq.id,
+//         aq.client_id,
+//         aq.txn_id,
+//         aq.user_id,
+//         aq.created_at,
+//         aq.version,
+//         aq.updated_at,
+//         c.client_name,
+//         e.employee_name
+//       FROM assign_quotation aq
+//       JOIN dm_calculator_client_details c
+//           ON aq.client_id = c.id
+//       JOIN dm_calculator_employees e
+//           ON aq.user_id = e.id
+//           ORDER BY aq.id DESC
+//     `;
+
+//     db.query(getQuery, (err, results) => {
+//       if (err) {
+//         console.error("Database Error:", err);
+//         return res
+//           .status(500)
+//           .json({ status: "Failure", message: "Internal Server Error" });
+//       }
+
+//       if (results.length === 0) {
+//         return res
+//           .status(404)
+//           .json({ status: "Failure", message: "No assigned quotations found" });
+//       }
+
+//       return res.status(200).json({
+//         status: "Success",
+//         message: "Assigned quotations retrieved successfully",
+//         data: results,
+//       });
+//     });
+//   } catch (error) {
+//     console.error("Server Error:", error);
+//     return res
+//       .status(500)
+//       .json({ status: "Failure", message: "Internal Server Error" });
+//   }
+// };
+
+exports.getAssignedQuotations = async (req, res) => {
+  try {
+    // OPTIONAL query params (future friendly):
+    //   ?mode=single|team   -> server-side filter
+    const { mode } = req.query;
+    const where = [];
+    const params = [];
+    if (mode === "single") {
+      where.push("aq.assignment_mode = 'single'");
+    } else if (mode === "team") {
+      where.push("aq.assignment_mode = 'team'");
+    }
+    const whereSQL = where.length ? `WHERE ${where.join(" AND ")}` : "";
+
+    const getQuery = `
+      SELECT
+        aq.id,
+        aq.client_id,
+        aq.txn_id,
+        aq.user_id,
+        aq.assignment_mode,
+        aq.team_id,
+        aq.assign_group_id,
+        aq.deadline,
+        aq.created_at,
+        aq.created_at AS txn_date,   -- alias for your UI date
+        aq.version,
+        aq.updated_at,
+        c.client_name,
+        e.employee_name,
+        t.name AS team_name
+      FROM assign_quotation aq
+      JOIN dm_calculator_client_details c
+        ON c.id = aq.client_id
+      JOIN dm_calculator_employees e
+        ON e.id = aq.user_id
+      LEFT JOIN teams t
+        ON t.id = aq.team_id
+      ${whereSQL}
+      ORDER BY aq.id DESC
+    `;
+
+    db.query(getQuery, params, (err, results) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Internal Server Error" });
+      }
+
+      // Prefer returning empty list with Success (frontend simpler),
+      // but keep your old behavior if you want:
+      if (!results.length) {
+        return res.status(200).json({
+          status: "Success",
+          message: "No assigned quotations found",
+          data: [],
+        });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "Assigned quotations retrieved successfully",
+        data: results,
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+exports.getAssignedQuotationsByEmployeeName = async (req, res) => {
+  try {
+    const { employee_name } = req.params;
+
+    if (!employee_name) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "employee_name is required" });
+    }
+
+    const getQuery = `
+      SELECT 
+        aq.id,
+        aq.client_id,
+        aq.txn_id,
+        aq.user_id,
+        aq.created_at,
+        aq.version,
+        aq.updated_at,
+        c.client_name,
+        e.employee_name
+      FROM assign_quotation aq
+      JOIN dm_calculator_client_details c 
+        ON aq.client_id = c.id
+      JOIN dm_calculator_employees e 
+        ON aq.user_id = e.id
+      WHERE e.employee_name = ?
+      ORDER BY aq.created_at DESC
+    `;
+
+    db.query(getQuery, [employee_name], (err, results) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Internal Server Error" });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "Assigned quotations retrieved successfully",
+        data: results, // [] if none
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+// NEW WORK FOR Remainder work progress
+
+exports.getProgressByTxn = (req, res) => {
+  const { txn_id } = req.params;
+  if (!txn_id) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "Missing txn_id" });
+  }
+
+  const q = `
+    SELECT id, client_id, txn_id, service_name, category_name, editing_type_name,
+           planned_qty, done_qty, last_updated_by, updated_at
+    FROM service_progress
+    WHERE txn_id = ?
+    ORDER BY service_name, category_name, editing_type_name
+  `;
+  db.query(q, [txn_id], (err, rows) => {
+    if (err) {
+      console.error("DB Error:", err);
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Internal Server Error" });
+    }
+    return res.status(200).json({
+      status: "Success",
+      message: "Progress fetched",
+      data: rows,
+    });
+  });
+};
+
+// NEW WORK FOR Teams Members
+
+// USE API retrieveUser
+exports.retrieveTeam = async (req, res) => {
+  try {
+    const getQuery = `SELECT id, name, created_at FROM teams ORDER BY id DESC`;
+
+    db.query(getQuery, (err, results) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Internal Server Error" });
+      }
+
+      if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ status: "Failure", message: "TEAM not found" });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "TEAM retrieved successfully",
+        data: results,
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+exports.retrieveTeamById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const qTeam = `SELECT id, name, created_at FROM teams WHERE id = ? LIMIT 1`;
+
+    db.query(qTeam, [id], (err, rows) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Internal Server Error" });
+      }
+
+      if (!rows.length) {
+        return res
+          .status(404)
+          .json({ status: "Failure", message: "Team not found" });
+      }
+
+      const team = rows[0];
+
+      const qMembers = `
+        SELECT e.id, e.employee_name, e.employee_email
+        FROM team_members tm
+        JOIN dm_calculator_employees e ON e.id = tm.employee_id
+        WHERE tm.team_id = ?
+        ORDER BY e.employee_name ASC
+      `;
+
+      db.query(qMembers, [id], (mErr, mRows) => {
+        if (mErr) {
+          console.error("Database Error:", mErr);
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Internal Server Error" });
+        }
+
+        return res.status(200).json({
+          status: "Success",
+          message: "Team retrieved successfully",
+          data: {
+            ...team,
+            members: mRows,
+          },
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+exports.getAssignmentsSummary = (req, res) => {
+  const { txn_id } = req.params;
+  const sql = `
+    SELECT aq.id, aq.txn_id, aq.user_id, aq.team_id, aq.assignment_mode, aq.deadline,
+           e.employee_name, e.employee_email, t.name as team_name
+    FROM assign_quotation aq
+    JOIN dm_calculator_employees e ON e.id = aq.user_id
+    LEFT JOIN teams t ON t.id = aq.team_id
+    WHERE aq.txn_id = ?
+    ORDER BY e.employee_name ASC
+  `;
+  db.query(sql, [txn_id], (err, rows = []) => {
+    if (err)
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Internal Server Error" });
+    if (!rows.length)
+      return res
+        .status(404)
+        .json({ status: "Failure", message: "No assignment found" });
+
+    const distinctTeam = [
+      ...new Set(rows.map((r) => r.team_id).filter(Boolean)),
+    ];
+    const hasTeam = distinctTeam.length === 1;
+    const allTeamMode = rows.every(
+      (r) => r.assignment_mode === "team" && r.team_id
+    );
+    const isSingle =
+      rows.length === 1 &&
+      rows[0].assignment_mode === "single" &&
+      !rows[0].team_id;
+    const mode = isSingle
+      ? "single"
+      : allTeamMode && hasTeam
+      ? "team"
+      : "mixed";
+
+    return res.status(200).json({
+      status: "Success",
+      message: "Summary fetched",
+      data: {
+        mode,
+        total: rows.length,
+        team: hasTeam ? { id: rows[0].team_id, name: rows[0].team_name } : null,
+        assignees: rows.map((r) => ({
+          id: r.id,
+          user_id: r.user_id,
+          name: r.employee_name,
+          email: r.employee_email,
+          via_team: !!r.team_id,
+          deadline: r.deadline,
+        })),
+      },
+    });
+  });
 };
