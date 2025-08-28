@@ -9,6 +9,7 @@ import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
+// import QuotationTypeModalBD from "./QuotationTypeModalBD";
 
 const HistoryBD = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
@@ -25,6 +26,7 @@ const HistoryBD = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
+  // const [assignModal, setAssignModal] = useState(false);
 
   const fetchAllClientServices = async () => {
     try {
@@ -123,55 +125,73 @@ const HistoryBD = () => {
   };
 
   const showApiData = filterPagination();
- const handleDeletequotation = async (quotationId) => {
-const confirm = await Swal.fire({
-  title: "Are you sure?",
-  text: "Do you want to delete this quotation permanently?",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonColor: "#d33",
-  cancelButtonColor: "#3085d6",
-  confirmButtonText: "Yes, delete it!",
-});
-
-if (!confirm.isConfirmed) return;
-
-try {
-  const response = await axios.delete(
-    `${baseURL}/auth/api/calculator/deleteQuotationById/${quotationId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  if (response.data.status === "Success") {
-    Swal.fire({
-      icon: "success",
-      title: "Deleted!",
-      text: "Quatation deleted successfully.",
+  const handleDeletequotation = async (quotationId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this quotation permanently?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
     });
 
-    // Refresh client list
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const response = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteQuotationById/${quotationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Quatation deleted successfully.",
+        });
+
+        // Refresh client list
         fetchClient();
-    fetchAllClientServices();
-  } else {
-    Swal.fire({
-      icon: "error",
-      title: "Failed!",
-      text: response.data.message || "Unable to delete client.",
-    });
-  }
-} catch (error) {
-  console.error("Error deleting client:", error);
-  Swal.fire({
-    icon: "error",
-    title: "Error",
-    text: "Something went wrong while deleting client.",
-  });
-}
-};
+        fetchAllClientServices();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: response.data.message || "Unable to delete client.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong while deleting client.",
+      });
+    }
+  };
+
+  // const handleAssignClick = (row) => {
+  //   const cid = row?.client_id ?? null;
+  //   const txn = row?.txn_id ?? null;
+
+  //   if (!cid || !txn) {
+  //     Swal.fire({
+  //       icon: "warning",
+  //       title: "Missing Information",
+  //       text: !cid ? "Client ID not found." : "Transaction ID not found.",
+  //     });
+  //     return;
+  //   }
+
+  //   setSelectedClient(cid);
+  //   setSelectedTxn(txn);
+  //   setAssignModal(true);
+  // };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -186,7 +206,7 @@ try {
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 lg:gap-0">
           <div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-             Quotation History
+              Quotation History
             </h2>
             <button
               onClick={() => navigate(-1)}
@@ -284,6 +304,12 @@ try {
                           </div>
                         </td>
                         <td className="py-5 px-6">
+                          {/* <button
+                            onClick={() => handleAssignClick(item)}
+                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-900 to-red-500 text-white shadow-lg shadow-orange-500/25"
+                          >
+                            Assign
+                          </button> */}
                           <button
                             onClick={() => {
                               setSelectedClient(item.client_id);
@@ -297,11 +323,10 @@ try {
                             // }
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                          Review
+                            Review
                           </button>
-                           <button
+                          <button
                             onClick={() => handleDeletequotation(item.txn_id)}
-                           
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-500 text-white shadow-lg shadow-red-500/25 mx-2"
                           >
                             Delete
@@ -324,6 +349,18 @@ try {
             </div>
           </div>
         </div>
+        {/* <QuotationTypeModalBD
+          open={assignModal}
+          onClose={() => setAssignModal(false)}
+          clientId={selectedClient}
+          txnId={selectedTxn}
+          baseURL={baseURL}
+          token={token}
+          onDone={() => {
+            // optional refresh
+            fetchAllClientServices();
+          }}
+        /> */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
             <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">

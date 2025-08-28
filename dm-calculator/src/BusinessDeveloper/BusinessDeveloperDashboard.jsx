@@ -9,6 +9,7 @@ import {
   X,
   ShieldPlus,
   List,
+  UserPlus,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +18,7 @@ import { clearUser } from "../redux/user/userSlice";
 import ClientDetails from "./ClientDetails";
 import AllHistory from "./AllHistory";
 import BdExplorePlans from "./BdExplorePlans";
+import AssignQuotationBD from "./AssignQuotationBD";
 // const RegisterBD = lazy(() => import("./RegisterBD"));
 // const AdminClientDetails = lazy(() => import("./AdminClientDetails"));
 // const AdminAddServices = lazy(() => import("./AdminAddServices"));
@@ -47,7 +49,8 @@ const BusinessDeveloperDashboard = () => {
   const tabs = [
     { id: "clients", label: "Client Details", icon: User },
     { id: "servicehistory", label: "History", icon: Clock },
-     { id: "exploreplan", label: "Explore Plans", icon: List},
+    { id: "exploreplan", label: "Explore Plans", icon: List },
+    { id: "assign", label: "Assign", icon: UserPlus },
     // { id: "AddADSCamp", label: "Add Ads Campaigns", icon: CheckCircle },
     // { id: "AddServices", label: "Add Graphic Services", icon: Plus },
     // { id: "servicehistory", label: "Graphic Service History", icon: Clock },
@@ -207,6 +210,7 @@ const BusinessDeveloperDashboard = () => {
           {activeTab === "clients" && <ClientDetails />}
           {activeTab === "servicehistory" && <AllHistory />}
           {activeTab === "exploreplan" && <BdExplorePlans />}
+          {activeTab === "assign" && <AssignQuotationBD />}
           {/* {activeTab === "registerbd" && <RegisterBD />}
           {activeTab === "AddADSCamp" && <AdminAdsCampign />}
           {activeTab === "AddServices" && <AdminAddServices />}

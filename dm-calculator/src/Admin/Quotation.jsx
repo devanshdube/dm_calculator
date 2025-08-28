@@ -209,7 +209,7 @@ export default function Quotation() {
             🖨️ Print
           </button>
           <button
-            onClick={() =>navigate(`/admin/ServicesLanding/${id}/${txn_id}`)}
+            onClick={() => navigate(`/admin/ServicesLanding/${id}/${txn_id}`)}
             className="bg-orange-600 text-white rounded-full px-4 py-2"
           >
             ✏️ Edit
@@ -274,7 +274,9 @@ export default function Quotation() {
                         </p>
                       </div>
                       <div className="text-end">
-                        <h2 className="text-2xl font-bold">{serviceData[0].plan_name} Plan</h2>
+                        <h2 className="text-2xl font-bold">
+                          {serviceData[0].plan_name} Plan
+                        </h2>
                         <p>{moment().format("DD/MM/YYYY")}</p>
                         <p>Quote #: {txn_id}</p>
                       </div>
@@ -496,18 +498,21 @@ export default function Quotation() {
                         </p>
                       )}
                     </section>
-                          <h2 className="text-lg font-bold">Notes</h2>
-  {notesData.length > 0 ? (
-    <ul className="list-disc pl-5">
-      {notesData.map((note) => (
-        <li key={note.id} className="text-sm text-gray-700 font-bold">
-          {note.note_name}
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <p className="text-gray-500 italic">No notes added.</p>
-  )}
+                    <h2 className="text-lg font-bold">Notes</h2>
+                    {notesData.length > 0 ? (
+                      <ul className="list-disc pl-5">
+                        {notesData.map((note) => (
+                          <li
+                            key={note.id}
+                            className="text-sm text-gray-700 font-bold"
+                          >
+                            {note.note_name}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500 italic">No notes added.</p>
+                    )}
                   </div>
                 </div>
                 <div className="h-[45rem]"></div>

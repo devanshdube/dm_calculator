@@ -251,7 +251,6 @@ exports.deleteGraphicEntryById = async (req, res) => {
   }
 };
 
-
 exports.deleteClientById = async (req, res) => {
   const { id } = req.params;
 
@@ -303,7 +302,6 @@ exports.deleteClientById = async (req, res) => {
     });
   }
 };
-
 
 exports.deleteQuoatationById = async (req, res) => {
   const { txn_id } = req.params;
@@ -428,7 +426,6 @@ exports.deletePlanNameDetail = async (req, res) => {
 
 exports.deletePlanData = async (req, res) => {
   const { id } = req.params;
-  
 
   if (!id) {
     return res.status(400).json({
@@ -436,46 +433,36 @@ exports.deletePlanData = async (req, res) => {
       message: "Missing id parameter",
     });
   }
-  
 
+  const deletePlanData = "DELETE FROM plan_data  WHERE plan_id = ?";
 
-  const deletePlanData =
-    "DELETE FROM plan_data  WHERE plan_id = ?";
-
-
-
-    db.query(deletePlanData, [id], (err2, result2) => {
-      if (err2) {
-        return res.status(500).json({
-          status: "Failure",
-          message: "Error delete plan data",
-          error: err2,
-        });
-      }
-
-      res.status(200).json({
-        status: "Success",
-        message: ` delete of plan_data in successfully`,
+  db.query(deletePlanData, [id], (err2, result2) => {
+    if (err2) {
+      return res.status(500).json({
+        status: "Failure",
+        message: "Error delete plan data",
+        error: err2,
       });
-    });
+    }
 
+    res.status(200).json({
+      status: "Success",
+      message: ` delete of plan_data in successfully`,
+    });
+  });
 };
 
 exports.deletePlanNotesbyid = async (req, res) => {
   const { id } = req.params;
 
-  db.query(
-    "DELETE FROM plans_notes WHERE id = ?",
-    [id],
-    (err, result) => {
-      if (err) {
-        return res
-          .status(500)
-          .json({ status: "Failure", message: "Database error" });
-      }
-      res.json({ status: "Success", message: "Note deleted successfully" });
+  db.query("DELETE FROM plans_notes WHERE id = ?", [id], (err, result) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Database error" });
     }
-  );
+
+});
 };
 
 exports.deletePlanDataByService = async (req, res) => {
@@ -632,4 +619,83 @@ exports.deletePlanClientNotes = async (req, res) => {
       res.json({ status: "Success", message: "Note Client deleted successfully" });
     }
   );
+
+  
 };
+
+//  NEW WORK For Team work
+
+exports.removeMemberFromTeam = async (req, res) => {
+  try {
+    const { teamId, memberId } = req.params;
+
+    const q = `DELETE FROM team_members WHERE team_id = ? AND employee_id = ?`;
+
+    db.query(q, [teamId, memberId], (err, result) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json({
+          status: "Failure",
+          message: "Failed to remove member",
+        });
+      }
+
+      if (!result.affectedRows) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "Member not found in team",
+        });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "Member removed successfully",
+        data: { removed: 1 },
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+    });
+  }
+};
+
+exports.deleteTeam = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const q = `DELETE FROM teams WHERE id = ?`;
+
+    db.query(q, [id], (err, result) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json({
+          status: "Failure",
+          message: "Failed to delete team",
+        });
+      }
+
+      if (!result.affectedRows) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "Team not found",
+        });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "Team deleted successfully",
+        data: { deleted: 1 },
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+    });
+  }
+};
+
