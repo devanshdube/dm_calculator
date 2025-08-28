@@ -648,14 +648,7 @@ exports.insertClientDetails = async (req, res) => {
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  if (
-    !client_name ||
-    
-   
-    !phone ||
-    
-    !dg_employee
-  ) {
+  if (!client_name || !phone || !dg_employee) {
     return res
       .status(400)
       .json({ status: "Failure", message: "All fields are required." });
@@ -1046,34 +1039,18 @@ exports.saveCalculatorDataOfPlanDetail = (req, res) => {
   db.query(query, values, (err, result) => {
     if (err) {
       console.error("Insert Error:", err);
-<<<<<<< HEAD
       return res.status(500).json({ status: "Failure", message: "Plan error" });
     }
 
     // ✅ return insertId for navigation
-    res.status(200).json({ 
-      status: "Success", 
-      message: "Saved successfully of Plan Detail",
-      insertId: result.insertId   // <-- return this
-=======
-      return res
-        .status(500)
-        .json({ status: "Failure", message: "Plan  error" });
-    }
-
     res.status(200).json({
       status: "Success",
       message: "Saved successfully of Plan Detail",
->>>>>>> remainder
+      insertId: result.insertId, // <-- return this
     });
   });
 };
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> remainder
 exports.saveClientWithPlan = async (req, res) => {
   const {
     client_name,
@@ -1166,7 +1143,8 @@ exports.saveClientWithPlan = async (req, res) => {
           if (err) {
             return res.status(500).json({
               status: "Failure",
-              message: "Error saving notes and if notes are not exist please create",
+              message:
+                "Error saving notes and if notes are not exist please create",
               error: err,
             });
           }
@@ -1191,15 +1169,11 @@ exports.saveClientWithPlan = async (req, res) => {
 };
 
 exports.addNotebyplan = async (req, res) => {
-<<<<<<< HEAD
-  const { note_name,plan,plan_id} = req.body;
-=======
-  const { note_name, plan } = req.body;
->>>>>>> remainder
+  const { note_name, plan, plan_id } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  if (!note_name || !plan ) {
+  if (!note_name || !plan) {
     return res.status(400).json({
       status: "Failure",
       message: "Notes name , plan required",
@@ -1208,13 +1182,8 @@ exports.addNotebyplan = async (req, res) => {
 
   try {
     db.query(
-<<<<<<< HEAD
       "INSERT INTO plans_notes (note_name,plan,plan_id, created_at) VALUES (?,?, ?,?)",
-      [note_name,plan,plan_id, createdAt],
-=======
-      "INSERT INTO plans_notes (note_name,plan, created_at) VALUES (?, ?,?)",
-      [note_name, plan, createdAt],
->>>>>>> remainder
+      [note_name, plan, plan_id, createdAt],
       (err, result) => {
         if (err) {
           return res
@@ -1858,21 +1827,17 @@ exports.reassignQuotation = (req, res) => {
           .status(400)
           .json({ status: "Failure", message: "Missing ID(s)" });
       if (deadline && !/^\d{4}-\d{2}-\d{2}$/.test(deadline))
-        return res
-          .status(400)
-          .json({
-            status: "Failure",
-            message: "Invalid deadline (YYYY-MM-DD)",
-          });
+        return res.status(400).json({
+          status: "Failure",
+          message: "Invalid deadline (YYYY-MM-DD)",
+        });
 
       const rows = await getTxnRows(txn_id);
       if (!rows.length)
-        return res
-          .status(404)
-          .json({
-            status: "Failure",
-            message: "No assignment found to update",
-          });
+        return res.status(404).json({
+          status: "Failure",
+          message: "No assignment found to update",
+        });
 
       const { mode } = detectMode(rows);
       const now = moment().tz(TZ).format("YYYY-MM-DD HH:mm:ss");
@@ -1895,12 +1860,10 @@ exports.reassignQuotation = (req, res) => {
               if (dErr) {
                 console.error("Delete Err:", dErr);
                 return db.rollback(() =>
-                  res
-                    .status(500)
-                    .json({
-                      status: "Failure",
-                      message: "Failed to clear existing assignments",
-                    })
+                  res.status(500).json({
+                    status: "Failure",
+                    message: "Failed to clear existing assignments",
+                  })
                 );
               }
 
@@ -1919,12 +1882,10 @@ exports.reassignQuotation = (req, res) => {
                     if (iErr?.code === "ER_DUP_ENTRY") {
                       // after purge yeh unlikely hai, but race me ho sakta hai
                       return db.rollback(() =>
-                        res
-                          .status(409)
-                          .json({
-                            status: "Failure",
-                            message: "Already assigned to this user",
-                          })
+                        res.status(409).json({
+                          status: "Failure",
+                          message: "Already assigned to this user",
+                        })
                       );
                     }
                     console.error("Insert Err:", iErr);
@@ -2027,12 +1988,10 @@ exports.reassignQuotation = (req, res) => {
             .json({ status: "Failure", message: "Database Error" });
         }
         if (!result.affectedRows)
-          return res
-            .status(404)
-            .json({
-              status: "Failure",
-              message: "Target assignment row not found",
-            });
+          return res.status(404).json({
+            status: "Failure",
+            message: "Target assignment row not found",
+          });
 
         // Mail (best-effort) + mark start_sent
         try {

@@ -203,20 +203,9 @@ exports.updatePlanNameDetail = async (req, res) => {
     });
   }
 
-<<<<<<< HEAD
-  const updatePlanDetail =
-    "UPDATE plan_details SET plan_name = ? WHERE id = ?";
-  const updatePlanData =
-    "UPDATE plan_data SET plan_name = ? WHERE plan_id = ?";
-  const updatePlanDataNotes =
-    "UPDATE plans_notes SET plan = ? WHERE plan_id = ?";
-
-  // First query - update plan_details
-=======
   const updatePlanDetail = "UPDATE plan_details SET plan_name = ? WHERE id = ?";
   const updatePlanData = "UPDATE plan_data SET plan_name = ? WHERE plan_id = ?";
 
->>>>>>> remainder
   db.query(updatePlanDetail, [plan_name, id], (err1, result1) => {
     if (err1) {
       return res.status(500).json({
@@ -226,10 +215,6 @@ exports.updatePlanNameDetail = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
-    // Second query - update plan_data
-=======
->>>>>>> remainder
     db.query(updatePlanData, [plan_name, id], (err2, result2) => {
       if (err2) {
         return res.status(500).json({
@@ -259,15 +244,6 @@ exports.updatePlanNameDetail = async (req, res) => {
   });
 };
 
-<<<<<<< HEAD
-
-
-
-
-
-
-=======
->>>>>>> remainder
 exports.updatePlandata = (req, res) => {
   const { id } = req.params;
   const {
@@ -329,19 +305,11 @@ exports.updatePlandata = (req, res) => {
 
 exports.updatePlanNotes = async (req, res) => {
   const { id } = req.params;
-<<<<<<< HEAD
-  const { note_name,plan,plan_id } = req.body;
-
-  db.query(
-    "UPDATE plans_notes SET note_name = ?, plan = ?,plan_id= ? WHERE id = ?",
-    [note_name,plan,plan_id, id],
-=======
   const { note_name, plan } = req.body;
 
   db.query(
     "UPDATE plans_notes SET note_name = ?, plan = ? WHERE id = ?",
     [note_name, plan, id],
->>>>>>> remainder
     (err, result) => {
       if (err)
         return res
@@ -352,25 +320,6 @@ exports.updatePlanNotes = async (req, res) => {
   );
 };
 
-<<<<<<< HEAD
-
-exports.updateServiceData = async (req, res) => {
-  const {editing_type_id } = req.params;
-  const { editing_type_name,amount } = req.body;
-
-  db.query(
-    "UPDATE editing_types SET editing_type_name = ?, amount = ? WHERE editing_type_id = ?",
-    [editing_type_name,amount,editing_type_id],
-    (err, result) => {
-      if (err)
-        return res
-          .status(500)
-          .json({status: "Failure", message: "Database error" });
-      res.json({ status: "Success", message: "Edit updated successfully" });
-    }
-  );
-};
-=======
 // NEW Work
 
 function isEmail(v) {
@@ -602,4 +551,3 @@ exports.reassignQuotation = (req, res) => {
 //       .json({ status: "Failure", message: "Internal Server Error" });
 //   }
 // };
->>>>>>> remainder
