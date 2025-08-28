@@ -357,15 +357,13 @@ exports.deleteQuoatationById = async (req, res) => {
 
         res.status(200).json({
           status: "Success",
-          message: `Transaction deleted from ${
-            [
-              deletedFromCalculator ? "calculator_transactions" : null,
-              deletedFromAds ? "ads_campaign_details" : null,
-              deletedFromNotes ? "plan_client_notes" : null,
-            ]
-              .filter(Boolean)
-              .join(", ")
-          } successfully`,
+          message: `Transaction deleted from ${[
+            deletedFromCalculator ? "calculator_transactions" : null,
+            deletedFromAds ? "ads_campaign_details" : null,
+            deletedFromNotes ? "plan_client_notes" : null,
+          ]
+            .filter(Boolean)
+            .join(", ")} successfully`,
         });
       });
     });
@@ -417,7 +415,8 @@ exports.deletePlanNameDetail = async (req, res) => {
 
         return res.status(200).json({
           status: "Success",
-          message: "Plan deleted successfully from plan_details, plan_data, and plans_notes",
+          message:
+            "Plan deleted successfully from plan_details, plan_data, and plans_notes",
         });
       });
     });
@@ -698,4 +697,3 @@ exports.deleteTeam = async (req, res) => {
     });
   }
 };
-

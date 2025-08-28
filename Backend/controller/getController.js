@@ -985,20 +985,12 @@ exports.getPlanNotes = async (req, res) => {
   }
 };
 exports.getClientNotesbyId = async (req, res) => {
-<<<<<<< HEAD
-   const { client_id, txn_id } = req.params;
-  try {
-    db.query(
-      "SELECT * FROM plan_client_notes WHERE client_id = ? AND txn_id = ?",
-      [client_id,txn_id],(err, results) => {
-=======
   const { id } = req.params;
   try {
     db.query(
       "SELECT * FROM plan_client_notes WHERE client_id = ?",
       [id],
       (err, results) => {
->>>>>>> remainder
         if (err) {
           return res.status(500).json({
             status: "Failure",
