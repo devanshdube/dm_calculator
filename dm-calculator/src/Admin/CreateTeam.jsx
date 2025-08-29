@@ -2,12 +2,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Check, Plus, Search, Trash2, Users, UserPlus } from "lucide-react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { useSelector } from "react-redux";
 
 const CreateTeam = () => {
   // If your server is on a different base path, set VITE_API_BASE_URL accordingly.
   // e.g. http://localhost:5555  (no trailing slash)
-  const baseURL = import.meta.env?.VITE_API_BASE_URL || "http://localhost:5555";
-
+  // const baseURL = import.meta.env?.VITE_API_BASE_URL || "http://localhost:5555";
+  const baseURL = "https://dmcalculator.dentalguru.software";
+  const { token } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -39,11 +41,27 @@ const CreateTeam = () => {
     deleteTeam: (id) => `${baseURL}/auth/api/calculator/deleteTeam/${id}`,
   };
 
+  const headers = React.useMemo(
+    () => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    }),
+    [token]
+  );
+
+  const toArray = (payload) => {
+    // supports {data: []} or [] directly; anything else -> []
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload)) return payload;
+    return [];
+  };
+
   // --- Filters (use employee_email from your API)
   const filteredEmployees = useMemo(() => {
-    if (!empQuery.trim()) return employees;
+    const list = Array.isArray(employees) ? employees : [];
+    if (!empQuery.trim()) return list;
     const q = empQuery.toLowerCase();
-    return employees.filter(
+    return list.filter(
       (e) =>
         e?.employee_name?.toLowerCase().includes(q) ||
         e?.employee_email?.toLowerCase().includes(q) ||
@@ -51,17 +69,50 @@ const CreateTeam = () => {
     );
   }, [empQuery, employees]);
 
+  console.log(filteredEmployees);
+
   // --- Load employees & teams (404 -> treat as empty list, not an error popup)
+  // const loadAll = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const [empRes, teamRes] = await Promise.allSettled([
+  //       axios.get(endpoints.listEmployees),
+  //       axios.get(endpoints.listTeams),
+  //     ]);
+
+  //     if (empRes.status === "fulfilled") {
+  //       setEmployees(empRes.value?.data?.data || empRes.value?.data || []);
+  //     } else if (empRes.reason?.response?.status === 404) {
+  //       setEmployees([]);
+  //     } else {
+  //       throw empRes.reason;
+  //     }
+
+  //     if (teamRes.status === "fulfilled") {
+  //       setTeams(teamRes.value?.data?.data || teamRes.value?.data || []);
+  //     } else if (teamRes.reason?.response?.status === 404) {
+  //       setTeams([]);
+  //     } else {
+  //       throw teamRes.reason;
+  //     }
+  //   } catch (e) {
+  //     console.error(e);
+  //     Swal.fire("Error", "Failed to load employees/teams.", "error");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const loadAll = async () => {
     setLoading(true);
     try {
       const [empRes, teamRes] = await Promise.allSettled([
-        axios.get(endpoints.listEmployees),
-        axios.get(endpoints.listTeams),
+        axios.get(endpoints.listEmployees, { headers }),
+        axios.get(endpoints.listTeams, { headers }),
       ]);
 
       if (empRes.status === "fulfilled") {
-        setEmployees(empRes.value?.data?.data || empRes.value?.data || []);
+        setEmployees(toArray(empRes.value?.data));
       } else if (empRes.reason?.response?.status === 404) {
         setEmployees([]);
       } else {
@@ -69,7 +120,7 @@ const CreateTeam = () => {
       }
 
       if (teamRes.status === "fulfilled") {
-        setTeams(teamRes.value?.data?.data || teamRes.value?.data || []);
+        setTeams(toArray(teamRes.value?.data));
       } else if (teamRes.reason?.response?.status === 404) {
         setTeams([]);
       } else {
@@ -82,6 +133,8 @@ const CreateTeam = () => {
       setLoading(false);
     }
   };
+
+  console.log(employees);
 
   const loadTeamDetails = async (teamId) => {
     if (!teamId) return;
