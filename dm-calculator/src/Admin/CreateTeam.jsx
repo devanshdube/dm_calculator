@@ -5,8 +5,8 @@ import axios from "axios";
 
 const CreateTeam = () => {
   // If your server is on a different base path, set VITE_API_BASE_URL accordingly.
-  // e.g. http://localhost:5555  (no trailing slash)
-  const baseURL = import.meta.env?.VITE_API_BASE_URL || "http://localhost:5555";
+  // e.g. https://dmcalculator.dentalguru.software  (no trailing slash)
+  const baseURL = "https://dmcalculator.dentalguru.software";
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

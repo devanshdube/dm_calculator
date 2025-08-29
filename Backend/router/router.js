@@ -92,7 +92,7 @@ const {
   updateClientDetails,
   updatePlandata,
   updatePlanNameDetail,
-  updatePlanNotes,
+  updatePlanNotes,updateServiceData
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -245,6 +245,7 @@ router.put("/updateClientDetails/:id", updateClientDetails);
 router.put("/updatePlanData/:id", updatePlandata);
 router.put("/updatePlanName/:id", updatePlanNameDetail);
 router.put("/updatePlanNotes/:id", updatePlanNotes);
+router.put("/updateServiceData/:editing_type_id", updateServiceData);
 router.put("/reassignQuotation", reassignQuotation);
 // router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----

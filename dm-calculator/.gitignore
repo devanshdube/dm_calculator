@@ -13,6 +13,7 @@ build
 dist-ssr
 *.local
 build.zip
+.zip
 /build
 
 # Editor directories and files

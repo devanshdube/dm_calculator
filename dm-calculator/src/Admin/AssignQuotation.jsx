@@ -12,7 +12,7 @@
 // import ServiceProgressTable from "./ServiceProgressTable";
 
 // const AssignQuotation = () => {
-//   const baseURL = `http://localhost:5555`;
+//   const baseURL = `https://dmcalculator.dentalguru.software`;
 //   const navigate = useNavigate();
 //   const [fetchServices, setFetchServices] = useState([]);
 //   // const [clientData, setClientData] = useState([]);
@@ -439,7 +439,7 @@ import ServiceProgressTable from "./ServiceProgressTable";
 const PAGE_SIZE = 4;
 
 const AssignQuotation = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((s) => s.user);
