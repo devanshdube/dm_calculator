@@ -177,11 +177,12 @@ const graphicTotal = graphicData.reduce(
 
 
 
-
-  const adsTotal = adsData.reduce(
-    (sum, item) => sum + Number(item.total_amount || 0),
-    0
-  );
+const adsTotal = adsData.reduce((sum, ad) => {
+  const amount = Number(ad.amount || 0);
+  const totalBudget = Number(ad.total_amount || 0);
+  const gstTotal = (amount * 18) / 100;
+  return sum + totalBudget + gstTotal;
+}, 0);
   const grandTotal = graphicTotal + adsTotal;
 
   if (loading) {
@@ -194,8 +195,9 @@ const graphicTotal = graphicData.reduce(
 
   return (
     <Wrapper>
-      <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4 border mx-auto bg-white print:break-after-page">
+      <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
         {/* Hidden on print - Action Buttons */}
+        
         <div className="print:hidden flex justify-end gap-3 my-4">
           <button
             onClick={() => window.print()}
@@ -233,7 +235,7 @@ const graphicTotal = graphicData.reduce(
                   <img
                     src={img1}
                     alt="Header"
-                    className="w-full h-full object-cover" // use object-cover for full width fitting
+                    className="w-full h-full object-cover mb-4" // use object-cover for full width fitting
                   />
                 </div>
               </td>
@@ -246,7 +248,7 @@ const graphicTotal = graphicData.reduce(
           <tbody className="print:table-row-group">
             <tr>
               <td className="p-0 m-0 align-top">
-                <div className="flex flex-col justify-between h-full px-6 py-4 print:px-4 print:py-6">
+                <div className="flex flex-col justify-between h-full px-6 py-4 print:px-4 ">
                   <div className="flex-grow">
                     {/* Client Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3 print:grid-cols-2">
@@ -367,65 +369,83 @@ const graphicTotal = graphicData.reduce(
 )}
 
                     {/* Ads Services */}
-                    {adsData.length > 0 && (
-                      <section className="mb-5">
-                        <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">
-                          Ads Services
-                        </h3>
-                        <table className="w-full border text-sm">
-                          <thead className="bg-indigo-100">
-                            <tr>
-                              <th className="border px-3 py-2 text-left">
-                                Category
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Amount (₹)
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Percentage (%)
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Charges (₹)
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Final Total (₹)
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {adsData.map((ad, idx) => (
-                              <tr
-                                key={idx}
-                                className={
-                                  idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                                }
-                              >
-                                <td className="border px-3 py-2">
-                                  {ad.category_name}
-                                </td>
-                                <td className="border px-3 py-2 text-right">
-                                  {Number(ad.amount || 0).toLocaleString()}
-                                </td>
-                                <td className="border px-3 py-2 text-right">
-                                  {ad.percent || 0}
-                                </td>
-                                <td className="border px-3 py-2 text-right">
-                                  {Number(ad.charge || 0).toLocaleString()}
-                                </td>
-                                <td className="border px-3 py-2 text-right font-semibold">
-                                  {Number(
-                                    ad.total_amount || 0
-                                  ).toLocaleString()}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                        <p className="text-right text-lg font-semibold mt-1">
-                          Ads Total: ₹{adsTotal.toLocaleString()}
-                        </p>
-                      </section>
-                    )}
+               {/* Ads Services */}
+{adsData.length > 0 && (
+  <section className="mb-5">
+    <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">
+      Ads Services
+    </h3>
+    <table className="w-full border text-sm">
+      <thead className="bg-indigo-100">
+        <tr>
+          <th className="border px-3 py-2 text-left">Service</th>
+          <th className="border px-3 py-2 text-right">Amount (₹)</th>
+          <th className="border px-3 py-2 text-right">Percentage (%)</th>
+         
+          <th className="border px-3 py-2 text-right">Final Total (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {adsData.map((ad, idx) => {
+          const amount = Number(ad.amount || 0);
+          const percent = Number(ad.percent || 0);
+          const charge = Number(ad.charge || 0);
+          const totalBudget = Number(ad.charge || 0);
+
+          // Static 18% GST row
+            const gstPercent = 18;
+          const gstCharge = (amount * gstPercent) / 100;
+          const gstTotal = amount + gstCharge;
+
+          return (
+            <React.Fragment key={idx}>
+              {/* Row 1 - dynamic Ad Budget */}
+
+              <tr className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                <td className="border px-3 py-2">{ad.category_name} Budget (GST)</td>
+                <td className="border px-3 py-2 text-right">
+                  {amount.toLocaleString()}
+                </td>
+                <td className="border px-3 py-2 text-right">{gstPercent}</td>
+               
+                <td className="border px-3 py-2 text-right font-semibold">
+                  {gstTotal.toLocaleString()}
+                </td>
+              </tr>
+
+              {/* Row 2 - static Ads Charges (18%) */}
+              <tr className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                <td className="border px-3 py-2">{ad.category_name} Charges </td>
+                <td className="border px-3 py-2 text-right">
+                  {amount.toLocaleString()}
+                </td>
+                <td className="border px-3 py-2 text-right">{percent}</td>
+           
+                <td className="border px-3 py-2 text-right font-semibold">
+                  {totalBudget.toLocaleString()}
+                </td>
+              </tr>
+            </React.Fragment>
+          );
+        })}
+      </tbody>
+    </table>
+
+    {/* Ads Total = budget total + gst total */}
+    <p className="text-right text-lg font-semibold mt-1">
+      Ads Total: ₹
+      {adsData
+        .reduce((sum, ad) => {
+          const amount = Number(ad.amount || 0);
+          const totalBudget = Number(ad.total_amount || 0);
+          const gstTotal = (amount * 18) / 100;
+          return sum + totalBudget + gstTotal;
+        }, 0)
+        .toLocaleString()}
+    </p>
+  </section>
+)}
+
 
                     {/* Grand Total Section */}
                     <section className="text-right border-t pt-3 mb-6">

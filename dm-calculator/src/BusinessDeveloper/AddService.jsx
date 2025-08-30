@@ -30,6 +30,7 @@ export default function AddService() {
   const [getAdsData, setGetAdsData] = useState([]);
     const [getPlanData, setGetPlanData] = useState([]);
   const [clientData, setClientData] = useState([]);
+   const [notesData, setNotesData] = useState([]);
      const [planName,setPlanName] = useState('');
   const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -127,6 +128,7 @@ const { currentUser, token } = useSelector((state) => state.user);
       }
     }
   };
+  
 
   console.log(clientData);
   const clientName = clientData?.client_name;
@@ -253,11 +255,42 @@ const { currentUser, token } = useSelector((state) => state.user);
   }
 };
 
+    const fetchClientNotes = async () => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${proposalId}`,
+        {
+          headers: {
+            "Content-Type": "application/json", 
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.data.status === "Success") {
+        setNotesData(res.data.data);
+      }
+    } catch (error) {
+      if (error.response?.status === 401) {
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     fetchClient();
     fetchData();
     fetchAdsData();
     fetchPlanData();
+    fetchClientNotes();
+    
   }, [id, proposalId]);
 
   // Table Total Amount
@@ -413,6 +446,8 @@ const handleDeleteClientPlanData = async (txn_id) => {
   
       setGetData([]);
       setPlanName('')
+        setNotesData([])
+   fetchClientNotes();
       } else {
         Swal.fire("Error!", res.data.message || "Failed to delete plan.", "error");
       }
@@ -455,6 +490,8 @@ const handleDeleteClientPlanData = async (txn_id) => {
           timer: 2000,
           showConfirmButton: false,
         });
+           fetchClientNotes();
+
       } else {
         Swal.fire({
           icon: "error",
@@ -468,6 +505,53 @@ const handleDeleteClientPlanData = async (txn_id) => {
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
+      });
+    }
+  };
+  const handleDeleteClientNote = async (noteId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this note ?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deletePlanClientNotes/${noteId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+      
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "note has been deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        fetchClientNotes();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: result.message || "Failed to delete note.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "An error occurred while deleting note.",
       });
     }
   };
@@ -506,6 +590,7 @@ const handleDeleteClientPlanData = async (txn_id) => {
           });
           fetchAdsData()
           setGetAdsData([])
+          fetchClientNotes();
         } else {
           Swal.fire({
             icon: "error",
@@ -945,43 +1030,80 @@ const handleDeleteClientPlanData = async (txn_id) => {
               </tbody>
             </table>
           </div>
-           <div className="bg-white/10 backdrop-blur-sm mt-4 rounded-2xl p-6 border border-white/20">
-                    <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
-                      <span className="flex items-center gap-2">
-                        <Package className="w-5 h-5" />
-                       Plan Detail
-                      </span>
-                      <span className="text-lg font-semibold text-green-400">
-                       {planName}
-                      </span>
-                    </h3>
-          
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full table-auto text-left text-sm text-white">
-                        <thead className="text-white/70 border-b border-white/20">
-                          <tr>
-                            <th className="p-3">Plan Name</th>
-                         
-                               <th className="p-3">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-              
-                              <td className="p-3">{planName}</td>
-                                       <td className="p-3">                   
-                                  {planName?<button
-                                                   onClick={() => handleDeleteClientPlanData(proposalId)}
-                                                   className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                                                   title="Delete"
-                                                 >
-                                                   ×
-                                                   </button> : null } </td>
-           
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+  
         </div>
+         <div className="bg-white/10 backdrop-blur-sm mt-4 rounded-2xl p-6 border border-white/20">
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Package className="w-5 h-5" />
+                     Plan Detail
+                    </span>
+                    <span className="text-lg font-semibold text-green-400">
+                     {planName}
+                    </span>
+                  </h3>
+        
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full table-auto text-left text-sm text-white">
+                      <thead className="text-white/70 border-b border-white/20">
+                        <tr>
+                          <th className="p-3">Plan Name</th>
+                       
+                             <th className="p-3">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+            <tr>
+        
+                <td className="p-3">{planName}</td>
+                                     <td className="p-3">                   
+                                {planName?<button
+                                                 onClick={() => handleDeleteClientPlanData(proposalId)}
+                                                 className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                                                 title="Delete"
+                                               >
+                                                 Delete
+                                                 </button> : null } </td>
+            </tr>
+                          
+         
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full table-auto text-left text-sm text-white">
+                      <thead className="text-white/70 border-b border-white/20">
+                        <tr>
+                              
+                          <th className="p-3">Plan Client Note</th>
+                       
+                             <th className="p-3">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+            {notesData.map((note,index) => (
+              <tr
+                            key={note.id}
+                            className="hover:bg-white/10 border-b border-white/10 transition-colors"
+                          >
+                                
+                            <td className="p-3" >{note.note_name}</td>
+          
+                                     <td className="p-3">                   
+                                <button
+                                                 onClick={() => handleDeleteClientNote(note.id)}
+                                                 className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                                                 title="Delete"
+                                               >
+                                             Delete
+                                                 </button> </td>
+                                                 </tr>
+                                                   ))}
+         
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
 
             {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
