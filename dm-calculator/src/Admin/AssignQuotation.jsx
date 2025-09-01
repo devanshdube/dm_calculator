@@ -424,7 +424,7 @@
 //   }
 // `;
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Calendar, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -435,6 +435,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
 import ServiceProgressTable from "./ServiceProgressTable";
+import SkeletonTable from "./SkeletonTable";
 
 const PAGE_SIZE = 4;
 
@@ -442,7 +443,9 @@ const AssignQuotation = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { currentUser, token } = useSelector((s) => s.user);
+  // const { currentUser, token } = useSelector((s) => s.user);
+  const { token } = useSelector((s) => s.user);
+  const modalTimerRef = useRef(null);
 
   const [rows, setRows] = useState([]);
   const [keyword, setKeyword] = useState("");
@@ -451,11 +454,15 @@ const AssignQuotation = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
+  const [selectedDline, setSelectedDline] = useState(null);
   const [userID, setUserID] = useState(null);
 
   // separate pagination for single vs team
   const [singlePage, setSinglePage] = useState(0);
   const [teamPage, setTeamPage] = useState(0);
+
+  // Loading Modal
+  const [modalLoading, setModalLoading] = useState(false);
 
   const fetchAllClientServices = async () => {
     try {
@@ -577,6 +584,7 @@ const AssignQuotation = () => {
     const cid = row?.client_id;
     const txn = row?.txn_id;
     const uid = row?.user_id || null;
+    const dline = row?.deadline;
     if (!cid || !txn) {
       Swal.fire({
         icon: "warning",
@@ -587,13 +595,22 @@ const AssignQuotation = () => {
     }
     setSelectedClient(cid);
     setSelectedTxn(txn);
+    setSelectedDline(dline);
     setUserID(uid); // single user id
+    setModalLoading(true);
     setShowModal(true);
+
+    if (modalTimerRef.current) clearTimeout(modalTimerRef.current);
+    modalTimerRef.current = setTimeout(() => {
+      setModalLoading(false);
+      modalTimerRef.current = null;
+    }, 1200);
   };
 
   const handleOpenProgressTeam = (group) => {
     const cid = group?.client_id;
     const txn = group?.txn_id;
+    const dline = group?.deadline;
     if (!cid || !txn) {
       Swal.fire({
         icon: "warning",
@@ -606,6 +623,14 @@ const AssignQuotation = () => {
     setSelectedTxn(txn);
     setUserID(null); // TEAM: pass null so table can show all members
     setShowModal(true);
+    setSelectedDline(dline);
+    setModalLoading(true);
+
+    if (modalTimerRef.current) clearTimeout(modalTimerRef.current);
+    modalTimerRef.current = setTimeout(() => {
+      setModalLoading(false);
+      modalTimerRef.current = null;
+    }, 1200);
   };
 
   useEffect(() => {
@@ -873,9 +898,21 @@ const AssignQuotation = () => {
         {/* MODAL */}
         {showModal && (
           <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
-            <div className="relative bg-white w-[95%] max-w-6xl rounded-2xl shadow-xl p-4 max-h-[85vh] overflow-y-auto">
+            {/*  <div className="relative bg-white w-[95%] max-w-6xl rounded-2xl shadow-xl p-4 max-h-[85vh] overflow-y-auto"> */}
+            <div
+              className="
+        relative bg-white w-[95%] max-w-6xl rounded-2xl shadow-xl p-4
+        max-h-[70vh] min-h-[50vh]
+        grid grid-rows-[auto_auto_1fr] gap-3
+      "
+            >
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  if (modalTimerRef.current)
+                    clearTimeout(modalTimerRef.current);
+                  setModalLoading(false);
+                  setShowModal(false);
+                }}
                 className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-2xl"
               >
                 ×
@@ -889,15 +926,37 @@ const AssignQuotation = () => {
                 <p className="text-sm text-gray-500">
                   Client ID: {selectedClient}
                 </p>
+                <p className="text-sm text-red-500">
+                  Deadline: {moment(selectedDline).format("DD/MM/YYYY")}
+                </p>
               </div>
 
-              <ServiceProgressTable
-                baseURL={baseURL}
-                token={token}
-                clientId={selectedClient}
-                txnId={selectedTxn}
-                currentEmployeeId={userID /* team => null, single => number */}
-              />
+              <div className="relative h-full overflow-y-auto rounded-xl border border-gray-200">
+                {modalLoading && (
+                  <div className="absolute inset-0 bg-white/70 backdrop-blur-sm grid place-items-center z-10">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-10 h-10 rounded-full border-4 border-gray-300 border-t-gray-700 animate-spin" />
+                      <div className="text-sm text-gray-700 font-medium">
+                        Loading progress…
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {modalLoading ? (
+                  <SkeletonTable />
+                ) : (
+                  <ServiceProgressTable
+                    baseURL={baseURL}
+                    token={token}
+                    clientId={selectedClient}
+                    txnId={selectedTxn}
+                    currentEmployeeId={
+                      userID /* team => null, single => number */
+                    }
+                  />
+                )}
+              </div>
             </div>
           </div>
         )}

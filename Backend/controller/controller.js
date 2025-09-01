@@ -1043,15 +1043,13 @@ exports.saveCalculatorDataOfPlanDetail = (req, res) => {
     }
 
     // ✅ return insertId for navigation
-    res.status(200).json({ 
-      status: "Success", 
+    res.status(200).json({
+      status: "Success",
       message: "Saved successfully of Plan Detail",
-      insertId: result.insertId   // <-- return this
+      insertId: result.insertId, // <-- return this
     });
   });
 };
-
-
 
 exports.saveClientWithPlan = async (req, res) => {
   const {
@@ -1171,7 +1169,7 @@ exports.saveClientWithPlan = async (req, res) => {
 };
 
 exports.addNotebyplan = async (req, res) => {
-  const { note_name,plan,plan_id} = req.body;
+  const { note_name, plan, plan_id } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
@@ -1185,7 +1183,7 @@ exports.addNotebyplan = async (req, res) => {
   try {
     db.query(
       "INSERT INTO plans_notes (note_name,plan,plan_id, created_at) VALUES (?,?, ?,?)",
-      [note_name,plan,plan_id, createdAt],
+      [note_name, plan, plan_id, createdAt],
       (err, result) => {
         if (err) {
           return res
@@ -1316,7 +1314,9 @@ exports.saveClientIdwiseNotes = (req, res) => {
     }
 
     // Extract existing note names
-    const existingNotes = existingRows.map(row => row.note_name.toLowerCase());
+    const existingNotes = existingRows.map((row) =>
+      row.note_name.toLowerCase()
+    );
 
     // Filter out duplicates
     const filteredNotes = planNotes.filter(
@@ -1368,7 +1368,7 @@ exports.saveClientIdwiseNotes = (req, res) => {
 function getTxnRows(txn_id) {
   return new Promise((resolve, reject) => {
     db.query(
-      "SELECT id, user_id, team_id, assignment_mode FROM assign_quotation WHERE txn_id = ?",
+      "SELECT id, client_id, user_id, team_id, assignment_mode FROM assign_quotation WHERE txn_id = ?",
       [txn_id],
       (e, rows) => (e ? reject(e) : resolve(rows || []))
     );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Calendar, Search, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -10,12 +10,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
 import ServiceProgressTableBD from "./ServiceProgressTableBD";
+import SkeletonTable from "../Admin/SkeletonTable";
 
 const AssignQuotationBD = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
   // const [clientData, setClientData] = useState([]);
+  const modalTimerRef = useRef(null);
   const { id } = useParams();
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
@@ -28,7 +30,9 @@ const AssignQuotationBD = () => {
   const [showModalquotation, setShowModalQuotation] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
+  const [selectedDline, setSelectedDline] = useState(null);
   const [userID, setUserID] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
   const fetchAllClientServices = async () => {
     try {
@@ -98,6 +102,7 @@ const AssignQuotationBD = () => {
     const cid = row?.client_id ?? null;
     const txn = row?.txn_id ?? null;
     const uid = row?.user_id ?? null;
+    const dline = row?.deadline;
 
     if (!cid || !txn) {
       Swal.fire({
@@ -113,7 +118,15 @@ const AssignQuotationBD = () => {
     setSelectedClient(cid);
     setSelectedTxn(txn);
     setUserID(uid);
+    setSelectedDline(dline);
     setShowModal(true);
+    setModalLoading(true);
+
+    if (modalTimerRef.current) clearTimeout(modalTimerRef.current);
+    modalTimerRef.current = setTimeout(() => {
+      setModalLoading(false);
+      modalTimerRef.current = null;
+    }, 1200);
   };
 
   useEffect(() => {
@@ -232,8 +245,6 @@ const AssignQuotationBD = () => {
                             Update Progress
                           </button>
 
-                              
-
                           {/* <button
                             onClick={() => {
                               //   setSelectedClient(item.client_id);
@@ -245,7 +256,8 @@ const AssignQuotationBD = () => {
                             Quotation
                           </button> */}
                         </td>
-                            <td className="py-5 px-6"><button
+                        <td className="py-5 px-6">
+                          <button
                             onClick={() => {
                               setSelectedClient(item.client_id);
                               setSelectedTxn(item.txn_id);
@@ -258,8 +270,9 @@ const AssignQuotationBD = () => {
                             // }
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                    Review
-                          </button></td>
+                            Review
+                          </button>
+                        </td>
                       </tr>
                     ))
                   ) : (
@@ -280,17 +293,30 @@ const AssignQuotationBD = () => {
 
         {showModal && (
           <div
-            className="fixed inset-0 z-50 grid place-items-center bg-black/50
-               motion-safe:transition-opacity motion-safe:duration-200"
+            // className="fixed inset-0 z-50 grid place-items-center bg-black/50
+            //    motion-safe:transition-opacity motion-safe:duration-200"
+            className="fixed inset-0 z-50 grid place-items-center bg-black/50"
           >
-            <div
+            {/* <div
               className="relative bg-white w-[95%] max-w-6xl rounded-2xl shadow-xl
                  p-4 max-h-[85vh] overflow-y-auto transform-gpu
                  motion-safe:transition-all motion-safe:duration-200
                  will-change-transform"
+            > */}
+            <div
+              className="
+        relative bg-white w-[95%] max-w-6xl rounded-2xl shadow-xl p-4
+        max-h-[70vh] min-h-[50vh]
+        grid grid-rows-[auto_auto_1fr] gap-3
+      "
             >
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  if (modalTimerRef.current)
+                    clearTimeout(modalTimerRef.current);
+                  setModalLoading(false);
+                  setShowModal(false);
+                }}
                 className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-2xl"
               >
                 ×
@@ -304,19 +330,39 @@ const AssignQuotationBD = () => {
                 <p className="text-sm text-gray-500">
                   Client ID: {selectedClient}
                 </p>
+                <p className="text-sm text-red-500">
+                  Deadline: {moment(selectedDline).format("DD/MM/YYYY")}
+                </p>
               </div>
 
-              <ServiceProgressTableBD
-                baseURL={baseURL}
-                token={token}
-                clientId={selectedClient}
-                txnId={selectedTxn}
-                currentEmployeeId={userID}
-              />
+              <div className="relative h-full overflow-y-auto rounded-xl border border-gray-200">
+                {modalLoading && (
+                  <div className="absolute inset-0 bg-white/70 backdrop-blur-sm grid place-items-center z-10">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-10 h-10 rounded-full border-4 border-gray-300 border-t-gray-700 animate-spin" />
+                      <div className="text-sm text-gray-700 font-medium">
+                        Loading progress…
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {modalLoading ? (
+                  <SkeletonTable />
+                ) : (
+                  <ServiceProgressTableBD
+                    baseURL={baseURL}
+                    token={token}
+                    clientId={selectedClient}
+                    txnId={selectedTxn}
+                    currentEmployeeId={userID}
+                  />
+                )}
+              </div>
             </div>
           </div>
         )}
-          {showModalquotation && (
+        {showModalquotation && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
             <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
               <button
