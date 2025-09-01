@@ -221,8 +221,8 @@ const AdminServicesHistory = () => {
   const showApiData = filterPagination();
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="space-y-8 mb-8">
+        <div className="flex justify-between items-center flex-wrap gap-2">
           <h2 className="text-2xl font-bold text-gray-300">Services History</h2>
           <div className="flex gap-3">
             {/* <div className="relative">
@@ -250,7 +250,7 @@ const AdminServicesHistory = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 ">
           <div className="p-6">
             <div className="overflow-x-auto">
               <table className="w-full">

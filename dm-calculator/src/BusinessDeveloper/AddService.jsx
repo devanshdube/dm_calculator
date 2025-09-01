@@ -635,7 +635,7 @@ const handleDeleteClientPlanData = async (txn_id) => {
             className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 group"
           >
             <ArrowLeft className="w-5 h-5 transform transition-transform group-hover:-translate-x-1" />
-            <span className="font-medium">Back to Dashboard</span>
+            <span className="font-medium">Back</span>
           </button>
 
           {/* Top Stats Row */}

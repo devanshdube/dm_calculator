@@ -366,7 +366,7 @@ try {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="p-6">
+              <div className="lg:p-6 sm:p-4 p-2">
                 <h3 className="text-lg font-semibold mb-4">All Clients</h3>
                 <div className="space-y-4">
                   {loading ? (
@@ -379,7 +379,7 @@ try {
                         showApiData?.map((client) => (
                           <div
                             key={client.id}
-                            className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                            className={`lg:p-6 sm:p-4 p-1 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
                               selectedClient?.id === client.id
                                 ? "border-blue-500 bg-blue-50"
                                 : "border-gray-200"
@@ -402,11 +402,16 @@ try {
                                   </div>
                                 </div>
                                 {/* <div className="grid grid-cols-2 gap-4 text-sm text-gray-600"> */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 break-words">
-                                  <div className="flex items-center gap-2 break-words">
-                                    <Mail className="w-4 h-4" />
-                                    {client.email}
-                                  </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 break-wrap">
+                               <div className="flex items-center gap-2">
+  {client.email ? (
+    <>
+      <Mail className="w-4 h-4" />
+      {client.email}
+    </>
+  ) : null}
+</div>
+
                                   <div className="flex items-center gap-2 break-words">
                                     <Phone className="w-4 h-4" />
                                     {client.phone}

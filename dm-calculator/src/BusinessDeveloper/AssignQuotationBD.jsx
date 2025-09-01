@@ -25,6 +25,7 @@ const AssignQuotationBD = () => {
   console.log(id);
   console.log(currentUser);
   const [showModal, setShowModal] = useState(false);
+  const [showModalquotation, setShowModalQuotation] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [userID, setUserID] = useState(null);
@@ -182,6 +183,9 @@ const AssignQuotationBD = () => {
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       Action
                     </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
+                      Quotation Review
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -223,10 +227,12 @@ const AssignQuotationBD = () => {
                         <td className="py-5 px-6">
                           <button
                             onClick={() => handleOpenProgress(item)}
-                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
+                            className="inline-block whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                            View / Update Progress
+                            Update Progress
                           </button>
+
+                              
 
                           {/* <button
                             onClick={() => {
@@ -239,6 +245,21 @@ const AssignQuotationBD = () => {
                             Quotation
                           </button> */}
                         </td>
+                            <td className="py-5 px-6"><button
+                            onClick={() => {
+                              setSelectedClient(item.client_id);
+                              setSelectedTxn(item.txn_id);
+                              setShowModalQuotation(true);
+                            }}
+                            // onClick={() =>
+                            //   navigate(
+                            //     `/BD/quotation/${item.client_id}/${item.txn_id}`
+                            //   )
+                            // }
+                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
+                          >
+                    Review
+                          </button></td>
                       </tr>
                     ))
                   ) : (
@@ -292,6 +313,46 @@ const AssignQuotationBD = () => {
                 txnId={selectedTxn}
                 currentEmployeeId={userID}
               />
+            </div>
+          </div>
+        )}
+          {showModalquotation && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+              <button
+                onClick={() => setShowModalQuotation(false)}
+                className="absolute top-2 right-3 text-red-600 hover:text-gray-500 text-xl font-bold"
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <h2 className="text-lg font-semibold mb-4 text-center">
+                Select Quotation Type
+              </h2>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/BD/quotation/${selectedClient}/${selectedTxn}?gst=1`
+                    );
+                    setShowModalQuotation(false);
+                  }}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  With GST (18%)
+                </button>
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/BD/quotation/${selectedClient}/${selectedTxn}?gst=0`
+                    );
+                    setShowModalQuotation(false);
+                  }}
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  Without GST
+                </button>
+              </div>
             </div>
           </div>
         )}
