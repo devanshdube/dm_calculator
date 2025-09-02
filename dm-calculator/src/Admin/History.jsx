@@ -314,7 +314,6 @@ const History = () => {
                           </div>
                         </td>
                         <td className="py-5 px-6">
-                        
                           <button
                             onClick={() => {
                               setSelectedClient(item.client_id);
@@ -325,7 +324,7 @@ const History = () => {
                           >
                             Review
                           </button>
-                            <button
+                          <button
                             onClick={() => handleAssignClick(item)}
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-900 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >

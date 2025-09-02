@@ -1403,7 +1403,7 @@ exports.retrieveTeamById = async (req, res) => {
 exports.getAssignmentsSummary = (req, res) => {
   const { txn_id } = req.params;
   const sql = `
-    SELECT aq.id, aq.txn_id, aq.user_id, aq.team_id, aq.assignment_mode, aq.deadline,
+    SELECT aq.id, aq.txn_id, aq.user_id, aq.team_id, aq.assignment_mode, DATE_FORMAT(aq.deadline, '%Y-%m-%d') AS deadline_local,
            e.employee_name, e.employee_email, t.name as team_name
     FROM assign_quotation aq
     JOIN dm_calculator_employees e ON e.id = aq.user_id

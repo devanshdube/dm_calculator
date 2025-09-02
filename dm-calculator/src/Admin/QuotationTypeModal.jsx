@@ -1123,6 +1123,14 @@ export default function QuotationTypeModal({
   const [summary, setSummary] = useState(null);
   const [checking, setChecking] = useState(false);
 
+  const normalizeDate = (d) => (d ? String(d).slice(0, 10) : "");
+  const getTeamCommonDeadline = (assignees = []) => {
+    const uniq = Array.from(
+      new Set(assignees.map((a) => normalizeDate(a.deadline)).filter(Boolean))
+    );
+    return uniq.length === 1 ? uniq[0] : "";
+  };
+
   useEffect(() => {
     if (!open) return;
     if (!clientId || !txnId) {
@@ -1141,6 +1149,14 @@ export default function QuotationTypeModal({
     }),
     [token]
   );
+
+  useEffect(() => {
+    if (!open) return;
+    setSummary(null);
+    setSelectedUser("");
+    setSelectedTeamId("");
+    setDeadline("");
+  }, [open]);
 
   // ---- Load BD users
   useEffect(() => {
@@ -1223,25 +1239,32 @@ export default function QuotationTypeModal({
         );
         if (cancelled) return;
 
+        console.log(res.data);
+
         if (res.data?.status === "Success") {
           const s = res.data.data;
+          console.log(s);
           setSummary(s);
 
           if (s.mode === "team" && s.team?.id) {
             setSelectedTeamId(s.team.id);
             setSelectedUser("");
+            const teamDeadline = getTeamCommonDeadline(s.assignees);
+            setDeadline(teamDeadline);
           } else if (s.mode === "single" && s.assignees?.[0]) {
             setSelectedUser(String(s.assignees[0].user_id));
             setSelectedTeamId("");
-            setDeadline(
-              s.assignees[0]?.deadline
-                ? String(s.assignees[0].deadline).slice(0, 10)
-                : ""
-            );
+            setDeadline(normalizeDate(s.assignees[0]?.deadline || ""));
+            // setDeadline(
+            //   s.assignees[0]?.deadline
+            //     ? String(s.assignees[0].deadline).slice(0, 10)
+            //     : ""
+            // );
           } else {
             // mixed or none
             setSelectedUser("");
             setSelectedTeamId("");
+            setDeadline("");
             // keep deadline empty unless you want to persist last value
           }
         } else {
@@ -1262,6 +1285,9 @@ export default function QuotationTypeModal({
         setChecking(false);
       }
     })();
+
+    console.log(summary);
+    console.log(deadline);
 
     return () => {
       cancelled = true;
@@ -1524,6 +1550,21 @@ export default function QuotationTypeModal({
           <p className="text-center text-xs text-indigo-600 mb-3">
             Assigned to team <b>{summary.team.name}</b> • Members:{" "}
             <b>{summary.total}</b>
+            {getTeamCommonDeadline(summary.assignees) ? (
+              <>
+                {" "}
+                • Current deadline:{" "}
+                <b>{getTeamCommonDeadline(summary.assignees)}</b>
+              </>
+            ) : (
+              <>
+                {" "}
+                •{" "}
+                <span className="text-gray-500">
+                  Members have different deadlines
+                </span>
+              </>
+            )}
           </p>
         ) : summaryMode === "single" ? (
           <p className="text-center text-xs text-amber-600 mb-3">
