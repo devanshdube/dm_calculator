@@ -35,7 +35,7 @@ function AdminExplorePlans() {
      dg_employee: employeeName,
    });
   const userName = currentUser?.name;
-  const baseURL = `https://dmcalculator.dentalguru.software`;
+  const baseURL = `http://localhost:5555`;
   const navigate = useNavigate(); 
 
 

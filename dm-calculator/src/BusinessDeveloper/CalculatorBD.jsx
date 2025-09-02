@@ -24,7 +24,7 @@ import { clearUser } from "../redux/user/userSlice";
 
 
 const CalculatorBD = () =>  {
-  const baseURL = `https://dmcalculator.dentalguru.software`;
+  const baseURL = `http://localhost:5555`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;

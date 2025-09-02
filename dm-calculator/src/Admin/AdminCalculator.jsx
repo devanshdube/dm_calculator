@@ -27,7 +27,7 @@ import { useNavigate } from "react-router-dom";
 
 
 const AdminCalculator = () => {
-  const baseURL = `https://dmcalculator.dentalguru.software`;
+  const baseURL = `http://localhost:5555`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;

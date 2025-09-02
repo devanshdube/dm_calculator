@@ -11,7 +11,7 @@ import img2 from "../assets/Dg 2copy.png";
 import img3 from "../assets/dghead.jpeg";
 
 export default function QuotationBD(){
-  const baseURL = `https://dmcalculator.dentalguru.software`;
+  const baseURL = `http://localhost:5555`;
   const { id, txn_id } = useParams();
   const location = useLocation();
   const query = new URLSearchParams(location.search);

@@ -12,7 +12,7 @@ import Swal from "sweetalert2";
 // import QuotationTypeModalBD from "./QuotationTypeModalBD";
 
 const HistoryBD = () => {
-  const baseURL = `https://dmcalculator.dentalguru.software`;
+  const baseURL = `http://localhost:5555`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
   const [clientData, setClientData] = useState([]);

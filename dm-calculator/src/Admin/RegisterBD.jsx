@@ -9,8 +9,8 @@ import moment from "moment";
 // import { clearUser } from "../redux/user/userSlice";
 
 export default function RegisterBD() {
-  // const baseURL = `https://dmcalculator.dentalguru.software`;
-  const baseURL = `https://dmcalculator.dentalguru.software`;
+  // const baseURL = `http://localhost:5555`;
+  const baseURL = `http://localhost:5555`;
   const { token } = useSelector((state) => state.user);
   //   const dispatch = useDispatch();
   //   const navigate = useNavigate();
