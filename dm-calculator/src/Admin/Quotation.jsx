@@ -11,7 +11,7 @@ import img2 from "../assets/Dg 2copy.png";
 import img3 from "../assets/dghead.jpeg";
 
 export default function Quotation() {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const { id, txn_id } = useParams();
   const location = useLocation();
   const query = new URLSearchParams(location.search);
@@ -193,6 +193,13 @@ const adsTotal = adsData.reduce((sum, ad) => {
     );
   }
 
+   const handlePrintPage = () => {
+    
+
+    document.title = `Quotation of ${clientName}`;
+    window.print();
+  
+  };
   return (
     <Wrapper>
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
@@ -200,7 +207,7 @@ const adsTotal = adsData.reduce((sum, ad) => {
         
         <div className="print:hidden flex justify-end gap-3 my-4">
           <button
-            onClick={() => window.print()}
+            onClick={handlePrintPage}
             className="bg-blue-600 text-white rounded-full px-4 py-2"
           >
             🖨️ Print

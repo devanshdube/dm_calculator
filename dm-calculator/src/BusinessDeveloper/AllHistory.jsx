@@ -11,7 +11,7 @@ import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
 
 const AllHistory = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
   // const [clientData, setClientData] = useState([]);

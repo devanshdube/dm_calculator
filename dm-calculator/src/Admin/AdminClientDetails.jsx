@@ -20,7 +20,7 @@ import AdminCalculator from "./AdminCalculator";
 import { clearUser } from "../redux/user/userSlice";
 
 const AdminClientDetails = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
@@ -136,6 +136,9 @@ const AdminClientDetails = () => {
           text: isEditing
             ? "Client updated successfully!"
             : "Client added successfully!",
+            showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         }).then(() => {
           setShowModal(false);
           getAllClients();
@@ -159,12 +162,19 @@ const AdminClientDetails = () => {
           text:
             error.response.data.message ||
             "Failed to save client. Please try again.",
+                    showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Error",
+          
           text: "Failed to save client. Please try again.",
+                  showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       }
     } finally {
@@ -200,6 +210,9 @@ try {
       icon: "success",
       title: "Deleted!",
       text: "Client deleted successfully.",
+              showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
     });
 
     // Refresh client list
@@ -209,6 +222,9 @@ try {
       icon: "error",
       title: "Failed!",
       text: response.data.message || "Unable to delete client.",
+              showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
     });
   }
 } catch (error) {
@@ -217,6 +233,9 @@ try {
     icon: "error",
     title: "Error",
     text: "Something went wrong while deleting client.",
+            showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
   });
 }
 };
@@ -288,6 +307,9 @@ try {
         icon: "error",
         title: "Error",
         text: "Failed to fetch clients. Please try again.",
+                showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
       });
       if (error.response && error.response.status === 401) {
         // Token is invalid or expired
@@ -295,7 +317,9 @@ try {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+                showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");

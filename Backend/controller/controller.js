@@ -651,7 +651,7 @@ exports.insertClientDetails = async (req, res) => {
   if (!client_name || !phone || !dg_employee) {
     return res
       .status(400)
-      .json({ status: "Failure", message: "All fields are required." });
+      .json({ status: "Failure", message: "All fields are required Client Name , Phone Number." });
   }
 
   try {
@@ -961,66 +961,63 @@ exports.saveAdsCampaign = async (req, res) => {
 };
 
 exports.saveCalculatorDataOfPlan = (req, res) => {
-  const {
-    plan_id,
-    plan_name,
-    service_name,
-    category_name,
-    editing_type_name,
-    editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,
-    employee,
-  } = req.body;
+  const data = req.body; // expect array of objects
+
+  if (!Array.isArray(data) || data.length === 0) {
+    return res.status(400).json({ status: "Failure", message: "No data received" });
+  }
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
   const query = `
     INSERT INTO plan_data (
-    	plan_id,plan_name,
-      service_name,
-      category_name,
-      editing_type_name,
-      editing_type_amount,
-      quantity,
-      include_content_posting,
-      include_thumbnail_creation,
-      total_amount,
-      employee,
-      created_at
-    ) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      plan_id, plan_name, service_name, category_name,
+      editing_type_name, editing_type_amount, quantity,
+      include_content_posting, include_thumbnail_creation,
+      total_amount, amount_ads, percent_ads,
+      charge_ads, total_ads, employee, created_at
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `;
 
-  const values = [
-    plan_id,
-    plan_name,
-    service_name,
-    category_name,
-    editing_type_name,
-    editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,
-    employee,
-    createdAt,
-  ];
+  const tasks = data.map((item) => {
+    const values = [
+      item.plan_id || null,
+      item.plan_name || null,
+      item.service_name || null,
+      item.category_name || null,
+      item.editing_type_name || null,
+      item.editing_type_amount || null,
+      item.quantity || null,
+      item.include_content_posting || null,
+      item.include_thumbnail_creation || null,
+      item.total_amount || null,
+    
+      item.amount_ads || null,
+      item.percent_ads  || null,
+      item.charge_ads || null,
+      item.total_ads ||  null,
+      item.employee || null,
+      createdAt,
+    ];
 
-  db.query(query, values, (err, result) => {
-    if (err) {
-      console.error("Insert Error:", err);
-      return res
-        .status(500)
-        .json({ status: "Failure", message: "Plan  error" });
-    }
-
-    res
-      .status(200)
-      .json({ status: "Success", message: "Saved successfully of Plan" });
+    return new Promise((resolve, reject) => {
+      db.query(query, values, (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      });
+    });
   });
+
+  Promise.all(tasks)
+    .then(() => {
+      res.status(200).json({ status: "Success", message: "Plan data saved successfully" });
+    })
+    .catch((err) => {
+      console.error("Insert Error:", err);
+      res.status(500).json({ status: "Failure", message: "Error saving plan data" });
+    });
 };
+
 
 exports.saveCalculatorDataOfPlanDetail = (req, res) => {
   const { plan_name } = req.body;

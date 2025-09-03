@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
 const AdsCampaignCalculator = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const { id, proposalId } = useParams();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;
@@ -28,7 +28,7 @@ const AdsCampaignCalculator = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          "http://localhost:5555/auth/api/calculator/getAdsServices",
+          "https://dmcalculator.dentalguru.software/auth/api/calculator/getAdsServices",
           {
             headers: {
               "Content-Type": "application/json",
@@ -52,7 +52,9 @@ const AdsCampaignCalculator = () => {
             title: "Session Expired",
             text: "Please login again.",
             icon: "warning",
-            confirmButtonText: "OK",
+                 showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
           }).then(() => {
             dispatch(clearUser());
             localStorage.removeItem("token");
@@ -71,7 +73,7 @@ const AdsCampaignCalculator = () => {
   //     try {
   //       setLoading(true);
   //       const response = await fetch(
-  //         `http://localhost:5555/auth/api/calculator/getAdsServices`
+  //         `https://dmcalculator.dentalguru.software/auth/api/calculator/getAdsServices`
   //       );
   //       const data = await response.json();
 
@@ -212,7 +214,7 @@ const AdsCampaignCalculator = () => {
   //   Get save Details
   //   const handleSaveToDatabase = async () => {
   //   try {
-  //     const response = await fetch("http://localhost:5555/auth/api/calculator/saveAdsCampaign", {
+  //     const response = await fetch("https://dmcalculator.dentalguru.software/auth/api/calculator/saveAdsCampaign", {
   //       method: "POST",
   //       headers: {
   //         "Content-Type": "application/json",
@@ -301,7 +303,7 @@ const AdsCampaignCalculator = () => {
       if (results.length > 0) {
         setAdsItems(results); // update state
         const response = await fetch(
-          "http://localhost:5555/auth/api/calculator/saveAdsCampaign",
+          "https://dmcalculator.dentalguru.software/auth/api/calculator/saveAdsCampaign",
           {
             method: "POST",
             headers: {
@@ -312,12 +314,25 @@ const AdsCampaignCalculator = () => {
         );
 
         const result = await response.json();
-        if (result.status === "Success") {
-          fetchData();
-          alert("Ads campaign calculated and saved successfully!");
-        } else {
-          alert("Failed to save: " + result.message);
-        }
+       if (result.status === "Success") {
+  fetchData();
+  Swal.fire({
+    icon: "success",
+    title: "Success!",
+    text: "Ads campaign calculated and saved successfully!",
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+  });
+} else {
+  Swal.fire({
+    icon: "error",
+    title: "Failed!",
+    text: "Failed to save: " + result.message,
+    showConfirmButton: true,  // keep button here so user sees the error
+  });
+}
+
       } else {
         setError("No valid data to save.");
       }

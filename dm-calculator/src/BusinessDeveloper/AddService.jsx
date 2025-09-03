@@ -23,7 +23,7 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 
 export default function AddService() {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const { id, proposalId } = useParams();
   const [getData, setGetData] = useState([]);
@@ -155,7 +155,9 @@ const { currentUser, token } = useSelector((state) => state.user);
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+            showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -188,7 +190,9 @@ const { currentUser, token } = useSelector((state) => state.user);
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+   showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -360,6 +364,9 @@ const handleCreateQuotation = async (plan) => {
         icon: "info",
         title: "No Notes",
         text: "No notes found for this plan.",
+          showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       });
       return;
     }
@@ -374,6 +381,9 @@ const handleCreateQuotation = async (plan) => {
         icon: "info",
         title: "No Data",
         text: "No services found for this plan.",
+          showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       });
       return;
     }
@@ -412,6 +422,9 @@ const handleCreateQuotation = async (plan) => {
       icon: "success",
       title: "Quotation Created",
       text: `Plan quotation saved successfully!`,
+        showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
     });
 
     fetchData(); // refresh table
@@ -421,6 +434,9 @@ const handleCreateQuotation = async (plan) => {
       icon: "error",
       title: "Error",
       text: "Something went wrong while saving the quotation.",
+        showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
     });
   }
 };
@@ -439,7 +455,15 @@ const handleDeleteClientPlanData = async (txn_id) => {
       const res = await axios.delete(`${baseURL}/auth/api/calculator/deleteClientAllPlanData/${txn_id}`);
 
       if (res.data.status === "Success") {
-        Swal.fire("Deleted!", "Plan has been deleted.", "success");
+     
+         Swal.fire({
+  icon: "success",
+  title: "Deleted!",
+   text: 'Plan has been deleted',
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
         
         // ✅ Refresh your list instead of reload
  
@@ -449,11 +473,27 @@ const handleDeleteClientPlanData = async (txn_id) => {
         setNotesData([])
    fetchClientNotes();
       } else {
-        Swal.fire("Error!", res.data.message || "Failed to delete plan.", "error");
+        
+            Swal.fire({
+  icon: "error",
+  title: "Error!",
+   text: err.response?.data?.message || "Failed to delete plan",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
       }
     } catch (err) {
       console.error("Delete error:", err);
-      Swal.fire("Error!", "Something went wrong while deleting.", "error");
+
+       Swal.fire({
+  icon: "error",
+  title: "Error!",
+   text: 'Something went wrong while deleting',
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
     }
   }
 };
@@ -487,8 +527,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
           icon: "success",
           title: "Deleted!",
           text: "Entry has been deleted.",
-          timer: 2000,
-          showConfirmButton: false,
+             showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
            fetchClientNotes();
 
@@ -497,6 +538,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
+                showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
       }
     } catch (error) {
@@ -505,6 +549,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
+              showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       });
     }
   };
@@ -535,8 +582,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
           icon: "success",
           title: "Deleted!",
           text: "note has been deleted.",
-          timer: 2000,
-          showConfirmButton: false,
+         showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
         fetchClientNotes();
       } else {
@@ -544,6 +592,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete note.",
+                showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
       }
     } catch (error) {
@@ -552,6 +603,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting note.",
+              showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       });
     }
   };
@@ -585,8 +639,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
             icon: "success",
             title: "Deleted!",
             text: "Entry has been deleted.",
-            timer: 2000,
-            showConfirmButton: false,
+                 showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
           });
           fetchAdsData()
           setGetAdsData([])
@@ -596,6 +651,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
             icon: "error",
             title: "Failed!",
             text: result.message || "Failed to delete entry.",
+                  showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
           });
         }
       } catch (error) {
@@ -604,6 +662,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
           icon: "error",
           title: "Error",
           text: "An error occurred while deleting entry.",
+                showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
       }
     };

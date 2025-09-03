@@ -25,7 +25,7 @@ import { useNavigate } from "react-router-dom";
 
 
 const AdminAddPlan = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;
@@ -148,6 +148,9 @@ console.log(selectedPlan);
       icon: "warning",  // use "warning" instead of "alert"
       title: "Plan name required",
       text: "Please enter a plan name",
+      showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
     });
     setLoading(false); // stop loader
     return; // prevent saving
@@ -170,6 +173,9 @@ console.log(selectedPlan);
         icon: "success",
         title: editId ? "Updated!" : "Saved!",
         text: editId ? "Entry updated successfully" : "Saved successfully",
+        showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
       });
 
       fetchData();
@@ -219,7 +225,9 @@ console.log(selectedPlan);
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -262,14 +270,19 @@ console.log(selectedPlan);
           icon: "success",
           title: "Deleted!",
           text: "Entry has been deleted.",
-          timer: 2000,
-          showConfirmButton: false,
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
+
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       }
     } catch (error) {
@@ -278,6 +291,9 @@ console.log(selectedPlan);
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
+        showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
       });
     }
   };

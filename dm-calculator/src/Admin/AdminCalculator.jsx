@@ -27,7 +27,7 @@ import { useNavigate } from "react-router-dom";
 
 
 const AdminCalculator = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;
@@ -238,6 +238,9 @@ const handleSave = () => {
           icon: "success",
           title: editId ? "Updated!" : "Saved!",
           text: editId ? "Entry updated successfully" : "Saved successfully",
+            showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
         fetchData();
         setLoading(false);
@@ -347,6 +350,9 @@ setAddons(initialAddons);
           text: isEditing
             ? "Note updated successfully!"
             : "Note added successfully!",
+              showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         }).then(() => {
           setShowModal(false);
            getAllPlanNotes();
@@ -357,6 +363,9 @@ setAddons(initialAddons);
           title: "Error",
           text:
             response.data.message || "Failed to save Note. Please try again.",
+            showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       }
     } catch (error) {
@@ -370,12 +379,18 @@ setAddons(initialAddons);
           text:
             error.response.data.message ||
             "Failed to save note. Please try again.",
+            showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Error",
           text: "Failed to save note. Please try again.",
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       }
     } finally {
@@ -407,6 +422,9 @@ const handleSaveNotes = async () => {
       icon: "success",
       title: "Notes Created",
       text: `Notes saved successfully!`,
+      showConfirmButton: false,  
+          timer: 2000,              
+            timerProgressBar: true   
     });
 
     fetchData(); // refresh table
@@ -416,6 +434,9 @@ const handleSaveNotes = async () => {
       icon: "error",
       title: "Error",
       text: "Something went wrong while saving the notes.",
+      showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
     });
   }
 };
@@ -450,6 +471,9 @@ try {
       icon: "success",
       title: "Deleted!",
       text: "Note deleted successfully.",
+      showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
     });
 
     // Refresh client list
@@ -459,6 +483,9 @@ try {
       icon: "error",
       title: "Failed!",
       text: response.data.message || "Unable to delete note.",
+      showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
     });
   }
 } catch (error) {
@@ -467,6 +494,9 @@ try {
     icon: "error",
     title: "Error",
     text: "Something went wrong while deleting note.",
+    showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
   });
 }
 };
@@ -493,7 +523,9 @@ try {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -532,6 +564,9 @@ const filtered = notes.filter(
       icon: "error",
       title: "Error",
       text: "Failed to fetch No plan found. Please try again.",
+      showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
     });
 
     if (error.response && error.response.status === 401) {
@@ -539,7 +574,9 @@ const filtered = notes.filter(
         title: "Session Expired",
         text: "Please login again.",
         icon: "warning",
-        confirmButtonText: "OK",
+     showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
       }).then(() => {
         dispatch(clearUser());
         localStorage.removeItem("token");
@@ -586,14 +623,18 @@ const filtered = notes.filter(
           icon: "success",
           title: "Deleted!",
           text: "Entry has been deleted.",
-          timer: 2000,
-          showConfirmButton: false,
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       }
     } catch (error) {
@@ -602,6 +643,9 @@ const filtered = notes.filter(
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
+        showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
       });
     }
   };

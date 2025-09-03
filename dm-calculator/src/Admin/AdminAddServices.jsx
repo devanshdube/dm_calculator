@@ -6,7 +6,7 @@ import { clearUser } from "../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
 
 const AdminAddServices = () => {
-  const baseURL = "http://localhost:5555";
+  const baseURL = "https://dmcalculator.dentalguru.software";
   const { token } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -47,7 +47,9 @@ const AdminAddServices = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+     showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -78,7 +80,9 @@ const AdminAddServices = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+            showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -90,7 +94,14 @@ const AdminAddServices = () => {
 
   const addService = async () => {
     if (!serviceName.trim()) {
-      return Swal.fire("Validation", "Service name is required", "warning");
+      return Swal.fire({
+  icon: "warning",
+  title: "Validation!",
+   text: "Service name is required",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
     }
     try {
       const res = await axios.post(
@@ -99,23 +110,42 @@ const AdminAddServices = () => {
           service_name: serviceName,
         }
       );
-      Swal.fire("Success", res.data.message, "success");
+   
+       Swal.fire({
+      icon: "success",
+      title: "Success",
+      text: res.data.message,
+      showConfirmButton: false,  
+          timer: 2000,              
+            timerProgressBar: true   
+    });
       setServiceName("");
       fetchServices();
     } catch (err) {
       console.log("Error adding service:", err);
 
-      Swal.fire("Error", "Could not add service", "error");
+     
+          Swal.fire({
+  icon: "error",
+  title: "Error!",
+   text: 'Could not add service',
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
     }
   };
 
   const addCategory = async () => {
     if (!selectedServiceId || !categoryName.trim()) {
-      return Swal.fire(
-        "Validation",
-        "Select service and enter category name",
-        "warning"
-      );
+      return Swal.fire({
+  icon: "warning",
+  title: "Validation!",
+   text: "Select service and enter category name",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
     }
     try {
       const res = await axios.post(
@@ -125,13 +155,28 @@ const AdminAddServices = () => {
           category_name: categoryName,
         }
       );
-      Swal.fire("Success", res.data.message, "success");
+      
+      Swal.fire({
+  icon: "success",
+  title: "Success!",
+   text: res.data.message,
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
       setCategoryName("");
       fetchCategories(selectedServiceId);
     } catch (err) {
       console.log("Error adding category:", err);
+ Swal.fire({
+  icon: "error",
+  title: "Error!",
+   text: 'Could not add service',
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
 
-      Swal.fire("Error", "Could not add category", "error");
     }
   };
 
@@ -142,7 +187,14 @@ const AdminAddServices = () => {
       !editingTypeName.trim() ||
       !editingTypeAmount.trim()
     ) {
-      return Swal.fire("Validation", "All fields are required", "warning");
+      return Swal.fire({
+  icon: "warning",
+  title: "Validation!",
+   text: "All fields are required",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
     }
     try {
       const res = await axios.post(
@@ -154,12 +206,27 @@ const AdminAddServices = () => {
           amount: editingTypeAmount,
         }
       );
-      Swal.fire("Success", res.data.message, "success");
+  
+       Swal.fire({
+      icon: "success",
+      title: "Success",
+      text: res.data.message,
+      showConfirmButton: false,  
+          timer: 2000,              
+            timerProgressBar: true   
+    });
       setEditingTypeName("");
     } catch (err) {
       console.log("Error adding editing type:", err);
 
-      Swal.fire("Error", "Could not add editing type", "error");
+       Swal.fire({
+  icon: "error",
+  title: "Error!",
+   text: 'Could not add editing type',
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
     }
   };
 

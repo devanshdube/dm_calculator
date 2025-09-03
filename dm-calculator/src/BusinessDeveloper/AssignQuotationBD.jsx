@@ -13,7 +13,7 @@ import ServiceProgressTableBD from "./ServiceProgressTableBD";
 import SkeletonTable from "../Admin/SkeletonTable";
 
 const AssignQuotationBD = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
   // const [clientData, setClientData] = useState([]);

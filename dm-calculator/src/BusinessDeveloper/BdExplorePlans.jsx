@@ -35,7 +35,7 @@ function BdExplorePlans() {
      dg_employee: employeeName,
    });
   const userName = currentUser?.name;
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate(); 
 
 
@@ -76,7 +76,9 @@ const filtered = notes.filter(
         title: "Session Expired",
         text: "Please login again.",
         icon: "warning",
-        confirmButtonText: "OK",
+         showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       }).then(() => {
         dispatch(clearUser());
         localStorage.removeItem("token");
@@ -117,7 +119,9 @@ useEffect(() => {
               title: "Session Expired",
               text: "Please login again.",
               icon: "warning",
-              confirmButtonText: "OK",
+                showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
             }).then(() => {
               dispatch(clearUser());
               localStorage.removeItem("token");
@@ -204,6 +208,9 @@ const handleSubmit = async (e) => {
         icon: "info",
         title: "No Data",
         text: "No services found for this plan.",
+          showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       });
       return;
     }
@@ -266,6 +273,9 @@ const handleSubmit = async (e) => {
         icon: "success",
         title: "Quotation Created",
         text: message,
+          showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       });
 
       setShowModal(false);
@@ -275,6 +285,9 @@ const handleSubmit = async (e) => {
         icon: "error",
         title: "Error",
         text: message || "Failed to save quotation",
+          showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       });
     }
 
@@ -284,6 +297,9 @@ const handleSubmit = async (e) => {
       icon: "error",
       title: "Error",
       text: err.response.data.message,
+        showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
     });
   } finally {
     setLoading(false);

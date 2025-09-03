@@ -6,9 +6,9 @@ import { useSelector } from "react-redux";
 
 const CreateTeam = () => {
   // If your server is on a different base path, set VITE_API_BASE_URL accordingly.
-  // e.g. http://localhost:5555  (no trailing slash)
-  // const baseURL = import.meta.env?.VITE_API_BASE_URL || "http://localhost:5555";
-  const baseURL = "http://localhost:5555";
+  // e.g. https://dmcalculator.dentalguru.software  (no trailing slash)
+  // const baseURL = import.meta.env?.VITE_API_BASE_URL || "https://dmcalculator.dentalguru.software";
+  const baseURL = "https://dmcalculator.dentalguru.software";
   const { token } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

@@ -12,7 +12,7 @@ import Swal from "sweetalert2";
 // import QuotationTypeModalBD from "./QuotationTypeModalBD";
 
 const HistoryBD = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
   const [clientData, setClientData] = useState([]);
@@ -51,7 +51,9 @@ const HistoryBD = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+    showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -85,7 +87,9 @@ const HistoryBD = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+           showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -153,6 +157,9 @@ const HistoryBD = () => {
           icon: "success",
           title: "Deleted!",
           text: "Quatation deleted successfully.",
+            showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
 
         // Refresh client list
@@ -163,6 +170,9 @@ const HistoryBD = () => {
           icon: "error",
           title: "Failed!",
           text: response.data.message || "Unable to delete client.",
+            showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
       }
     } catch (error) {
@@ -171,6 +181,9 @@ const HistoryBD = () => {
         icon: "error",
         title: "Error",
         text: "Something went wrong while deleting client.",
+          showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       });
     }
   };

@@ -11,7 +11,7 @@ import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
 
 const AllHistory = () => {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
   // const [clientData, setClientData] = useState([]);
@@ -60,7 +60,9 @@ const fetchAllClientServices = async () => {
         title: "Session Expired",
         text: "Please login again.",
         icon: "warning",
-        confirmButtonText: "OK",
+      showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       }).then(() => {
         dispatch(clearUser());
         localStorage.removeItem("token");
@@ -179,7 +181,7 @@ const fetchAllClientServices = async () => {
                       Status
                     </th> */}
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      Action
+                         Quotation Review
                     </th>
                   </tr>
                 </thead>
@@ -228,7 +230,7 @@ const fetchAllClientServices = async () => {
                             // }
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                            Quotation
+                           Review
                           </button>
                         </td>
                       </tr>

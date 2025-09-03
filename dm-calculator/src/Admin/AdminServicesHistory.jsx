@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 
 const AdminServicesHistory = () => {
-  const baseURL = "http://localhost:5555";
+  const baseURL = "https://dmcalculator.dentalguru.software";
   const [keyword, setKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const clientPerPage = 7;
@@ -114,7 +114,10 @@ const AdminServicesHistory = () => {
         Swal.fire({
           icon: "success",
           title: "Success",
-          text: "Service Editing Type updated successfully!"
+          text: "Service Editing Type updated successfully!",
+            showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         
         }).then(() => {
           setShowModal(false);
@@ -126,6 +129,9 @@ const AdminServicesHistory = () => {
           title: "Error",
           text:
             response.data.message || "Failed to editing type. Please try again.",
+                  showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
       }
     } catch (error) {
@@ -139,12 +145,18 @@ const AdminServicesHistory = () => {
           text:
             error.response.data.message ||
             "Failed to update service editing type. Please try again.",
+                  showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Error",
           text: "Failed to update service editing type. Please try again.",
+                showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
       }
     } finally {
