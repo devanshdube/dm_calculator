@@ -68,6 +68,38 @@ const AssignQuotationBD = () => {
 
   console.log(fetchServices);
 
+  const normalizeDate = (d) => (d ? String(d).slice(0, 10) : "");
+
+  const pickTeamCommonDeadline = (assignees = []) => {
+    const uniq = Array.from(
+      new Set(assignees.map((a) => normalizeDate(a.deadline)).filter(Boolean))
+    );
+    return uniq.length === 1 ? uniq[0] : ""; // mixed => ""
+  };
+
+  async function getDisplayDeadline({ baseURL, token, txnId }) {
+    const res = await axios.get(
+      `${baseURL}/auth/api/calculator/getAssignmentsSummary/${txnId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (res?.data?.status !== "Success") return "";
+
+    const s = res.data.data || {};
+    if (s.mode === "single" && s.assignees?.[0]) {
+      return normalizeDate(s.assignees[0].deadline);
+    }
+    if (s.mode === "team") {
+      return pickTeamCommonDeadline(s.assignees || []);
+    }
+    return ""; // mixed / none
+  }
+
   useEffect(() => {
     fetchAllClientServices();
   }, []);
@@ -97,8 +129,9 @@ const AssignQuotationBD = () => {
   };
 
   const showApiData = filterPagination();
+  console.log(showApiData);
 
-  const handleOpenProgress = (row) => {
+  const handleOpenProgress = async (row) => {
     const cid = row?.client_id ?? null;
     const txn = row?.txn_id ?? null;
     const uid = row?.user_id ?? null;
@@ -122,11 +155,19 @@ const AssignQuotationBD = () => {
     setShowModal(true);
     setModalLoading(true);
 
-    if (modalTimerRef.current) clearTimeout(modalTimerRef.current);
-    modalTimerRef.current = setTimeout(() => {
-      setModalLoading(false);
-      modalTimerRef.current = null;
-    }, 1200);
+    try {
+      const d = await getDisplayDeadline({ baseURL, token, txnId: txn });
+      setSelectedDline(d || ""); // "" if none/mixed
+    } catch (e) {
+      console.error("deadline fetch error:", e);
+      setSelectedDline("");
+    } finally {
+      if (modalTimerRef.current) clearTimeout(modalTimerRef.current);
+      modalTimerRef.current = setTimeout(() => {
+        setModalLoading(false);
+        modalTimerRef.current = null;
+      }, 1200);
+    }
   };
 
   useEffect(() => {
@@ -190,14 +231,14 @@ const AssignQuotationBD = () => {
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       TXN ID
                     </th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
+                    {/* <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       User Name
-                    </th>
+                    </th> */}
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       Action
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      Quotation Review
+                      Quotation
                     </th>
                   </tr>
                 </thead>
@@ -232,15 +273,15 @@ const AssignQuotationBD = () => {
                             {item.txn_id ? item.txn_id : "N/A"}
                           </div>
                         </td>
-                        <td className="py-5 px-6">
+                        {/* <td className="py-5 px-6">
                           <div className="font-semibold text-white text-lg group-hover:text-cyan-300 transition-colors">
                             {item.employee_name}
                           </div>
-                        </td>
+                        </td> */}
                         <td className="py-5 px-6">
                           <button
                             onClick={() => handleOpenProgress(item)}
-                            className="inline-block whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
+                            className="inline-block whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
                             Update Progress
                           </button>
@@ -268,7 +309,7 @@ const AssignQuotationBD = () => {
                             //     `/BD/quotation/${item.client_id}/${item.txn_id}`
                             //   )
                             // }
-                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
+                            className="inline-block px-4 py-2 rounded-full text-xs font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
                             Review
                           </button>

@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Calendar, Search, Filter, PenTool, Edit, Mail, User, X, IndianRupee } from "lucide-react";
+import {
+  Calendar,
+  Search,
+  Filter,
+  PenTool,
+  Edit,
+  Mail,
+  User,
+  X,
+  IndianRupee,
+} from "lucide-react";
 import ReactPaginate from "react-paginate";
 import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,16 +25,13 @@ const AdminServicesHistory = () => {
   const clientPerPage = 7;
   const [serviceData, setServiceData] = useState([]);
   const { currentUser, token } = useSelector((state) => state.user);
-    const [formData, setFormData] = useState({
-    	editing_type_id: "",
+  const [formData, setFormData] = useState({
+    editing_type_id: "",
     editing_type_name: "",
     amount: "",
-   
-
   });
-  const [showModal, setShowModal] = useState(false); 
-    const [loading, setLoading] = useState(false);
-  
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -72,13 +79,11 @@ const AdminServicesHistory = () => {
   const handleClose = () => {
     setShowModal(false);
     setFormData({
-      	editing_type_id: "",
+      editing_type_id: "",
       editing_type_name: "",
       amount: "",
-     
     });
   };
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -97,16 +102,16 @@ const AdminServicesHistory = () => {
       console.log("Submitting form data:", formData);
       let response;
 
-     response = await axios.put(
-          `${baseURL}/auth/api/calculator/updateServiceData/${formData.editing_type_id}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+      response = await axios.put(
+        `${baseURL}/auth/api/calculator/updateServiceData/${formData.editing_type_id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       console.log("API response:", response.data);
 
@@ -114,8 +119,7 @@ const AdminServicesHistory = () => {
         Swal.fire({
           icon: "success",
           title: "Success",
-          text: "Service Editing Type updated successfully!"
-        
+          text: "Service Editing Type updated successfully!",
         }).then(() => {
           setShowModal(false);
           fetchData();
@@ -125,7 +129,8 @@ const AdminServicesHistory = () => {
           icon: "error",
           title: "Error",
           text:
-            response.data.message || "Failed to editing type. Please try again.",
+            response.data.message ||
+            "Failed to editing type. Please try again.",
         });
       }
     } catch (error) {
@@ -150,11 +155,7 @@ const AdminServicesHistory = () => {
     } finally {
       setLoading(false);
     }
-    
   };
-
-
-
 
   const handleDelete = async (row) => {
     try {
@@ -301,25 +302,22 @@ const AdminServicesHistory = () => {
                           </button>
                         </td> */}
                         <td className="py-4 px-4 ">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation(); // prevent card onClick
-              
-                                      setFormData({
-                                        	editing_type_id: item.editing_type_id,
-                                        editing_type_name:
-                                         item.editing_type_name,
-                                        amount: item.amount,
-                                       
-                                       
-                                      });
-                                      
-                                      setShowModal(true);
-                                    }}
-                                    className="inline-block px-3 py-2 mx-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25"
-                                  >
-                                    Edit
-                                  </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // prevent card onClick
+
+                              setFormData({
+                                editing_type_id: item.editing_type_id,
+                                editing_type_name: item.editing_type_name,
+                                amount: item.amount,
+                              });
+
+                              setShowModal(true);
+                            }}
+                            className="inline-block px-3 py-2 mx-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25"
+                          >
+                            Edit
+                          </button>
                           <button
                             onClick={() => handleDelete(item)}
                             className="inline-block px-3 py-2 mt-1 rounded-full text-sm font-medium bg-red-100 text-red-800"
@@ -353,7 +351,7 @@ const AdminServicesHistory = () => {
             </PaginationContainer>
           </div>
         </div>
-          {showModal && (
+        {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
@@ -384,7 +382,6 @@ const AdminServicesHistory = () => {
               {/* Form */}
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 {/* Client Name */}
-               
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -406,7 +403,7 @@ const AdminServicesHistory = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <IndianRupee className="w-4 h-4 inline mr-2" />
-                    Amount 
+                    Amount
                   </label>
                   <input
                     type="amount"
@@ -419,7 +416,6 @@ const AdminServicesHistory = () => {
                   />
                 </div>
 
-
                 {/* Buttons */}
                 <div className="flex justify-end gap-3 pt-4">
                   <button
@@ -429,8 +425,6 @@ const AdminServicesHistory = () => {
                   >
                     Cancel
                   </button>
-                  
-                  
 
                   <button
                     type="submit"

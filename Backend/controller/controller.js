@@ -2825,3 +2825,330 @@ exports.addMembersToTeam = async (req, res) => {
     });
   }
 };
+
+function makeSlug(clientId) {
+  return `${clientId}-${Date.now().toString(36)}-${crypto
+    .randomBytes(3)
+    .toString("hex")}`;
+}
+
+exports.generateClientLink = async (req, res) => {
+  try {
+    const { client_id, created_by, expires_at, is_active } = req.body;
+
+    if (!client_id) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "client_id is required" });
+    }
+
+    // 1) ensure client exists
+    db.query(
+      "SELECT id FROM dm_calculator_client_details WHERE id = ?",
+      [client_id],
+      (e, rows) => {
+        if (e) {
+          console.error("client check error:", e.sqlMessage || e);
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "DB error (client check)" });
+        }
+        if (!rows.length) {
+          return res
+            .status(404)
+            .json({ status: "Failure", message: "Client not found" });
+        }
+
+        // 2) existing active, non-expired link?
+        const nowStr = moment()
+          .tz("Asia/Kolkata")
+          .format("YYYY-MM-DD HH:mm:ss");
+        const qExisting = `
+          SELECT slug FROM client_requirement_links
+          WHERE client_id = ?
+            AND is_active = 1
+            AND (expires_at = '' OR expires_at > ?)
+          ORDER BY id DESC
+          LIMIT 1
+        `;
+        db.query(qExisting, [client_id, nowStr], (e2, rows2) => {
+          if (e2) {
+            console.error("lookup error:", e2.sqlMessage || e2);
+            return res
+              .status(500)
+              .json({ status: "Failure", message: "DB error (lookup)" });
+          }
+
+          const origin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+          if (rows2.length) {
+            const slug = rows2[0].slug;
+            return res.json({
+              status: "Success",
+              data: { slug, url: `${origin}/public/r/${slug}` },
+              note: "Reusing existing active link",
+            });
+          }
+
+          // 3) create new slug & insert
+          const slug = makeSlug(client_id);
+
+          // body se aaya hua, ya defaults:
+          const isActive = typeof is_active === "number" ? is_active : 1;
+          // VARCHAR NOT NULL schema ke hisaab se:
+          // - "" : no expiry
+          // - "YYYY-MM-DD HH:mm:ss" : valid expiry
+          const expiresAt =
+            typeof expires_at === "string" ? expires_at.trim() : "";
+
+          const createdBy = Number.isInteger(created_by) ? created_by : null;
+
+          const createdAt = moment()
+            .tz("Asia/Kolkata")
+            .format("YYYY-MM-DD HH:mm:ss");
+
+          const qInsert = `
+            INSERT INTO client_requirement_links
+              (client_id, slug, is_active, expires_at, created_by, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `;
+
+          // ⚠️ NOTE: 6 placeholders → 6 values
+          db.query(
+            qInsert,
+            [client_id, slug, isActive, expiresAt, createdBy, createdAt],
+            (e3) => {
+              if (e3) {
+                console.error("insert error:", e3.code, e3.sqlMessage || e3);
+                if (e3.code === "ER_DUP_ENTRY") {
+                  // rare slug collision: retry once
+                  const retry = makeSlug(client_id);
+                  db.query(
+                    qInsert,
+                    [
+                      client_id,
+                      retry,
+                      isActive,
+                      expiresAt,
+                      createdBy,
+                      createdAt,
+                    ],
+                    (e4) => {
+                      if (e4) {
+                        console.error(
+                          "retry insert error:",
+                          e4.sqlMessage || e4
+                        );
+                        return res.status(500).json({
+                          status: "Failure",
+                          message: "DB error (insert duplicate)",
+                        });
+                      }
+                      return res.json({
+                        status: "Success",
+                        data: {
+                          slug: retry,
+                          url: `${origin}/public/r/${retry}`,
+                        },
+                      });
+                    }
+                  );
+                  return;
+                }
+                return res
+                  .status(500)
+                  .json({ status: "Failure", message: "DB error (insert)" });
+              }
+
+              return res.json({
+                status: "Success",
+                data: { slug, url: `${origin}/public/r/${slug}` },
+              });
+            }
+          );
+        });
+      }
+    );
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ status: "Failure", message: "Unexpected server error" });
+  }
+};
+
+function nowISTString() {
+  return moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+}
+
+exports.submitRequirement = (req, res) => {
+  const {
+    slug,
+    name,
+    email = null,
+    phone,
+    requirement = "",
+    items_json = [],
+    total_amount = 0,
+  } = req.body || {};
+
+  if (!slug)
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "slug is required" });
+  if (!name)
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "name is required" });
+  if (!phone || String(phone).replace(/\D/g, "").length < 10) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "phone must be 10 digits" });
+  }
+
+  // items_json string/array dono accept
+  let items = [];
+  if (Array.isArray(items_json)) items = items_json;
+  else if (typeof items_json === "string") {
+    try {
+      const parsed = JSON.parse(items_json);
+      if (Array.isArray(parsed)) items = parsed;
+    } catch {}
+  }
+  const hasAnyItem = items.length > 0;
+  if (!hasAnyItem && !String(requirement).trim()) {
+    return res.status(400).json({
+      status: "Failure",
+      message: "Select at least one item or provide requirement text",
+    });
+  }
+
+  const nowStr = nowISTString();
+
+  // 1) link verify + expiry check
+  const qLink = `
+    SELECT id, client_id, is_active, expires_at
+    FROM client_requirement_links
+    WHERE slug = ?
+    LIMIT 1
+  `;
+  db.query(qLink, [slug], (e1, rows1) => {
+    if (e1) {
+      console.error("link lookup error:", e1);
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "DB error (link lookup)" });
+    }
+    if (!rows1.length) {
+      return res
+        .status(404)
+        .json({ status: "Failure", message: "Invalid link" });
+    }
+
+    const link = rows1[0];
+    if (!Number(link.is_active)) {
+      return res
+        .status(410)
+        .json({ status: "Failure", message: "Link is inactive" });
+    }
+
+    const exp = link.expires_at; // VARCHAR "" => no expiry, DATETIME => check
+    const isExpired = exp && String(exp).trim() !== "" && exp <= nowStr;
+    if (isExpired) {
+      return res
+        .status(410)
+        .json({ status: "Failure", message: "Link expired" });
+    }
+
+    // 2) transaction start
+    db.beginTransaction((e2) => {
+      if (e2) {
+        console.error("tx begin err:", e2);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "DB error (tx start)" });
+      }
+
+      const qMaster = `
+  INSERT INTO requirement_submissions
+    (client_id, link_id, slug, name, email, phone, requirement, total_amount, created_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
+      const masterVals = [
+        link.client_id,
+        link.id,
+        slug,
+        name,
+        email,
+        phone,
+        requirement || null,
+        Number(total_amount) || 0,
+        nowISTString(),
+      ];
+
+      db.query(qMaster, masterVals, (e3, result) => {
+        if (e3) {
+          console.error("insert master err:", e3);
+          return db.rollback(() =>
+            res.status(500).json({
+              status: "Failure",
+              message: "DB error (insert submission)",
+            })
+          );
+        }
+
+        const submissionId = result.insertId;
+        if (!hasAnyItem) {
+          return db.commit((e4) => {
+            if (e4) {
+              console.error("commit err:", e4);
+              return res
+                .status(500)
+                .json({ status: "Failure", message: "DB error (commit)" });
+            }
+            return res.json({
+              status: "Success",
+              data: { submission_id: submissionId },
+            });
+          });
+        }
+
+        const qItems = `
+          INSERT INTO requirement_submission_items
+            (submission_id, category, sub_category, unit_price, qty, line_total)
+          VALUES ?
+        `;
+        const rows = items.map((it) => [
+          submissionId,
+          String(it.category || "").slice(0, 191),
+          String(it.sub_category || "").slice(0, 191),
+          Number(it.unit_price) || 0,
+          parseInt(it.qty, 10) || 0,
+          Number(it.line_total) || 0,
+        ]);
+
+        db.query(qItems, [rows], (e5) => {
+          if (e5) {
+            console.error("insert items err:", e5);
+            return db.rollback(() =>
+              res
+                .status(500)
+                .json({ status: "Failure", message: "DB error (insert items)" })
+            );
+          }
+          db.commit((e6) => {
+            if (e6) {
+              console.error("commit err:", e6);
+              return res
+                .status(500)
+                .json({ status: "Failure", message: "DB error (commit)" });
+            }
+            return res.json({
+              status: "Success",
+              data: { submission_id: submissionId },
+            });
+          });
+        });
+      });
+    });
+  });
+};

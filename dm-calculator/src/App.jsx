@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+// import { useEffect } from "react";
 import { Suspense, lazy } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -6,11 +6,14 @@ import {
   Route,
   Routes,
   useLocation,
-  useNavigate,
+  // useNavigate,
 } from "react-router-dom";
 import styled from "styled-components";
 import ForgotPassword from "./Screens/ForgotPassword";
 import { GlobalStyle } from "./Admin/GlobalStyle ";
+const PublicRequirementForm = lazy(() =>
+  import("./Client/PublicRequirementForm")
+);
 const Login = lazy(() => import("./Screens/Login"));
 const AdminRouter = lazy(() => import("./Routers/AdminRouter"));
 const BDRouter = lazy(() => import("./Routers/BDRouter"));
@@ -19,34 +22,24 @@ function App() {
   const { currentUser } = useSelector((state) => state.user);
   // const [userRole, setUserRole] = useState(null);
   const location = useLocation();
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (currentUser?.role && location.pathname === "/") {
-      if (currentUser.role === "Owner") {
-        navigate("/admin/dashboard");
-      } else if (currentUser.role === "BD") {
-        navigate("/BD/dashboard");
-      }
-    }
-  }, [currentUser, location.pathname, navigate]);
+  // const navigate = useNavigate();
+  const isPublicRoute =
+    location.pathname.startsWith("/public/") ||
+    (location.hash && location.hash.startsWith("#/public/"));
 
   // useEffect(() => {
   //   if (currentUser?.role && location.pathname === "/") {
-  //     setUserRole(currentUser.role);
-  //     if (location.pathname === "/") {
-  //       if (currentUser.role === "Owner") {
-  //         navigate("/admin/dashboard");
-  //       } else if (currentUser.role === "BD") {
-  //         navigate("/BD/dashboard");
-  //       }
+  //     if (currentUser.role === "Owner") {
+  //       navigate("/admin/dashboard");
+  //     } else if (currentUser.role === "BD") {
+  //       navigate("/BD/dashboard");
   //     }
   //   }
   // }, [currentUser, location.pathname, navigate]);
-  // console.log(userRole);
 
   return (
     <>
-    <GlobalStyle/> 
+      <GlobalStyle />
       <Wrapper>
         <Suspense
           fallback={
@@ -63,9 +56,32 @@ function App() {
             location.pathname !== "/" &&
             location.pathname !== "/password-reset"} */}
           <Routes>
-            <Route
+            <Route path="/public/r/:slug" element={<PublicRequirementForm />} />
+
+            {/* <Route
               path="/"
               element={currentUser ? <Navigate to="/dashboard" /> : <Login />}
+            /> */}
+
+            <Route
+              path="/"
+              element={
+                !currentUser ? (
+                  <Login />
+                ) : isPublicRoute ? (
+                  // public par ho toh kuch mat chhedo
+                  <Navigate
+                    to={location.pathname + location.search + location.hash}
+                    replace
+                  />
+                ) : currentUser.role === "Owner" ? (
+                  <Navigate to="/admin/dashboard" replace />
+                ) : currentUser.role === "BD" ? (
+                  <Navigate to="/BD/dashboard" replace />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
             />
 
             {/* <Route
@@ -227,6 +243,20 @@ const Wrapper = styled.div`
     }
   }
 `;
+
+// useEffect(() => {
+//   if (currentUser?.role && location.pathname === "/") {
+//     setUserRole(currentUser.role);
+//     if (location.pathname === "/") {
+//       if (currentUser.role === "Owner") {
+//         navigate("/admin/dashboard");
+//       } else if (currentUser.role === "BD") {
+//         navigate("/BD/dashboard");
+//       }
+//     }
+//   }
+// }, [currentUser, location.pathname, navigate]);
+// console.log(userRole);
 
 // <Route
 //             path="/BD/dashboard"

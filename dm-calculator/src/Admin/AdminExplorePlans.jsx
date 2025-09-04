@@ -1,7 +1,7 @@
-import axios from 'axios';
-import { ArrowRight } from 'lucide-react';
-import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux';
+import axios from "axios";
+import { ArrowRight } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import {
   User,
   Phone,
@@ -13,164 +13,153 @@ import {
   X,
   Building,
 } from "lucide-react";
-import Swal from 'sweetalert2';
-import { useNavigate } from 'react-router-dom';
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 function AdminExplorePlans() {
-    const [getPlanData, setGetPlanData] = useState([]);
-    const { currentUser, token } = useSelector((state) => state.user);
-    const [allPlanNote, setAllPlanNote] = useState([]);
-    const employeeName = currentUser?.name;
-    const [loading,setLoading] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
- const [showModal, setShowModal] = useState(false);
- const [planid,setPlanId] = useState('');
- const [planName,setPlanName] = useState('');
-   const [formData, setFormData] = useState({
-     client_name: "",
-     client_organization: "",
-     email: "",
-     phone: "",
-     address: "",
-     dg_employee: employeeName,
-   });
+  const [getPlanData, setGetPlanData] = useState([]);
+  const { currentUser, token } = useSelector((state) => state.user);
+  const [allPlanNote, setAllPlanNote] = useState([]);
+  const employeeName = currentUser?.name;
+  const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [planid, setPlanId] = useState("");
+  const [planName, setPlanName] = useState("");
+  const [formData, setFormData] = useState({
+    client_name: "",
+    client_organization: "",
+    email: "",
+    phone: "",
+    address: "",
+    dg_employee: employeeName,
+  });
   const userName = currentUser?.name;
   const baseURL = `https://dmcalculator.dentalguru.software`;
-  const navigate = useNavigate(); 
-
-
+  const navigate = useNavigate();
 
   const getAllPlanNotes = async () => {
-  try {
-    const response = await axios.get(
-      `${baseURL}/auth/api/calculator/getPlanNotes`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    try {
+      const response = await axios.get(
+        `${baseURL}/auth/api/calculator/getPlanNotes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const notes = response.data.data;
+
+      const filtered = notes.filter(
+        (note) => String(note.plan) === String(planName) // type safe compare
+      );
+
+      console.log("Filtered Notes:", filtered);
+
+      setAllPlanNote(filtered);
+    } catch (error) {
+      console.error("Error fetching No plan found:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to fetch No plan found. Please try again.",
+      });
+
+      if (error.response && error.response.status === 401) {
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
       }
-    );
+    }
+  };
 
-    const notes = response.data.data;
+  useEffect(() => {
+    if (planName) {
+      getAllPlanNotes();
+    }
+  }, [planName]);
 
-const filtered = notes.filter(
-      (note) => String(note.plan) === String(planName) // type safe compare
-    );
+  const fetchPlanData = async () => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getAllPlanData`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.data.status === "Success") {
+        console.log(res.data.data);
+        setGetPlanData(res.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
+  const groupByPlan = (data) => {
+    console.log(data);
 
-    console.log("Filtered Notes:", filtered);
+    const grouped = {};
 
-    setAllPlanNote(filtered);
+    data.forEach((item) => {
+      if (!grouped[item.plan_id]) {
+        grouped[item.plan_id] = {
+          id: item.plan_id,
+          title: item.plan_name,
+          subtitle: "Custom Plan", // you can make this dynamic if needed
+          description: `Includes ${item.plan_name} services tailored to your needs.`,
+          gradient: "from-green-500 to-teal-600", // default or dynamic
+          navigation: "/admin/dynamicPlan",
+          features: [],
+          totalAmount: 0, // new field for amount
+        };
+      }
 
-   
+      grouped[item.plan_id].features.push(
+        `${item.service_name} - ${item.category_name}`
+      );
 
-  } catch (error) {
-    console.error("Error fetching No plan found:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Failed to fetch No plan found. Please try again.",
+      // Add the amount (make sure item.amount is a number)
+      grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
     });
 
-    if (error.response && error.response.status === 401) {
-      Swal.fire({
-        title: "Session Expired",
-        text: "Please login again.",
-        icon: "warning",
-        confirmButtonText: "OK",
-      }).then(() => {
-        dispatch(clearUser());
-        localStorage.removeItem("token");
-        navigate("/");
-      });
-    }
-  }
-};
-
-useEffect(() => {
-  if (planName) {   
-    getAllPlanNotes();
-  }
-}, [planName]);
-
-
-
-
-      const fetchPlanData = async () => {
-        try {
-          const res = await axios.get(
-            `${baseURL}/auth/api/calculator/getAllPlanData`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          if (res.data.status === "Success") {
-            console.log(res.data.data);
-            setGetPlanData(res.data.data);
-          }
-        } catch (error) {
-          console.log(error);
-          if (error.response && error.response.status === 401) {
-            // Token is invalid or expired
-            Swal.fire({
-              title: "Session Expired",
-              text: "Please login again.",
-              icon: "warning",
-              confirmButtonText: "OK",
-            }).then(() => {
-              dispatch(clearUser());
-              localStorage.removeItem("token");
-              navigate("/");
-            });
-          }
-        }
-      };
-      const groupByPlan = (data) => {
-  console.log(data);
-  
-  const grouped = {};
-
-  data.forEach((item) => {
-    if (!grouped[item.plan_id]) {
-      grouped[item.plan_id] = {
-        id: item.plan_id,
-        title: item.plan_name,
-        subtitle: "Custom Plan", // you can make this dynamic if needed
-        description: `Includes ${item.plan_name} services tailored to your needs.`,
-        gradient: "from-green-500 to-teal-600", // default or dynamic
-        navigation: "/admin/dynamicPlan",
-        features: [],
-        totalAmount: 0, // new field for amount
-      };
-    }
-
-    grouped[item.plan_id].features.push(
-      `${item.service_name} - ${item.category_name}`
-    );
-
-    // Add the amount (make sure item.amount is a number)
-    grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
-  });
-
-  return Object.values(grouped);
-};
+    return Object.values(grouped);
+  };
 
   const plans = groupByPlan(getPlanData);
-// When "Create Quotation" button is clicked
-const handleCreateQuotation = async (plan) => {
+  // When "Create Quotation" button is clicked
+  const handleCreateQuotation = async (plan) => {
+    setShowModal(true);
+    setPlanId(plan.id);
+    setPlanName(plan.title);
+  };
 
- setShowModal(true);
- setPlanId(plan.id)
- setPlanName(plan.title)
-};
-
-
-      useEffect(() => {
-        fetchPlanData();
-        
-      }, []); 
-        const handleChange = (e) => {
+  useEffect(() => {
+    fetchPlanData();
+  }, []);
+  const handleChange = (e) => {
     const { name, value } = e.target;
 
     // Restrict phone number to digits only and max 10 digits
@@ -185,212 +174,201 @@ const handleCreateQuotation = async (plan) => {
     }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const proposalId = Date.now(); // txn_id
-  console.log(proposalId);
-  
+    const proposalId = Date.now(); // txn_id
+    console.log(proposalId);
 
-  try {
-    // Step 1: filter plan-wise data
-    const filteredPlanData = getPlanData.filter(
-      (item) => item.plan_id === planid
-    );
+    try {
+      // Step 1: filter plan-wise data
+      const filteredPlanData = getPlanData.filter(
+        (item) => item.plan_id === planid
+      );
 
-    if (filteredPlanData.length === 0) {
-      Swal.fire({
-        icon: "info",
-        title: "No Data",
-        text: "No services found for this plan.",
-      });
-      return;
-    }
-
-    // Step 2: client detail object
-    const clientDetail = {
-      client_name: formData?.client_name || "",
-      client_organization: formData?.client_organization || "",
-      email: formData?.email || "",
-      phone: formData?.phone || "",
-      address: formData?.address || "",
-      dg_employee: userName, // jo login user hoga
-    };
-
-    // Step 3: prepare plans array
-    const plans = filteredPlanData.map((item) => ({
-      service_name: item.service_name,
-      category_name: item.category_name,
-      editing_type_name: item.editing_type_name,
-      editing_type_amount: item.editing_type_amount,
-      quantity: item.quantity,
-      include_content_posting: item.include_content_posting,
-      include_thumbnail_creation: item.include_thumbnail_creation,
-      total_amount: item.total_amount,
-      plan_name: item.plan_name,
-      employee: userName,
-    }));
-
-    const planNotes = allPlanNote.map((item)=>({
-      note_name:item.note_name,
-     
-
-    }));
-    console.log(planNotes);
-    
-
-    // Step 4: single payload with client + plans
-    const payload = {
-      txn_id: proposalId,
-      ...clientDetail,
-      plans, // ⬅️ array of all services
-      planNotes,
-    };
-
-    // Step 5: single API call
-    const res = await axios.post(
-      `${baseURL}/auth/api/calculator/saveClientWithPlan`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      if (filteredPlanData.length === 0) {
+        Swal.fire({
+          icon: "info",
+          title: "No Data",
+          text: "No services found for this plan.",
+        });
+        return;
       }
-    );
 
-    const { status, message, client_id } = res.data;
+      // Step 2: client detail object
+      const clientDetail = {
+        client_name: formData?.client_name || "",
+        client_organization: formData?.client_organization || "",
+        email: formData?.email || "",
+        phone: formData?.phone || "",
+        address: formData?.address || "",
+        dg_employee: userName, // jo login user hoga
+      };
 
-    if (status === "Success") {
-      Swal.fire({
-        icon: "success",
-        title: "Quotation Created",
-        text: message,
-      });
+      // Step 3: prepare plans array
+      const plans = filteredPlanData.map((item) => ({
+        service_name: item.service_name,
+        category_name: item.category_name,
+        editing_type_name: item.editing_type_name,
+        editing_type_amount: item.editing_type_amount,
+        quantity: item.quantity,
+        include_content_posting: item.include_content_posting,
+        include_thumbnail_creation: item.include_thumbnail_creation,
+        total_amount: item.total_amount,
+        plan_name: item.plan_name,
+        employee: userName,
+      }));
 
-      setShowModal(false);
-      navigate(`/admin/client/service/history/${client_id}`); // ⬅️ API ka client_id
-    } else {
+      const planNotes = allPlanNote.map((item) => ({
+        note_name: item.note_name,
+      }));
+      console.log(planNotes);
+
+      // Step 4: single payload with client + plans
+      const payload = {
+        txn_id: proposalId,
+        ...clientDetail,
+        plans, // ⬅️ array of all services
+        planNotes,
+      };
+
+      // Step 5: single API call
+      const res = await axios.post(
+        `${baseURL}/auth/api/calculator/saveClientWithPlan`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const { status, message, client_id } = res.data;
+
+      if (status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: "Quotation Created",
+          text: message,
+        });
+
+        setShowModal(false);
+        navigate(`/admin/client/service/history/${client_id}`); // ⬅️ API ka client_id
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: message || "Failed to save quotation",
+        });
+      }
+    } catch (err) {
+      console.error("Save error:", err);
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: message || "Failed to save quotation",
+        text: err.response.data.message,
       });
+    } finally {
+      setLoading(false);
     }
-
-  } catch (err) {
-    console.error("Save error:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: err.response.data.message,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleClose = () => {
     setShowModal(false);
   };
 
   return (
-  <>
-  <div className="">
-           <p className="text-3xl font-bold text-white mb-3">
-                    Plan Wise 
-                  </p>
-        </div>
-<div className="grid md:grid-cols-3 gap-8 mx-auto mb-12">
-  {plans.map((plan) => (
-    <div key={plan.id} className="group relative">
-      <div
-        className={`
+    <>
+      <div className="">
+        <p className="text-3xl font-bold text-white mb-3">Plan Wise</p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-8 mx-auto mb-12">
+        {plans.map((plan) => (
+          <div key={plan.id} className="group relative">
+            <div
+              className={`
           relative h-full bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20
           transform transition-all duration-300 hover:scale-102 hover:bg-white/15 hover:border-white/30
         `}
-      >
-        {/* Icon placeholder */}
-        <div
-          className={`
+            >
+              {/* Icon placeholder */}
+              <div
+                className={`
             inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6
             bg-gradient-to-r ${plan.gradient} shadow-lg
             transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
           `}
-        >
-          <span className="w-8 h-8 text-white">★</span>
-        </div>
+              >
+                <span className="w-8 h-8 text-white">★</span>
+              </div>
 
-        {/* Content */}
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-2xl font-bold text-white mb-1">
-              {plan.title}
-            </h3>
-            <p
-              className={`text-sm font-medium bg-gradient-to-r ${plan.gradient} bg-clip-text text-transparent`}
-            >
-              Plan
-            </p>
-            {/* Total amount */}
-            <p className="text-lg font-semibold text-white mt-1">
-              ₹{plan.totalAmount.toLocaleString()}
-            </p>
-          </div>
-               <button
-        
-              onClick={() => handleCreateQuotation(plan)}
-      
-            className={`
+              {/* Content */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-2xl font-bold text-white mb-1">
+                    {plan.title}
+                  </h3>
+                  <p
+                    className={`text-sm font-medium bg-gradient-to-r ${plan.gradient} bg-clip-text text-transparent`}
+                  >
+                    Plan
+                  </p>
+                  {/* Total amount */}
+                  <p className="text-lg font-semibold text-white mt-1">
+                    ₹{plan.totalAmount.toLocaleString()}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleCreateQuotation(plan)}
+                  className={`
               w-full mt-6 py-4 px-6 rounded-2xl font-semibold text-white
               bg-gradient-to-r ${plan.gradient} shadow-lg
               transform transition-all duration-300 hover:shadow-xl hover:scale-105
               flex items-center justify-center gap-2 group/btn
             `}
-             disabled = {loading}
-          >
-                 {loading ? 'Save...':'Create Quotation'} 
-            <ArrowRight className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
-          </button>
+                  disabled={loading}
+                >
+                  {loading ? "Save..." : "Create Quotation"}
+                  <ArrowRight className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
+                </button>
 
-          <p className="text-white/70 leading-relaxed">
-            {plan.description}
-          </p>
+                <p className="text-white/70 leading-relaxed">
+                  {plan.description}
+                </p>
 
-          {/* Features */}
-          <div className="space-y-2">
-            {plan.features.map((feature, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 text-sm text-white/60"
-              >
-                <div
-                  className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${plan.gradient}`}
-                ></div>
-                {feature}
+                {/* Features */}
+                <div className="space-y-2">
+                  {plan.features.map((feature, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 text-sm text-white/60"
+                    >
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${plan.gradient}`}
+                      ></div>
+                      {feature}
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA */}
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* CTA */}
-     
-        </div>
-      </div>
-
-      {/* Floating ping effect */}
-      <div
-        className={`
+            {/* Floating ping effect */}
+            <div
+              className={`
           absolute -top-2 -right-2 w-6 h-6 rounded-full 
           bg-gradient-to-r ${plan.gradient} opacity-0 group-hover:opacity-100
           transform transition-all duration-500 group-hover:scale-100 scale-0
         `}
-      >
-        <div className="w-full h-full rounded-full animate-ping bg-gradient-to-r from-white/30 to-transparent"></div>
-      </div>
-    </div>
-  ))}
-         {showModal && (
+            >
+              <div className="w-full h-full rounded-full animate-ping bg-gradient-to-r from-white/30 to-transparent"></div>
+            </div>
+          </div>
+        ))}
+        {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
@@ -450,7 +428,6 @@ const handleSubmit = async (e) => {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Enter organization name"
-                  
                   />
                 </div>
 
@@ -467,7 +444,6 @@ const handleSubmit = async (e) => {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Enter email address"
-                  
                   />
                 </div>
 
@@ -515,7 +491,6 @@ const handleSubmit = async (e) => {
                   >
                     Cancel
                   </button>
-                  
 
                   <button
                     type="submit"
@@ -529,9 +504,9 @@ const handleSubmit = async (e) => {
             </div>
           </div>
         )}
-</div>
-  </>
-  )
+      </div>
+    </>
+  );
 }
 
-export default AdminExplorePlans
+export default AdminExplorePlans;

@@ -206,54 +206,54 @@ const ClientDetails = () => {
 
   // All BD client data
 
-   const handleDeleteClient = async (clientId) => {
-const confirm = await Swal.fire({
-  title: "Are you sure?",
-  text: "Do you want to delete this client permanently?",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonColor: "#d33",
-  cancelButtonColor: "#3085d6",
-  confirmButtonText: "Yes, delete it!",
-});
+  const handleDeleteClient = async (clientId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this client permanently?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
 
-if (!confirm.isConfirmed) return;
+    if (!confirm.isConfirmed) return;
 
-try {
-  const response = await axios.delete(
-    `${baseURL}/auth/api/calculator/deleteClientById/${clientId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    try {
+      const response = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteClientById/${clientId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Client deleted successfully.",
+        });
+
+        // Refresh client list
+        getAllClients();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: response.data.message || "Unable to delete client.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong while deleting client.",
+      });
     }
-  );
-
-  if (response.data.status === "Success") {
-    Swal.fire({
-      icon: "success",
-      title: "Deleted!",
-      text: "Client deleted successfully.",
-    });
-
-    // Refresh client list
-    getAllClients();
-  } else {
-    Swal.fire({
-      icon: "error",
-      title: "Failed!",
-      text: response.data.message || "Unable to delete client.",
-    });
-  }
-} catch (error) {
-  console.error("Error deleting client:", error);
-  Swal.fire({
-    icon: "error",
-    title: "Error",
-    text: "Something went wrong while deleting client.",
-  });
-}
-};
+  };
 
   const getAllClients = async () => {
     try {
@@ -403,14 +403,14 @@ try {
                                 </div>
                                 {/* <div className="grid grid-cols-2 gap-4 text-sm text-gray-600"> */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 break-wrap">
-                               <div className="flex items-center gap-2">
-  {client.email ? (
-    <>
-      <Mail className="w-4 h-4" />
-      {client.email}
-    </>
-  ) : null}
-</div>
+                                  <div className="flex items-center gap-2">
+                                    {client.email ? (
+                                      <>
+                                        <Mail className="w-4 h-4" />
+                                        {client.email}
+                                      </>
+                                    ) : null}
+                                  </div>
 
                                   <div className="flex items-center gap-2 break-words">
                                     <Phone className="w-4 h-4" />
@@ -444,12 +444,14 @@ try {
                                   >
                                     Edit
                                   </button>
-                                   <button
-  className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25"
-  onClick={() => handleDeleteClient(client.id)}
->
-  Delete
-</button>
+                                  <button
+                                    className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25"
+                                    onClick={() =>
+                                      handleDeleteClient(client.id)
+                                    }
+                                  >
+                                    Delete
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -602,7 +604,6 @@ try {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Enter organization name"
-                    
                   />
                 </div>
 
@@ -619,7 +620,6 @@ try {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Enter email address"
-                   
                   />
                 </div>
 

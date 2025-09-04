@@ -31,6 +31,8 @@ const {
   createTeam,
   addMembersToTeam,
   assignQuotationToTeam,
+  generateClientLink,
+  submitRequirement,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -92,7 +94,8 @@ const {
   updateClientDetails,
   updatePlandata,
   updatePlanNameDetail,
-  updatePlanNotes,updateServiceData
+  updatePlanNotes,
+  updateServiceData,
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -128,6 +131,8 @@ router.post("/assignQuotation", assignQuotation);
 router.post("/createTeam", createTeam);
 router.post("/addMembersToTeam/:id/members", addMembersToTeam);
 router.post("/assignQuotationToTeam", assignQuotationToTeam);
+router.post("/generateClientLink", generateClientLink);
+router.post("/submitRequirement", submitRequirement);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);

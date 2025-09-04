@@ -29,11 +29,11 @@ export default function ServicesLanding() {
   const [allPlanNote, setAllPlanNote] = useState([]);
   const [getPlanData, setGetPlanData] = useState([]);
   const [getAdsData, setGetAdsData] = useState([]);
-   const [planName,setPlanName] = useState('');
+  const [planName, setPlanName] = useState("");
   const [clientData, setClientData] = useState([]);
-    const [loading, setLoading] = useState(false);
- const [notesData, setNotesData] = useState([]);
-const { currentUser, token } = useSelector((state) => state.user);
+  const [loading, setLoading] = useState(false);
+  const [notesData, setNotesData] = useState([]);
+  const { currentUser, token } = useSelector((state) => state.user);
   const [showModal, setShowModal] = useState(false);
   const userName = currentUser?.name;
   const dispatch = useDispatch();
@@ -77,7 +77,6 @@ const { currentUser, token } = useSelector((state) => state.user);
         "Analytics & ROI",
       ],
     },
-    
   ];
 
   const fetchClient = async () => {
@@ -143,35 +142,30 @@ const { currentUser, token } = useSelector((state) => state.user);
     }
   };
 
-const getAllPlanNotes = async (planTitle) => {
-  try {
-    const response = await axios.get(
-      `${baseURL}/auth/api/calculator/getPlanNotes`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+  const getAllPlanNotes = async (planTitle) => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/auth/api/calculator/getPlanNotes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    const notes = response.data.data;
+      const notes = response.data.data;
 
-    // filter for this plan only
-    const filtered = notes.filter(
-      (note) => String(note.plan) === String(planTitle)
-    );
+      // filter for this plan only
+      const filtered = notes.filter(
+        (note) => String(note.plan) === String(planTitle)
+      );
 
-    return filtered; // ⬅️ return directly instead of setting state
-  } catch (error) {
-    console.error("Error fetching plan notes:", error);
-    return [];
-  }
-};
-
-
-
-
-
+      return filtered; // ⬅️ return directly instead of setting state
+    } catch (error) {
+      console.error("Error fetching plan notes:", error);
+      return [];
+    }
+  };
 
   console.log(clientData);
   const clientName = clientData?.client_name;
@@ -189,7 +183,7 @@ const getAllPlanNotes = async (planTitle) => {
       );
       console.log(data.data);
       setGetData(data.data);
-      setPlanName(data.data[0].plan_name)
+      setPlanName(data.data[0].plan_name);
     } catch (error) {
       console.log(error);
       if (error.response && error.response.status === 401) {
@@ -241,13 +235,13 @@ const getAllPlanNotes = async (planTitle) => {
     }
   };
 
-    const fetchClientNotes = async () => {
+  const fetchClientNotes = async () => {
     try {
       const res = await axios.get(
         `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${proposalId}`,
         {
           headers: {
-            "Content-Type": "application/json", 
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
@@ -269,8 +263,6 @@ const getAllPlanNotes = async (planTitle) => {
       }
     }
   };
-
-  
 
   useEffect(() => {
     fetchClient();
@@ -304,150 +296,149 @@ const getAllPlanNotes = async (planTitle) => {
 
   const totalAmount = grandTotal + grandAdsTotal;
   console.log(totalAmount);
-const groupByPlan = (data) => {
-  console.log(data);
-  
-  const grouped = {};
+  const groupByPlan = (data) => {
+    console.log(data);
 
-  data.forEach((item) => {
-    if (!grouped[item.plan_id]) {
-      grouped[item.plan_id] = {
-        id: item.plan_id,
-        title: item.plan_name,
-        subtitle: "Custom Plan", // you can make this dynamic if needed
-        description: `Includes ${item.plan_name} services tailored to your needs.`,
-        gradient: "from-green-500 to-teal-600", // default or dynamic
-        navigation: "/admin/dynamicPlan",
-        features: [],
-        totalAmount: 0, // new field for amount
-      };
-    }
+    const grouped = {};
 
-    grouped[item.plan_id].features.push(
-      `${item.service_name} - ${item.category_name}`
-    );
+    data.forEach((item) => {
+      if (!grouped[item.plan_id]) {
+        grouped[item.plan_id] = {
+          id: item.plan_id,
+          title: item.plan_name,
+          subtitle: "Custom Plan", // you can make this dynamic if needed
+          description: `Includes ${item.plan_name} services tailored to your needs.`,
+          gradient: "from-green-500 to-teal-600", // default or dynamic
+          navigation: "/admin/dynamicPlan",
+          features: [],
+          totalAmount: 0, // new field for amount
+        };
+      }
 
-    // Add the amount (make sure item.amount is a number)
-    grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
-  });
+      grouped[item.plan_id].features.push(
+        `${item.service_name} - ${item.category_name}`
+      );
 
-  return Object.values(grouped);
-};
+      // Add the amount (make sure item.amount is a number)
+      grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
+    });
+
+    return Object.values(grouped);
+  };
 
   const plans = groupByPlan(getPlanData);
-// When "Create Quotation" button is clicked
-const handleCreateQuotation = async (plan) => {
-  try {
-    // fetch notes for this plan immediately (don’t wait for setState)
-    const filteredNotes = await getAllPlanNotes(plan.title);
-
-    if (filteredNotes.length === 0) {
-      Swal.fire({
-        icon: "info",
-        title: "No Notes",
-        text: "No notes found for this plan.",
-      });
-      return;
-    }
-
-    // Step 1: filter plan-wise data
-    const filteredPlanData = getPlanData.filter(
-      (item) => item.plan_id === plan.id
-    );
-
-    if (filteredPlanData.length === 0) {
-      Swal.fire({
-        icon: "info",
-        title: "No Data",
-        text: "No services found for this plan.",
-      });
-      return;
-    }
-
-    const plans = filteredPlanData.map((item) => ({
-    
-      service_name: item.service_name,
-      category_name: item.category_name,
-      editing_type_name: item.editing_type_name,
-      editing_type_amount: item.editing_type_amount,
-      quantity: item.quantity,
-      include_content_posting: item.include_content_posting,
-      include_thumbnail_creation: item.include_thumbnail_creation,
-      total_amount: item.total_amount,
-      plan_name: item.plan_name,
-      employee: userName,
-    }));
-
-    const planNotes = filteredNotes.map((item) => ({
-      note_name: item.note_name,
-      plan: item.plan,
-    }));
-
-    const payload = {   txn_id: proposalId,
-      client_id: id,plans, planNotes };
-
-    await axios.post(
-      `${baseURL}/auth/api/calculator/savePlanClientNotes`,
-      payload,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    Swal.fire({
-      icon: "success",
-      title: "Quotation Created",
-      text: `Plan quotation saved successfully!`,
-    });
-
-    fetchData(); // refresh table
-   fetchClientNotes();
-
-  } catch (err) {
-    console.error("Save error:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Something went wrong while saving the quotation.",
-    });
-  }
-};
-
-const handleDeleteClientPlanData = async (txn_id) => {
-  const confirm = await Swal.fire({
-    title: "Are you sure?",
-    text: "Do you want to delete this client plan data permanently?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes, delete it!",
-  });
-
-  if (confirm.isConfirmed) {
+  // When "Create Quotation" button is clicked
+  const handleCreateQuotation = async (plan) => {
     try {
-      const res = await axios.delete(`${baseURL}/auth/api/calculator/deleteClientAllPlanData/${txn_id}`);
+      // fetch notes for this plan immediately (don’t wait for setState)
+      const filteredNotes = await getAllPlanNotes(plan.title);
 
-      if (res.data.status === "Success") {
-        Swal.fire("Deleted!", "Plan has been deleted.", "success");
-        
-        // ✅ Refresh your list instead of reload
- 
-  
-      setGetData([]);
-      setPlanName('')
-      setNotesData([])
-   fetchClientNotes();
-
-      } else {
-        Swal.fire("Error!", res.data.message || "Failed to delete plan.", "error");
+      if (filteredNotes.length === 0) {
+        Swal.fire({
+          icon: "info",
+          title: "No Notes",
+          text: "No notes found for this plan.",
+        });
+        return;
       }
+
+      // Step 1: filter plan-wise data
+      const filteredPlanData = getPlanData.filter(
+        (item) => item.plan_id === plan.id
+      );
+
+      if (filteredPlanData.length === 0) {
+        Swal.fire({
+          icon: "info",
+          title: "No Data",
+          text: "No services found for this plan.",
+        });
+        return;
+      }
+
+      const plans = filteredPlanData.map((item) => ({
+        service_name: item.service_name,
+        category_name: item.category_name,
+        editing_type_name: item.editing_type_name,
+        editing_type_amount: item.editing_type_amount,
+        quantity: item.quantity,
+        include_content_posting: item.include_content_posting,
+        include_thumbnail_creation: item.include_thumbnail_creation,
+        total_amount: item.total_amount,
+        plan_name: item.plan_name,
+        employee: userName,
+      }));
+
+      const planNotes = filteredNotes.map((item) => ({
+        note_name: item.note_name,
+        plan: item.plan,
+      }));
+
+      const payload = { txn_id: proposalId, client_id: id, plans, planNotes };
+
+      await axios.post(
+        `${baseURL}/auth/api/calculator/savePlanClientNotes`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Quotation Created",
+        text: `Plan quotation saved successfully!`,
+      });
+
+      fetchData(); // refresh table
+      fetchClientNotes();
     } catch (err) {
-      console.error("Delete error:", err);
-      Swal.fire("Error!", "Something went wrong while deleting.", "error");
+      console.error("Save error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong while saving the quotation.",
+      });
     }
-  }
-};
+  };
 
+  const handleDeleteClientPlanData = async (txn_id) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this client plan data permanently?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+    });
 
+    if (confirm.isConfirmed) {
+      try {
+        const res = await axios.delete(
+          `${baseURL}/auth/api/calculator/deleteClientAllPlanData/${txn_id}`
+        );
+
+        if (res.data.status === "Success") {
+          Swal.fire("Deleted!", "Plan has been deleted.", "success");
+
+          // ✅ Refresh your list instead of reload
+
+          setGetData([]);
+          setPlanName("");
+          setNotesData([]);
+          fetchClientNotes();
+        } else {
+          Swal.fire(
+            "Error!",
+            res.data.message || "Failed to delete plan.",
+            "error"
+          );
+        }
+      } catch (err) {
+        console.error("Delete error:", err);
+        Swal.fire("Error!", "Something went wrong while deleting.", "error");
+      }
+    }
+  };
 
   const handleDelete = async (entryId) => {
     const confirm = await Swal.fire({
@@ -479,8 +470,7 @@ const handleDeleteClientPlanData = async (txn_id) => {
           timer: 2000,
           showConfirmButton: false,
         });
-   fetchClientNotes();
-
+        fetchClientNotes();
       } else {
         Swal.fire({
           icon: "error",
@@ -518,8 +508,6 @@ const handleDeleteClientPlanData = async (txn_id) => {
       const result = res.data;
 
       if (result.status === "Success") {
-      
-
         Swal.fire({
           icon: "success",
           title: "Deleted!",
@@ -545,60 +533,55 @@ const handleDeleteClientPlanData = async (txn_id) => {
     }
   };
 
+  const handleDeleteads = async (entryId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this entry?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
 
- 
-   const handleDeleteads = async (entryId) => {
-      const confirm = await Swal.fire({
-        title: "Are you sure?",
-        text: "Do you really want to delete this entry?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#e11d48", // red
-        cancelButtonColor: "#6b7280", // gray
-        confirmButtonText: "Yes, delete it!",
-      });
-  
-      if (!confirm.isConfirmed) return;
-  
-      try {
-        const res = await axios.delete(
-          `${baseURL}/auth/api/calculator/deleteAdsCampaignEntryById/${entryId}`
-        );
-  
-        const result = res.data;
-  
-        if (result.status === "Success") {
-          setGetData((prev) => prev.filter((item) => item.id !== entryId));
-  
-          Swal.fire({
-            icon: "success",
-            title: "Deleted!",
-            text: "Entry has been deleted.",
-            timer: 2000,
-            showConfirmButton: false,
-          });
-          fetchAdsData()
-          setGetAdsData([])
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteAdsCampaignEntryById/${entryId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+        setGetData((prev) => prev.filter((item) => item.id !== entryId));
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Entry has been deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        fetchAdsData();
+        setGetAdsData([]);
         fetchClientNotes();
-
-          
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Failed!",
-            text: result.message || "Failed to delete entry.",
-          });
-        }
-      } catch (error) {
-        console.error("Error deleting entry:", error);
+      } else {
         Swal.fire({
           icon: "error",
-          title: "Error",
-          text: "An error occurred while deleting entry.",
+          title: "Failed!",
+          text: result.message || "Failed to delete entry.",
         });
       }
-    };
-
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "An error occurred while deleting entry.",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -669,12 +652,11 @@ const handleDeleteClientPlanData = async (txn_id) => {
 
             {/* Active Orders */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-            
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
                   <Package className="w-6 h-6 text-white" />
                 </div>
-                <div>    
+                <div>
                   <p className="text-white/60 text-sm font-medium">
                     Total Orders
                   </p>
@@ -682,133 +664,127 @@ const handleDeleteClientPlanData = async (txn_id) => {
                 </div>
               </div>
             </div>
-      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-  {finalLength ? (
-    <button
-      onClick={() => {
-        setShowModal(true);
-      }}
-      className="w-full text-left"
-    >
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-gradient-to-r from-red-700 to-pink-600 rounded-xl flex items-center justify-center">
-          <Notebook className="w-6 h-6 text-white" />
-        </div>
-        <div>
-          <p className="text-white text-md font-medium">Quotation</p>
-          <p className="text-3xl font-bold text-white  flex items-center justify-center gap-2 group/btn">Preview
-             <ArrowRight className="w-4 h-4 text-white transform transition-transform group-hover/btn:translate-x-1" /></p>
-         
-        </div>
-      </div>
-    </button>
-  ) : (
-    <p className="text-white/60">Not quotation created</p>
-  )}
-</div>
-
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              {finalLength ? (
+                <button
+                  onClick={() => {
+                    setShowModal(true);
+                  }}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-red-700 to-pink-600 rounded-xl flex items-center justify-center">
+                      <Notebook className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white text-md font-medium">
+                        Quotation
+                      </p>
+                      <p className="text-3xl font-bold text-white  flex items-center justify-center gap-2 group/btn">
+                        Preview
+                        <ArrowRight className="w-4 h-4 text-white transform transition-transform group-hover/btn:translate-x-1" />
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ) : (
+                <p className="text-white/60">Not quotation created</p>
+              )}
+            </div>
           </div>
-          
         </div>
         <div className="">
-           <p className="text-3xl font-bold text-white mb-3">
-                    Plan Wise 
-                  </p>
+          <p className="text-3xl font-bold text-white mb-3">Plan Wise</p>
         </div>
-<div className="grid md:grid-cols-4 gap-8 mx-auto mb-12">
-  {plans.map((plan) => (
-    <div key={plan.id} className="group relative">
-      <div
-        className={`
+        <div className="grid md:grid-cols-4 gap-8 mx-auto mb-12">
+          {plans.map((plan) => (
+            <div key={plan.id} className="group relative">
+              <div
+                className={`
           relative h-full bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20
           transform transition-all duration-300 hover:scale-102 hover:bg-white/15 hover:border-white/30
         `}
-      >
-        {/* Icon placeholder */}
-        <div
-          className={`
+              >
+                {/* Icon placeholder */}
+                <div
+                  className={`
             inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6
             bg-gradient-to-r ${plan.gradient} shadow-lg
             transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
           `}
-        >
-          <span className="w-8 h-8 text-white">★</span>
-        </div>
+                >
+                  <span className="w-8 h-8 text-white">★</span>
+                </div>
 
-        {/* Content */}
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-2xl font-bold text-white mb-1">
-              {plan.title}
-            </h3>
-            <p
-              className={`text-sm font-medium bg-gradient-to-r ${plan.gradient} bg-clip-text text-transparent`}
-            >
-              Plan
-            </p>
-            {/* Total amount */}
-            <p className="text-lg font-semibold text-white mt-1">
-              ₹{plan.totalAmount.toLocaleString()}
-            </p>
-          </div>
-               <button
-        
-              onClick={() => handleCreateQuotation(plan)}
-      
-            className={`
+                {/* Content */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-2xl font-bold text-white mb-1">
+                      {plan.title}
+                    </h3>
+                    <p
+                      className={`text-sm font-medium bg-gradient-to-r ${plan.gradient} bg-clip-text text-transparent`}
+                    >
+                      Plan
+                    </p>
+                    {/* Total amount */}
+                    <p className="text-lg font-semibold text-white mt-1">
+                      ₹{plan.totalAmount.toLocaleString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleCreateQuotation(plan)}
+                    className={`
               w-full mt-6 py-4 px-6 rounded-2xl font-semibold text-white
               bg-gradient-to-r ${plan.gradient} shadow-lg
               transform transition-all duration-300 hover:shadow-xl hover:scale-105
               flex items-center justify-center gap-2 group/btn
             `}
-             disabled = {loading}
-          >
-                 {loading ? 'Save...':'Create Quotation'} 
-            <ArrowRight className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
-          </button>
+                    disabled={loading}
+                  >
+                    {loading ? "Save..." : "Create Quotation"}
+                    <ArrowRight className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
+                  </button>
 
-          <p className="text-white/70 leading-relaxed">
-            {plan.description}
-          </p>
+                  <p className="text-white/70 leading-relaxed">
+                    {plan.description}
+                  </p>
 
-          {/* Features */}
-          <div className="space-y-2">
-            {plan.features.map((feature, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 text-sm text-white/60"
-              >
-                <div
-                  className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${plan.gradient}`}
-                ></div>
-                {feature}
+                  {/* Features */}
+                  <div className="space-y-2">
+                    {plan.features.map((feature, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 text-sm text-white/60"
+                      >
+                        <div
+                          className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${plan.gradient}`}
+                        ></div>
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                </div>
               </div>
-            ))}
-          </div>
 
-          {/* CTA */}
-     
-        </div>
-      </div>
-
-      {/* Floating ping effect */}
-      <div
-        className={`
+              {/* Floating ping effect */}
+              <div
+                className={`
           absolute -top-2 -right-2 w-6 h-6 rounded-full 
           bg-gradient-to-r ${plan.gradient} opacity-0 group-hover:opacity-100
           transform transition-all duration-500 group-hover:scale-100 scale-0
         `}
-      >
-        <div className="w-full h-full rounded-full animate-ping bg-gradient-to-r from-white/30 to-transparent"></div>
-      </div>
-    </div>
-  ))}
-</div>
- <div className="">
-           <p className="text-3xl font-bold text-white mb-3">
-                    Customise Wise 
-                  </p>
-                  </div>
+              >
+                <div className="w-full h-full rounded-full animate-ping bg-gradient-to-r from-white/30 to-transparent"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="">
+          <p className="text-3xl font-bold text-white mb-3">Customise Wise</p>
+        </div>
         {/* Services Grid */}
         <div className="grid md:grid-cols-4  gap-8  mx-auto mb-12">
           {services.map((service) => {
@@ -816,8 +792,6 @@ const handleDeleteClientPlanData = async (txn_id) => {
             return (
               <div key={service.id} className="group relative">
                 {/* Card */}
-
-
 
                 <div
                   className={`
@@ -848,7 +822,7 @@ const handleDeleteClientPlanData = async (txn_id) => {
                         {service.subtitle}
                       </p>
                     </div>
-  <button
+                    <button
                       onClick={() => {
                         navigate(`${service.navigation}/${id}/${proposalId}`);
                       }}
@@ -882,8 +856,6 @@ const handleDeleteClientPlanData = async (txn_id) => {
                     </div>
 
                     {/* CTA Button */}
-                    
-                  
                   </div>
 
                   {/* Hover effect overlay */}
@@ -904,20 +876,10 @@ const handleDeleteClientPlanData = async (txn_id) => {
                 >
                   <div className="w-full h-full rounded-full animate-ping bg-gradient-to-r from-white/30 to-transparent"></div>
                 </div>
-
-
               </div>
             );
           })}
-
-
-
-
         </div>
-        
-
-
-
 
         {/* Client Orders */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-4">
@@ -958,21 +920,23 @@ const handleDeleteClientPlanData = async (txn_id) => {
                     <td className="p-3">{order.editing_type_name}</td>
                     <td className="p-3">{order.quantity}</td>
                     <td className="p-3">{order.total_amount}</td>
-                <td>
-                  <button
-  className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
-       onClick={() =>    navigate(`/admin/calculator/${id}/${proposalId}`)}
->
-  Edit
-</button>
-  <button
-                      onClick={() => handleDelete(order.id)}
-                      className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
-                      title="Delete"
-                    >
-                      Delete
-                    </button>
-</td>    
+                    <td>
+                      <button
+                        className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
+                        onClick={() =>
+                          navigate(`/admin/calculator/${id}/${proposalId}`)
+                        }
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(order.id)}
+                        className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                        title="Delete"
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1002,7 +966,7 @@ const handleDeleteClientPlanData = async (txn_id) => {
                   <th className="p-3">%</th>
                   <th className="p-3">Charge</th>
                   <th className="p-3">Amount</th>
-                     <th className="p-3">Action</th>
+                  <th className="p-3">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -1018,21 +982,24 @@ const handleDeleteClientPlanData = async (txn_id) => {
                     <td className="p-3">{order.percent}</td>
                     <td className="p-3">{order.charge}</td>
                     <td className="p-3">{order.total}</td>
-                    <td> <button
-  className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
-       onClick={() =>    navigate(`/admin/Adscalculator/${id}/${proposalId}`)}
->
-  Edit
-</button>
-  <button
-                      onClick={() => handleDeleteads(order.id)}
-                      className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
-                      title="Delete"
-                    >
-                      Delete
-                    </button>
-</td>  
-                   
+                    <td>
+                      {" "}
+                      <button
+                        className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
+                        onClick={() =>
+                          navigate(`/admin/Adscalculator/${id}/${proposalId}`)
+                        }
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteads(order.id)}
+                        className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                        title="Delete"
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1043,10 +1010,10 @@ const handleDeleteClientPlanData = async (txn_id) => {
           <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
             <span className="flex items-center gap-2">
               <Package className="w-5 h-5" />
-             Plan Detail
+              Plan Detail
             </span>
             <span className="text-lg font-semibold text-green-400">
-             {planName}
+              {planName}
             </span>
           </h3>
 
@@ -1055,25 +1022,25 @@ const handleDeleteClientPlanData = async (txn_id) => {
               <thead className="text-white/70 border-b border-white/20">
                 <tr>
                   <th className="p-3">Plan Name</th>
-               
-                     <th className="p-3">Action</th>
+
+                  <th className="p-3">Action</th>
                 </tr>
               </thead>
               <tbody>
-    <tr>
-
-        <td className="p-3">{planName}</td>
-                             <td className="p-3">                   
-                        {planName?<button
-                                         onClick={() => handleDeleteClientPlanData(proposalId)}
-                                         className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
-                                         title="Delete"
-                                       >
-                                         Delete
-                                         </button> : null } </td>
-    </tr>
-                  
- 
+                <tr>
+                  <td className="p-3">{planName}</td>
+                  <td className="p-3">
+                    {planName ? (
+                      <button
+                        onClick={() => handleDeleteClientPlanData(proposalId)}
+                        className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                        title="Delete"
+                      >
+                        Delete
+                      </button>
+                    ) : null}{" "}
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -1081,37 +1048,35 @@ const handleDeleteClientPlanData = async (txn_id) => {
             <table className="min-w-full table-auto text-left text-sm text-white">
               <thead className="text-white/70 border-b border-white/20">
                 <tr>
-                      
                   <th className="p-3">Plan Client Note</th>
-               
-                     <th className="p-3">Action</th>
+
+                  <th className="p-3">Action</th>
                 </tr>
               </thead>
               <tbody>
-    {notesData.map((note,index) => (
-      <tr
+                {notesData.map((note, index) => (
+                  <tr
                     key={note.id}
                     className="hover:bg-white/10 border-b border-white/10 transition-colors"
                   >
-                        
-                    <td className="p-3" >{note.note_name}</td>
-  
-                             <td className="p-3">                   
-                        <button
-                                         onClick={() => handleDeleteClientNote(note.id)}
-                                         className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
-                                         title="Delete"
-                                       >
-                                     Delete
-                                         </button> </td>
-                                         </tr>
-                                           ))}
- 
+                    <td className="p-3">{note.note_name}</td>
+
+                    <td className="p-3">
+                      <button
+                        onClick={() => handleDeleteClientNote(note.id)}
+                        className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                        title="Delete"
+                      >
+                        Delete
+                      </button>{" "}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </div>
-          {showModal && (
+        {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
             <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
               <button
@@ -1127,9 +1092,7 @@ const handleDeleteClientPlanData = async (txn_id) => {
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => {
-                    navigate(
-                      `/admin/quotation/${id}/${proposalId}?gst=1`
-                    );
+                    navigate(`/admin/quotation/${id}/${proposalId}?gst=1`);
                     setShowModal(false);
                   }}
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
@@ -1138,9 +1101,7 @@ const handleDeleteClientPlanData = async (txn_id) => {
                 </button>
                 <button
                   onClick={() => {
-                    navigate(
-                      `/admin/quotation/${id}/${proposalId}?gst=0`
-                    );
+                    navigate(`/admin/quotation/${id}/${proposalId}?gst=0`);
                     setShowModal(false);
                   }}
                   className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
