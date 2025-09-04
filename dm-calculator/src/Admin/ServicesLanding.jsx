@@ -320,17 +320,22 @@ export default function ServicesLanding() {
       );
 
       // Add the amount (make sure item.amount is a number)
-      grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
+      grouped[item.plan_id].totalAmount +=
+        Number(item.total_amount || item.total_ads) || 0;
     });
 
     return Object.values(grouped);
   };
 
   const plans = groupByPlan(getPlanData);
+
+  const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
   // When "Create Quotation" button is clicked
   const handleCreateQuotation = async (plan) => {
     try {
-      // fetch notes for this plan immediately (don’t wait for setState)
       const filteredNotes = await getAllPlanNotes(plan.title);
 
       if (filteredNotes.length === 0) {
@@ -356,24 +361,44 @@ export default function ServicesLanding() {
         return;
       }
 
-      const plans = filteredPlanData.map((item) => ({
-        service_name: item.service_name,
-        category_name: item.category_name,
-        editing_type_name: item.editing_type_name,
-        editing_type_amount: item.editing_type_amount,
-        quantity: item.quantity,
-        include_content_posting: item.include_content_posting,
-        include_thumbnail_creation: item.include_thumbnail_creation,
-        total_amount: item.total_amount,
-        plan_name: item.plan_name,
-        employee: userName,
-      }));
+      // Step 2: normal plan services (exclude Ads Campaign)
+      const plans = filteredPlanData
+        .filter((item) => item.service_name !== "Ads Campaign")
+        .map((item) => ({
+          service_name: item.service_name,
+          category_name: item.category_name,
+          editing_type_name: item.editing_type_name,
+          editing_type_amount: item.editing_type_amount,
+          quantity: item.quantity,
+          include_content_posting: item.include_content_posting,
+          include_thumbnail_creation: item.include_thumbnail_creation,
+          total_amount: item.total_amount,
+          plan_name: item.plan_name,
+          employee: userName,
+        }));
 
+      // Step 3: Ads Campaign data
+      const adsItems = filteredPlanData
+        .filter((item) => item.service_name === "Ads Campaign")
+        .map((item) => ({
+          txn_id: proposalId,
+          client_id: id,
+          id: generateUniqueId(), // unique id from plan_data
+          category: item.category_name,
+          amount: item.amount_ads,
+          percent: item.percent_ads,
+          charge: item.charge_ads,
+          total: item.total_ads,
+          employee: userName,
+        }));
+
+      // Step 4: notes
       const planNotes = filteredNotes.map((item) => ({
         note_name: item.note_name,
         plan: item.plan,
       }));
 
+      // Save plans + notes
       const payload = { txn_id: proposalId, client_id: id, plans, planNotes };
 
       await axios.post(
@@ -384,14 +409,27 @@ export default function ServicesLanding() {
         }
       );
 
+      // Save Ads Campaign (if any)
+      if (adsItems.length > 0) {
+        await axios.post(
+          `${baseURL}/auth/api/calculator/saveAdsCampaign`,
+          { adsItems },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
       Swal.fire({
         icon: "success",
         title: "Quotation Created",
-        text: `Plan quotation saved successfully!`,
+        text: "Plan quotation saved successfully!",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
 
-      fetchData(); // refresh table
+      fetchData();
       fetchClientNotes();
+      fetchAdsData();
     } catch (err) {
       console.error("Save error:", err);
       Swal.fire({
@@ -418,7 +456,14 @@ export default function ServicesLanding() {
         );
 
         if (res.data.status === "Success") {
-          Swal.fire("Deleted!", "Plan has been deleted.", "success");
+          Swal.fire({
+            icon: "success",
+            title: "Deleted!",
+            text: "Plan has been deleted.",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
 
           // ✅ Refresh your list instead of reload
 
@@ -426,6 +471,8 @@ export default function ServicesLanding() {
           setPlanName("");
           setNotesData([]);
           fetchClientNotes();
+          fetchAdsData();
+          setGetAdsData([]);
         } else {
           Swal.fire(
             "Error!",
@@ -467,15 +514,25 @@ export default function ServicesLanding() {
           icon: "success",
           title: "Deleted!",
           text: "Entry has been deleted.",
-          timer: 2000,
           showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
+
         fetchClientNotes();
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
+        });
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: result.message || "Failed to delete entry.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -484,6 +541,9 @@ export default function ServicesLanding() {
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };
@@ -515,12 +575,16 @@ export default function ServicesLanding() {
           timer: 2000,
           showConfirmButton: false,
         });
+
         fetchClientNotes();
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed!",
-          text: result.message || "Failed to delete note.",
+          text: result.message || "Failed to delete entry.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -528,7 +592,10 @@ export default function ServicesLanding() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "An error occurred while deleting note.",
+        text: "An error occurred while deleting entry.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };
@@ -562,6 +629,7 @@ export default function ServicesLanding() {
           text: "Entry has been deleted.",
           timer: 2000,
           showConfirmButton: false,
+          timerProgressBar: true,
         });
         fetchAdsData();
         setGetAdsData([]);
@@ -571,6 +639,9 @@ export default function ServicesLanding() {
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -579,6 +650,9 @@ export default function ServicesLanding() {
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };

@@ -406,8 +406,6 @@ const AdminClientDetails = () => {
 
       let finalUrl;
       try {
-        // backend ne agar full URL diya (e.g. https://dmcalculator.dentalguru.software/public/r/slug)
-        // to uska path nikaal lo, aur apne origin + (hash?) se jodo
         const u = new URL(data.url);
         const path = u.pathname + u.search + u.hash;
 

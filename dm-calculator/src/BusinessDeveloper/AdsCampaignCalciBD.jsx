@@ -52,7 +52,9 @@ const AdsCampaignCalciBD = () => {
             title: "Session Expired",
             text: "Please login again.",
             icon: "warning",
-            confirmButtonText: "OK",
+                 showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
           }).then(() => {
             dispatch(clearUser());
             localStorage.removeItem("token");
@@ -189,14 +191,24 @@ const AdsCampaignCalciBD = () => {
         );
 
         const result = await response.json();
-        if (result.status === "Success") {
-          fetchData();
-          alert("Ads campaign calculated and saved successfully!");
-        } else {
-          alert("Failed to save: " + result.message);
-        }
-      } else {
-        setError("No valid data to save.");
+      if (result.status === "Success") {
+  fetchData();
+  Swal.fire({
+    icon: "success",
+    title: "Success!",
+    text: "Ads campaign calculated and saved successfully!",
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+  });
+} else {
+  Swal.fire({
+    icon: "error",
+    title: "Failed!",
+    text: "Failed to save: " + result.message,
+    showConfirmButton: true,  // keep button here so user sees the error
+  });
+}
       }
     } catch (err) {
       setError("An error occurred during calculation or saving.");
@@ -229,7 +241,9 @@ const AdsCampaignCalciBD = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+      showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -272,14 +286,18 @@ const AdsCampaignCalciBD = () => {
           icon: "success",
           title: "Deleted!",
           text: "Entry has been deleted.",
-          timer: 2000,
-          showConfirmButton: false,
+                showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
+                showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
         });
       }
     } catch (error) {
@@ -288,6 +306,9 @@ const AdsCampaignCalciBD = () => {
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
+              showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
       });
     }
   };

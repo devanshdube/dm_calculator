@@ -71,7 +71,9 @@ function AdminExplorePlans() {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -109,7 +111,9 @@ function AdminExplorePlans() {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -142,7 +146,8 @@ function AdminExplorePlans() {
       );
 
       // Add the amount (make sure item.amount is a number)
-      grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
+      grouped[item.plan_id].totalAmount +=
+        Number(item.total_amount || item.total_ads) || 0;
     });
 
     return Object.values(grouped);
@@ -150,6 +155,7 @@ function AdminExplorePlans() {
 
   const plans = groupByPlan(getPlanData);
   // When "Create Quotation" button is clicked
+
   const handleCreateQuotation = async (plan) => {
     setShowModal(true);
     setPlanId(plan.id);
@@ -173,13 +179,16 @@ function AdminExplorePlans() {
       [name]: value,
     }));
   };
+  const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     const proposalId = Date.now(); // txn_id
-    console.log(proposalId);
+    console.log("Txn ID:", proposalId);
 
     try {
       // Step 1: filter plan-wise data
@@ -192,6 +201,9 @@ function AdminExplorePlans() {
           icon: "info",
           title: "No Data",
           text: "No services found for this plan.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
         return;
       }
@@ -203,63 +215,100 @@ function AdminExplorePlans() {
         email: formData?.email || "",
         phone: formData?.phone || "",
         address: formData?.address || "",
-        dg_employee: userName, // jo login user hoga
+        dg_employee: userName,
       };
 
-      // Step 3: prepare plans array
-      const plans = filteredPlanData.map((item) => ({
-        service_name: item.service_name,
-        category_name: item.category_name,
-        editing_type_name: item.editing_type_name,
-        editing_type_amount: item.editing_type_amount,
-        quantity: item.quantity,
-        include_content_posting: item.include_content_posting,
-        include_thumbnail_creation: item.include_thumbnail_creation,
-        total_amount: item.total_amount,
-        plan_name: item.plan_name,
-        employee: userName,
-      }));
+      // Step 3: separate Ads Campaign items & other plans
+      const adsItems = filteredPlanData
+        .filter((item) => item.service_name === "Ads Campaign")
+        .map((item) => ({
+          txn_id: proposalId,
+          client_id: null, // API se client_id milega baad me
+          id: generateUniqueId(),
+          category: item.category_name,
+          amount: item.amount_ads,
+          percent: item.percent_ads,
+          charge: item.charge_ads,
+          total: item.total_ads,
+          employee: userName,
+        }));
 
+      const plans = filteredPlanData
+        .filter((item) => item.service_name !== "Ads Campaign")
+        .map((item) => ({
+          service_name: item.service_name,
+          category_name: item.category_name,
+          editing_type_name: item.editing_type_name,
+          editing_type_amount: item.editing_type_amount,
+          quantity: item.quantity,
+          include_content_posting: item.include_content_posting,
+          include_thumbnail_creation: item.include_thumbnail_creation,
+          total_amount: item.total_amount,
+          plan_name: item.plan_name,
+          employee: userName,
+        }));
+
+      // Step 4: notes
       const planNotes = allPlanNote.map((item) => ({
         note_name: item.note_name,
       }));
-      console.log(planNotes);
 
-      // Step 4: single payload with client + plans
+      // Step 5: save client with plan
       const payload = {
         txn_id: proposalId,
         ...clientDetail,
-        plans, // ⬅️ array of all services
+        plans,
         planNotes,
       };
 
-      // Step 5: single API call
       const res = await axios.post(
         `${baseURL}/auth/api/calculator/saveClientWithPlan`,
         payload,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       const { status, message, client_id } = res.data;
 
       if (status === "Success") {
+        // Step 6: Save Ads Campaign if exists
+        if (adsItems.length > 0) {
+          const adsPayload = {
+            adsItems: adsItems.map((item) => ({
+              ...item,
+              client_id, // link client_id after first API
+            })),
+          };
+
+          await axios.post(
+            `${baseURL}/auth/api/calculator/saveAdsCampaign`,
+            adsPayload,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+        }
+
         Swal.fire({
           icon: "success",
           title: "Quotation Created",
           text: message,
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
 
         setShowModal(false);
-        navigate(`/admin/client/service/history/${client_id}`); // ⬅️ API ka client_id
+        navigate(`/admin/client/service/history/${client_id}`);
       } else {
         Swal.fire({
           icon: "error",
           title: "Error",
           text: message || "Failed to save quotation",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (err) {
@@ -267,7 +316,10 @@ function AdminExplorePlans() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: err.response.data.message,
+        text: err.response?.data?.message || "Something went wrong",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     } finally {
       setLoading(false);

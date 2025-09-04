@@ -189,6 +189,14 @@ export default function QuotationBD() {
     );
   }
 
+   const handlePrintPage = () => {
+    
+
+    document.title = `Quotation of ${clientName}`;
+    window.print();
+  
+  };
+
   return (
     <Wrapper>
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
@@ -196,7 +204,7 @@ export default function QuotationBD() {
 
         <div className="print:hidden flex justify-end gap-3 my-4">
           <button
-            onClick={() => window.print()}
+            onClick={handlePrintPage}
             className="bg-blue-600 text-white rounded-full px-4 py-2"
           >
             🖨️ Print

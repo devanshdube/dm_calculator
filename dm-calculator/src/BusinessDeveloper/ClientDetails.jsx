@@ -120,6 +120,9 @@ const ClientDetails = () => {
           text: isEditing
             ? "Client updated successfully!"
             : "Client added successfully!",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           setShowModal(false);
           getAllClients();
@@ -130,6 +133,9 @@ const ClientDetails = () => {
           title: "Error",
           text:
             response.data.message || "Failed to save client. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -143,12 +149,18 @@ const ClientDetails = () => {
           text:
             error.response.data.message ||
             "Failed to save client. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Error",
           text: "Failed to save client. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } finally {
@@ -221,7 +233,7 @@ const ClientDetails = () => {
 
     try {
       const response = await axios.delete(
-        `${baseURL}/auth/api/calculator/deleteClientById/${clientId}`,
+        ` ${baseURL}/auth/api/calculator/deleteClientById/${clientId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -234,6 +246,9 @@ const ClientDetails = () => {
           icon: "success",
           title: "Deleted!",
           text: "Client deleted successfully.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
 
         // Refresh client list
@@ -243,6 +258,9 @@ const ClientDetails = () => {
           icon: "error",
           title: "Failed!",
           text: response.data.message || "Unable to delete client.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -251,6 +269,9 @@ const ClientDetails = () => {
         icon: "error",
         title: "Error",
         text: "Something went wrong while deleting client.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };
@@ -279,7 +300,9 @@ const ClientDetails = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");

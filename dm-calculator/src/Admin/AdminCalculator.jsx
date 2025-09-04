@@ -239,6 +239,9 @@ const AdminCalculator = () => {
             icon: "success",
             title: editId ? "Updated!" : "Saved!",
             text: editId ? "Entry updated successfully" : "Saved successfully",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
           });
           fetchData();
           setLoading(false);
@@ -335,6 +338,9 @@ const AdminCalculator = () => {
           text: isEditing
             ? "Note updated successfully!"
             : "Note added successfully!",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           setShowModal(false);
           getAllPlanNotes();
@@ -345,6 +351,9 @@ const AdminCalculator = () => {
           title: "Error",
           text:
             response.data.message || "Failed to save Note. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -358,12 +367,18 @@ const AdminCalculator = () => {
           text:
             error.response.data.message ||
             "Failed to save note. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Error",
           text: "Failed to save note. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } finally {
@@ -391,6 +406,9 @@ const AdminCalculator = () => {
         icon: "success",
         title: "Notes Created",
         text: `Notes saved successfully!`,
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
 
       fetchData(); // refresh table
@@ -400,6 +418,9 @@ const AdminCalculator = () => {
         icon: "error",
         title: "Error",
         text: "Something went wrong while saving the notes.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };
@@ -432,6 +453,9 @@ const AdminCalculator = () => {
           icon: "success",
           title: "Deleted!",
           text: "Note deleted successfully.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
 
         // Refresh client list
@@ -441,6 +465,9 @@ const AdminCalculator = () => {
           icon: "error",
           title: "Failed!",
           text: response.data.message || "Unable to delete note.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -449,6 +476,9 @@ const AdminCalculator = () => {
         icon: "error",
         title: "Error",
         text: "Something went wrong while deleting note.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };
@@ -475,7 +505,9 @@ const AdminCalculator = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -510,6 +542,9 @@ const AdminCalculator = () => {
         icon: "error",
         title: "Error",
         text: "Failed to fetch No plan found. Please try again.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
 
       if (error.response && error.response.status === 401) {
@@ -517,7 +552,9 @@ const AdminCalculator = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -561,14 +598,18 @@ const AdminCalculator = () => {
           icon: "success",
           title: "Deleted!",
           text: "Entry has been deleted.",
-          timer: 2000,
           showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -577,6 +618,9 @@ const AdminCalculator = () => {
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };
@@ -815,12 +859,11 @@ const AdminCalculator = () => {
                     <div className="text-lg text-white/80">
                       🎬 {order.editing_type_name} × {order.quantity}
                     </div>
-                    {(order.include_content_posting === "1" ||
-                      order.include_thumbnail_creation === "1") && (
+                    {(order.include_content_posting ||
+                      order.include_thumbnail_creation) && (
                       <div className="text-base text-white/60 italic">
-                        {order.include_content_posting === "0" &&
-                          "📢 Content Posting "}
-                        {order.include_thumbnail_creation === "0" &&
+                        {order.include_content_posting && "📢 Content Posting "}
+                        {order.include_thumbnail_creation &&
                           "🖼 Thumbnail Creation"}
                       </div>
                     )}

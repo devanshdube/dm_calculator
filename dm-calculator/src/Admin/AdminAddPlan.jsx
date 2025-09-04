@@ -142,6 +142,9 @@ const AdminAddPlan = () => {
         icon: "warning", // use "warning" instead of "alert"
         title: "Plan name required",
         text: "Please enter a plan name",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
       setLoading(false); // stop loader
       return; // prevent saving
@@ -169,6 +172,9 @@ const AdminAddPlan = () => {
             icon: "success",
             title: editId ? "Updated!" : "Saved!",
             text: editId ? "Entry updated successfully" : "Saved successfully",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
           });
 
           fetchData();
@@ -212,7 +218,9 @@ const AdminAddPlan = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -255,14 +263,18 @@ const AdminAddPlan = () => {
           icon: "success",
           title: "Deleted!",
           text: "Entry has been deleted.",
-          timer: 2000,
           showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -271,6 +283,9 @@ const AdminAddPlan = () => {
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };

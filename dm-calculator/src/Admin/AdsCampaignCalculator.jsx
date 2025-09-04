@@ -52,7 +52,9 @@ const AdsCampaignCalculator = () => {
             title: "Session Expired",
             text: "Please login again.",
             icon: "warning",
-            confirmButtonText: "OK",
+                 showConfirmButton: false,  
+     timer: 2000,              
+     timerProgressBar: true 
           }).then(() => {
             dispatch(clearUser());
             localStorage.removeItem("token");
@@ -312,12 +314,25 @@ const AdsCampaignCalculator = () => {
         );
 
         const result = await response.json();
-        if (result.status === "Success") {
-          fetchData();
-          alert("Ads campaign calculated and saved successfully!");
-        } else {
-          alert("Failed to save: " + result.message);
-        }
+       if (result.status === "Success") {
+  fetchData();
+  Swal.fire({
+    icon: "success",
+    title: "Success!",
+    text: "Ads campaign calculated and saved successfully!",
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+  });
+} else {
+  Swal.fire({
+    icon: "error",
+    title: "Failed!",
+    text: "Failed to save: " + result.message,
+    showConfirmButton: true,  // keep button here so user sees the error
+  });
+}
+
       } else {
         setError("No valid data to save.");
       }

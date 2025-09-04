@@ -60,7 +60,9 @@ const AllHistory = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          confirmButtonText: "OK",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -178,7 +180,7 @@ const AllHistory = () => {
                       Status
                     </th> */}
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      Action
+                      Quotation Review
                     </th>
                   </tr>
                 </thead>
@@ -227,7 +229,7 @@ const AllHistory = () => {
                             // }
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                            Quotation
+                            Review
                           </button>
                         </td>
                       </tr>

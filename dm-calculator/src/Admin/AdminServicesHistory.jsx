@@ -120,6 +120,9 @@ const AdminServicesHistory = () => {
           icon: "success",
           title: "Success",
           text: "Service Editing Type updated successfully!",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           setShowModal(false);
           fetchData();
@@ -131,6 +134,9 @@ const AdminServicesHistory = () => {
           text:
             response.data.message ||
             "Failed to editing type. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -144,12 +150,18 @@ const AdminServicesHistory = () => {
           text:
             error.response.data.message ||
             "Failed to update service editing type. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Error",
           text: "Failed to update service editing type. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } finally {

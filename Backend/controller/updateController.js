@@ -146,7 +146,7 @@ exports.updateClientDetails = async (req, res) => {
   const clientId = req.params.id;
   const { client_name, client_organization, email, phone, address } = req.body;
 
-  if (!client_name || !client_organization || !email || !phone || !address) {
+  if (!client_name || !phone ) {
     return res
       .status(400)
       .json({ status: "Failure", message: "All fields are required." });
@@ -266,7 +266,7 @@ exports.updatePlandata = (req, res) => {
     quantity,
     include_content_posting,
     include_thumbnail_creation,
-    total_amount,
+    total_amount, category_ads,amount_ads,percent_ads,charge_ads,total_ads,
     employee,
   } = req.body;
 
@@ -283,7 +283,7 @@ exports.updatePlandata = (req, res) => {
       quantity = ?,
       include_content_posting = ?,
       include_thumbnail_creation = ?,
-      total_amount = ?,
+      total_amount = ?, category_ads ?,amount_ads ?,percent_ads ?,charge_ads ?,total_ads ?,
       employee = ?,
       created_at = ?
     WHERE id = ?
@@ -297,7 +297,7 @@ exports.updatePlandata = (req, res) => {
     quantity,
     include_content_posting,
     include_thumbnail_creation,
-    total_amount,
+    total_amount,category_ads,amount_ads,percent_ads,charge_ads,total_ads,
     employee,
     updatedAt,
     id,
