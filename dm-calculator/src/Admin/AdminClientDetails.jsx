@@ -372,21 +372,18 @@ const AdminClientDetails = () => {
     }
     setGenerating(true);
     try {
-      // ⚙️ Prefer numeric user id for created_by (DB: INT)
-      const createdBy = employeeName;
-
-      // ⏳ Expiry: 30 days (IST). No-expiry chahiye to "" bhej do.
       const expiresAt = toSqlDateTimeIST(
         new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       );
-      // const expiresAt = ""; // <- no expiry
 
       const payload = {
         client_id: selectedClient.id,
-        created_by: createdBy,
+        created_by: employeeName,
         expires_at: expiresAt,
         is_active: 1,
       };
+
+      console.log(payload);
 
       const resp = await axios.post(
         `${baseURL}/auth/api/calculator/generateClientLink`,
@@ -435,7 +432,13 @@ const AdminClientDetails = () => {
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(generatedLink);
-      Swal.fire({ icon: "success", title: "Link copied!" });
+      Swal.fire({
+        icon: "success",
+        title: "Link copied!",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
     } catch {
       Swal.fire({ icon: "error", title: "Copy failed" });
     }

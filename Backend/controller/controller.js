@@ -649,9 +649,10 @@ exports.insertClientDetails = async (req, res) => {
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
   if (!client_name || !phone || !dg_employee) {
-    return res
-      .status(400)
-      .json({ status: "Failure", message: "All fields are required Client Name , Phone Number." });
+    return res.status(400).json({
+      status: "Failure",
+      message: "All fields are required Client Name , Phone Number.",
+    });
   }
 
   try {
@@ -964,7 +965,9 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
   const data = req.body; // expect array of objects
 
   if (!Array.isArray(data) || data.length === 0) {
-    return res.status(400).json({ status: "Failure", message: "No data received" });
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "No data received" });
   }
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
@@ -991,11 +994,11 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
       item.include_content_posting || null,
       item.include_thumbnail_creation || null,
       item.total_amount || null,
-    
+
       item.amount_ads || null,
-      item.percent_ads  || null,
+      item.percent_ads || null,
       item.charge_ads || null,
-      item.total_ads ||  null,
+      item.total_ads || null,
       item.employee || null,
       createdAt,
     ];
@@ -1010,14 +1013,17 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
 
   Promise.all(tasks)
     .then(() => {
-      res.status(200).json({ status: "Success", message: "Plan data saved successfully" });
+      res
+        .status(200)
+        .json({ status: "Success", message: "Plan data saved successfully" });
     })
     .catch((err) => {
       console.error("Insert Error:", err);
-      res.status(500).json({ status: "Failure", message: "Error saving plan data" });
+      res
+        .status(500)
+        .json({ status: "Failure", message: "Error saving plan data" });
     });
 };
-
 
 exports.saveCalculatorDataOfPlanDetail = (req, res) => {
   const { plan_name } = req.body;
@@ -2897,8 +2903,6 @@ exports.generateClientLink = async (req, res) => {
           const expiresAt =
             typeof expires_at === "string" ? expires_at.trim() : "";
 
-          const createdBy = Number.isInteger(created_by) ? created_by : null;
-
           const createdAt = moment()
             .tz("Asia/Kolkata")
             .format("YYYY-MM-DD HH:mm:ss");
@@ -2912,7 +2916,7 @@ exports.generateClientLink = async (req, res) => {
           // ⚠️ NOTE: 6 placeholders → 6 values
           db.query(
             qInsert,
-            [client_id, slug, isActive, expiresAt, createdBy, createdAt],
+            [client_id, slug, isActive, expiresAt, created_by, createdAt],
             (e3) => {
               if (e3) {
                 console.error("insert error:", e3.code, e3.sqlMessage || e3);
@@ -2926,7 +2930,7 @@ exports.generateClientLink = async (req, res) => {
                       retry,
                       isActive,
                       expiresAt,
-                      createdBy,
+                      created_by,
                       createdAt,
                     ],
                     (e4) => {

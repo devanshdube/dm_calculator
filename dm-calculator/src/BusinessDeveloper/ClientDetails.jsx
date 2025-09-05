@@ -9,6 +9,9 @@ import {
   Search,
   X,
   Building,
+  Link as LinkIcon,
+  ExternalLink,
+  Copy,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -34,6 +37,11 @@ const ClientDetails = () => {
     dg_employee: employeeName,
   });
   console.log(selectedClient);
+
+  // Generate Link State
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -353,6 +361,98 @@ const ClientDetails = () => {
     navigate(`/BD/AddService/${selectedClient.id}/${proposalId}`);
   };
 
+  function toSqlDateTimeIST(date = new Date()) {
+    const pad = (n) => String(n).padStart(2, "0");
+    // Convert current time to IST (UTC+5:30)
+    const istOffsetMin = 330;
+    const utcMs = date.getTime() + date.getTimezoneOffset() * 60000;
+    const ist = new Date(utcMs + istOffsetMin * 60000);
+    return (
+      `${ist.getFullYear()}-${pad(ist.getMonth() + 1)}-${pad(ist.getDate())} ` +
+      `${pad(ist.getHours())}:${pad(ist.getMinutes())}:${pad(ist.getSeconds())}`
+    );
+  }
+
+  // Try backend create (recommended), else fallback to client-side
+  const handleGeneratePublicLink = async () => {
+    if (!selectedClient) {
+      Swal.fire({ icon: "warning", title: "Select a client first" });
+      return;
+    }
+    setGenerating(true);
+    try {
+      const expiresAt = toSqlDateTimeIST(
+        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      );
+
+      const payload = {
+        client_id: selectedClient.id,
+        created_by: employeeName,
+        expires_at: expiresAt,
+        is_active: 1,
+      };
+
+      console.log(payload);
+
+      const resp = await axios.post(
+        `${baseURL}/auth/api/calculator/generateClientLink`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const { status, data, message } = resp?.data || {};
+      if (status !== "Success" || !data?.slug) {
+        throw new Error(message || "Failed to generate link");
+      }
+
+      // 🧭 Build a safe, hash-aware public URL
+      const FRONTEND_ORIGIN = window.location.origin;
+      const useHash =
+        !!window.location.hash || window.location.href.includes("#/");
+
+      let finalUrl;
+      try {
+        const u = new URL(data.url);
+        const path = u.pathname + u.search + u.hash;
+
+        // ensure /public/r/... path hi ho
+        const cleanPath = path.startsWith("/public/")
+          ? path
+          : `/public/r/${data.slug}`;
+
+        finalUrl = `${FRONTEND_ORIGIN}${useHash ? "/#" : ""}${cleanPath}`;
+      } catch {
+        // parsing fail ho to slug se construct
+        finalUrl = `${FRONTEND_ORIGIN}${useHash ? "/#" : ""}/public/r/${
+          data.slug
+        }`;
+      }
+
+      setGeneratedLink(finalUrl);
+      setShowLinkModal(true);
+    } catch (err) {
+      console.error(err);
+      Swal.fire({ icon: "error", title: "Failed to generate link" });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedLink);
+      Swal.fire({
+        icon: "success",
+        title: "Link copied!",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+    } catch {
+      Swal.fire({ icon: "error", title: "Copy failed" });
+    }
+  };
+
   return (
     <>
       <div className="p-4 md:p-6 space-y-6 bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg">
@@ -544,6 +644,16 @@ const ClientDetails = () => {
                       Create Proposal
                     </button>
                     <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleGeneratePublicLink();
+                      }}
+                      disabled={!selectedClient || generating}
+                      className="w-full px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 transition-colors shadow-md disabled:opacity-60"
+                    >
+                      {generating ? "Generating..." : "Generate Link"}
+                    </button>
+                    <button
                       onClick={() =>
                         navigate(
                           `/BD/client/service/history/${selectedClient.id}`
@@ -699,6 +809,62 @@ const ClientDetails = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Generate Link */}
+        {showLinkModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowLinkModal(false)}
+            />
+            <div className="relative bg-white w-full max-w-lg rounded-xl shadow-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <LinkIcon className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold">
+                    Requirement Form Link
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowLinkModal(false)}
+                  className="p-2 rounded-lg hover:bg-gray-100"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="text-sm text-gray-600">
+                  Share this link with the client. They can open it without
+                  login and submit their requirements.
+                </div>
+
+                <div className="p-3 rounded border bg-gray-50 break-all text-sm">
+                  {generatedLink}
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <a
+                    href={generatedLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Visit Link
+                  </a>
+                  <button
+                    onClick={handleCopyLink}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                  >
+                    <Copy className="w-4 h-4" /> Copy Link
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

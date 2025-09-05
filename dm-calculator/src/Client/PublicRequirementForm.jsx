@@ -301,7 +301,7 @@ export default function PublicRequirementForm() {
         phone: form.phone,
         requirement: form.requirement,
         items_json: payloadItems,
-        total_amount: feesTotal,
+        total_amount: grandTotal,
         // grand_total: grandTotal,
       };
 
