@@ -12,6 +12,7 @@ const CalculatorBD = lazy(() => import("../BusinessDeveloper/CalculatorBD"));
 const BusinessDeveloperDashboard = lazy(() =>
   import("../BusinessDeveloper/BusinessDeveloperDashboard")
 );
+const ReviewRequirements = lazy(() => import("../Admin/ReviewRequirements"));
 
 const BDRouter = () => {
   // const { currentUser } = useSelector((state) => state.user);
@@ -41,6 +42,7 @@ const BDRouter = () => {
               element={<AdsCampaignCalciBD />}
             />
             <Route path="quotation/:id/:txn_id" element={<QuotationBD />} />
+            <Route path="/review/:linkId" element={<ReviewRequirements />} />
           </Routes>
         </Suspense>
       </Wrapper>

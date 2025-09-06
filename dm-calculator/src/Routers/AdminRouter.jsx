@@ -5,7 +5,6 @@ import styled from "styled-components";
 import Quotation from "../Admin/Quotation";
 import AdminAddPlan from "../Admin/AdminAddPlan";
 import AdminPlanHistory from "../Admin/AdminPlanHistory";
-
 const AdminDashboard = lazy(() => import("../Admin/AdminDashboard"));
 const AdminCalculator = lazy(() => import("../Admin/AdminCalculator"));
 const AdsCampaignCalculator = lazy(() =>
@@ -13,6 +12,7 @@ const AdsCampaignCalculator = lazy(() =>
 );
 const ServicesLanding = lazy(() => import("../Admin/ServicesLanding"));
 const History = lazy(() => import("../Admin/History"));
+const ReviewRequirements = lazy(() => import("../Admin/ReviewRequirements"));
 
 const AdminRouter = () => {
   // const { currentUser } = useSelector((state) => state.user);
@@ -48,6 +48,7 @@ const AdminRouter = () => {
             <Route path="quotation/:id/:txn_id" element={<Quotation />} />
 
             <Route path="plan-details/:id" element={<AdminPlanHistory />} />
+            <Route path="/review/:linkId" element={<ReviewRequirements />} />
           </Routes>
         </Suspense>
       </Wrapper>

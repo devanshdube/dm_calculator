@@ -66,6 +66,8 @@ const {
   retrieveTeam,
   retrieveTeamById,
   getAssignmentsSummary,
+  getRequirementsLink,
+  getRequirementsDetail,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -202,6 +204,8 @@ router.get("/progress/by-txn/:txn_id", getProgressByTxn);
 router.get("/retrieveTeam", retrieveTeam);
 router.get("/retrieveTeamById/:id", retrieveTeamById);
 router.get("/getAssignmentsSummary/:txn_id", getAssignmentsSummary);
+router.get("/requirements", getRequirementsLink);
+router.get("/getRequirementsDetail/:linkId", getRequirementsDetail);
 // ---->  Get all routes END <----
 
 // ---->  DELETE all routes START <----

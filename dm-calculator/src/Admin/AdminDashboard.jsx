@@ -12,6 +12,7 @@ import {
   PlaneIcon,
   List,
   UserPlus,
+  Link,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +21,7 @@ import { clearUser } from "../redux/user/userSlice";
 import AdminAddPlan from "./AdminAddPlan";
 import AdminExplorePlans from "./AdminExplorePlans";
 import CreateTeam from "./CreateTeam";
+import GenerateLinkHistory from "./GenerateLinkHistory";
 const AssignQuotation = lazy(() => import("./AssignQuotation"));
 const AllHistory = lazy(() => import("./AllHistory"));
 const RegisterBD = lazy(() => import("./RegisterBD"));
@@ -62,6 +64,7 @@ const AdminDashboard = () => {
     { id: "history", label: "History", icon: Clock },
     { id: "assign", label: "Assign", icon: UserPlus },
     { id: "createteam", label: "Team", icon: Users },
+    { id: "generatelink", label: "Generate Link", icon: Link },
   ];
 
   const handleLogout = () => {
@@ -224,6 +227,7 @@ const AdminDashboard = () => {
           {activeTab === "history" && <AllHistory />}
           {activeTab === "assign" && <AssignQuotation />}
           {activeTab === "createteam" && <CreateTeam />}
+          {activeTab === "generatelink" && <GenerateLinkHistory />}
         </div>
       </main>
 
