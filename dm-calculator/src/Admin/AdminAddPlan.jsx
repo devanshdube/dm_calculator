@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -23,7 +22,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
 
-
 const AdminAddPlan = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const dispatch = useDispatch();
@@ -43,9 +41,9 @@ const AdminAddPlan = () => {
 
   const [optionalAmounts, setOptionalAmounts] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
   console.log(data);
-  
+
   const [total, setTotal] = useState(0);
   const navigate = useNavigate();
   console.log(id, proposalId);
@@ -55,80 +53,78 @@ const AdminAddPlan = () => {
     axios
       .get(`${baseURL}/auth/api/calculator/services/category/editing`)
       .then((res) => {
-     
-  setData(res.data.data);
+        setData(res.data.data);
       })
       .catch((err) => console.error(err));
   }, []);
 
-useEffect(() => {
-  axios.get(`${baseURL}/auth/api/calculator/optional-service-amounts`)
-    .then(res => {
-      if (res.data.status === "success") {
-        const services = res.data.data;
-        setOptionalServices(services);
+  useEffect(() => {
+    axios
+      .get(`${baseURL}/auth/api/calculator/optional-service-amounts`)
+      .then((res) => {
+        if (res.data.status === "success") {
+          const services = res.data.data;
+          setOptionalServices(services);
 
-        const initialAddons = {};
-        services.forEach(item => {
-          const key = item.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-          initialAddons[key] = false;
-        });
-        setAddons(initialAddons);
-        setOptionalAmounts(services); // already done in your code
-      }
-    })
-    .catch(err => console.error(err));
-}, []);
-
-// useEffect(() => {
-//   if (data.length && optionalServices.length) {
-//     const filtered = filterOptionalServices(data);
-//     setData(filtered);
-//   }
-// }, [data, optionalServices]);
-
-
-
-const getOptionalAddonAmount = (serviceName, editingTypeName) => {
-  const match = optionalAmounts.find(
-    (item) =>
-      item.service_name === serviceName &&
-      item.editing_type_name === editingTypeName
-  );
-  return match ? parseFloat(match.amount) : 0;
-};
-
-const handleEdit = (entry) => {
-  setEditId(entry.id);
-setSelectedPlan(entry.plan_name)
-};
-
-
-const filterOptionalServices = (services) => {
-  return services
-    .map((service) => {
-      const filteredCategories = service.categories
-        .map((category) => {
-          const filteredEditing = category.editing_types.filter((editing) => {
-            // Check if this editing type is an optional service
-            const isOptional = optionalServices.some(
-              (opt) =>
-                opt.service_name === service.service_name &&
-                opt.category_name === category.category_name &&
-                opt.editing_type_name === editing.editing_type_name
-            );
-            return !isOptional; // Only keep non-optional services
+          const initialAddons = {};
+          services.forEach((item) => {
+            const key = item.editing_type_name
+              .toLowerCase()
+              .replace(/\s+/g, "_");
+            initialAddons[key] = false;
           });
+          setAddons(initialAddons);
+          setOptionalAmounts(services); // already done in your code
+        }
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
-          return { ...category, editing_types: filteredEditing };
-        })
-        .filter((cat) => cat.editing_types.length > 0);
+  // useEffect(() => {
+  //   if (data.length && optionalServices.length) {
+  //     const filtered = filterOptionalServices(data);
+  //     setData(filtered);
+  //   }
+  // }, [data, optionalServices]);
 
-      return { ...service, categories: filteredCategories };
-    })
-    .filter((service) => service.categories.length > 0);
-};
+  const getOptionalAddonAmount = (serviceName, editingTypeName) => {
+    const match = optionalAmounts.find(
+      (item) =>
+        item.service_name === serviceName &&
+        item.editing_type_name === editingTypeName
+    );
+    return match ? parseFloat(match.amount) : 0;
+  };
 
+  const handleEdit = (entry) => {
+    setEditId(entry.id);
+    setSelectedPlan(entry.plan_name);
+  };
+
+  const filterOptionalServices = (services) => {
+    return services
+      .map((service) => {
+        const filteredCategories = service.categories
+          .map((category) => {
+            const filteredEditing = category.editing_types.filter((editing) => {
+              // Check if this editing type is an optional service
+              const isOptional = optionalServices.some(
+                (opt) =>
+                  opt.service_name === service.service_name &&
+                  opt.category_name === category.category_name &&
+                  opt.editing_type_name === editing.editing_type_name
+              );
+              return !isOptional; // Only keep non-optional services
+            });
+
+            return { ...category, editing_types: filteredEditing };
+          })
+          .filter((cat) => cat.editing_types.length > 0);
+
+        return { ...service, categories: filteredCategories };
+      })
+      .filter((service) => service.categories.length > 0);
+  };
 
   const getSelectedService = data.find(
     (s) => s.service_name === selectedService
@@ -137,74 +133,71 @@ const filterOptionalServices = (services) => {
     (c) => c.category_name === selectedCategory
   );
 
-const handleSave = () => {
+  const handleSave = () => {
+    setLoading(true);
+    console.log(selectedPlan);
 
-  setLoading(true);
-console.log(selectedPlan);
-
-
-  if (!selectedPlan) {
-    Swal.fire({
-      icon: "warning",  // use "warning" instead of "alert"
-      title: "Plan name required",
-      text: "Please enter a plan name",
-      showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
-    });
-    setLoading(false); // stop loader
-    return; // prevent saving
-  }
- 
-  const payload = {
-   
-    plan_name: selectedPlan,
-  };
-
-  const request = editId
-    ? axios.put(`${baseURL}/auth/api/calculator/updatePlanName/${editId}`, payload)
-    : axios.post(`${baseURL}/auth/api/calculator/saveCalculatorDataofplanDetail`, payload);
-
-  request
-  .then((res) => {
-    resetForm();
-    if (res.data.status === "Success") {
+    if (!selectedPlan) {
       Swal.fire({
-        icon: "success",
-        title: editId ? "Updated!" : "Saved!",
-        text: editId ? "Entry updated successfully" : "Saved successfully",
-        showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+        icon: "warning", // use "warning" instead of "alert"
+        title: "Plan name required",
+        text: "Please enter a plan name",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
-
-      fetchData();
-      setLoading(false);
-      setSelectedPlan('');
-
-      // ✅ navigate using insertId (only if it's a new insert, not update)
-      if (!editId && res.data.insertId) {
-        navigate(`/admin/plan-details/${res.data.insertId}`);
-      }
+      setLoading(false); // stop loader
+      return; // prevent saving
     }
-  })
-  .catch((err) => {
-    setLoading(false);
-    console.error("Save error:", err);
-  });
-};
 
+    const payload = {
+      plan_name: selectedPlan,
+    };
 
+    const request = editId
+      ? axios.put(
+          `${baseURL}/auth/api/calculator/updatePlanName/${editId}`,
+          payload
+        )
+      : axios.post(
+          `${baseURL}/auth/api/calculator/saveCalculatorDataofplanDetail`,
+          payload
+        );
+
+    request
+      .then((res) => {
+        resetForm();
+        if (res.data.status === "Success") {
+          Swal.fire({
+            icon: "success",
+            title: editId ? "Updated!" : "Saved!",
+            text: editId ? "Entry updated successfully" : "Saved successfully",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
+
+          fetchData();
+          setLoading(false);
+          setSelectedPlan("");
+
+          // ✅ navigate using insertId (only if it's a new insert, not update)
+          if (!editId && res.data.insertId) {
+            navigate(`/admin/plan-details/${res.data.insertId}`);
+          }
+        }
+      })
+      .catch((err) => {
+        setLoading(false);
+        console.error("Save error:", err);
+      });
+  };
 
   const resetForm = () => {
-   setSelectedPlan('')
+    setSelectedPlan("");
   };
 
-
-
-
   const fetchData = async () => {
-   
     try {
       const { data } = await axios.get(
         `${baseURL}/auth/api/calculator/getAllPlanDetails`,
@@ -225,9 +218,9 @@ console.log(selectedPlan);
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -270,19 +263,18 @@ console.log(selectedPlan);
           icon: "success",
           title: "Deleted!",
           text: "Entry has been deleted.",
-          showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
-
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
-          showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -291,13 +283,13 @@ console.log(selectedPlan);
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
-        showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };
-    const grandTotal = getData.reduce(
+  const grandTotal = getData.reduce(
     (acc, order) => acc + parseFloat(order.total_amount || 0),
     0
   );
@@ -307,9 +299,8 @@ console.log(selectedPlan);
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white p-6">
         <div className="w-full max-w-2xl bg-white/10 backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
           <h2 className="text-3xl font-bold text-white text-center mb-6">
-            🧮  Add Plans
+            🧮 Add Plans
           </h2>
-  
 
           <div>
             <label className="block font-semibold mb-1">Plan Name</label>
@@ -320,20 +311,15 @@ console.log(selectedPlan);
                 setSelectedPlan(e.target.value);
               }}
               placeholder="Enter the Plan Name"
-              
             />
-              
           </div>
-        
-
-
-         
 
           <button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"
-            onClick={handleSave} disabled = {loading}
+            onClick={handleSave}
+            disabled={loading}
           >
-           {loading ? 'Save...':'Create Plan'} 
+            {loading ? "Save..." : "Create Plan"}
           </button>
           <button
             className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"
@@ -342,8 +328,6 @@ console.log(selectedPlan);
             Reset Form
           </button>
 
-        
-        
           {/* Client Orders */}
 
           <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -355,7 +339,6 @@ console.log(selectedPlan);
               <div
                 key={order.id}
                 className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
-
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
                   {/* Left Section: Info */}
@@ -366,12 +349,10 @@ console.log(selectedPlan);
                         {order.plan_name} → {order.category_name}
                       </span>
                     </div>
-                  
                   </div>
 
                   {/* Right Section: Amount + Delete */}
                   <div className="flex items-center gap-2 sm:gap-4">
-                    
                     <button
                       onClick={() => handleEdit(order)}
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
@@ -387,19 +368,19 @@ console.log(selectedPlan);
                       ×
                     </button>
                     <button
-                      onClick={() => navigate(`/admin/plan-details/${order.id}`)}
+                      onClick={() =>
+                        navigate(`/admin/plan-details/${order.id}`)
+                      }
                       className="bg-orange-600 hover:bg-orange-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
                       title="detail"
                     >
-                      <ListCheckIcon/>
+                      <ListCheckIcon />
                     </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-
-      
         </div>
       </div>
     </>

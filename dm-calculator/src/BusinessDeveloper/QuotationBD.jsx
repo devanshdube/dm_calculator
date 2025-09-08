@@ -10,7 +10,7 @@ import img1 from "../assets/Dg 1copy.png";
 import img2 from "../assets/Dg 2copy.png";
 import img3 from "../assets/dghead.jpeg";
 
-export default function QuotationBD(){
+export default function QuotationBD() {
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const { id, txn_id } = useParams();
   const location = useLocation();
@@ -92,7 +92,7 @@ export default function QuotationBD(){
         `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${txn_id}`,
         {
           headers: {
-            "Content-Type": "application/json", 
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
@@ -158,43 +158,44 @@ export default function QuotationBD(){
     fetchComplimentaryData();
   }, [id, txn_id]);
 
-useEffect(() => {
-  if (serviceData.length === 0) return;
+  useEffect(() => {
+    if (serviceData.length === 0) return;
 
-  const graphicRaw = serviceData.filter(
-    (item) => item.service_type === "Graphic Service"
-  );
-  const adsRaw = serviceData.filter(
-    (item) => item.service_type === "Ads Campaign"
-  );
+    const graphicRaw = serviceData.filter(
+      (item) => item.service_type === "Graphic Service"
+    );
+    const adsRaw = serviceData.filter(
+      (item) => item.service_type === "Ads Campaign"
+    );
 
-  const groupedGraphic = [];
+    const groupedGraphic = [];
 
-  graphicRaw.forEach((item) => {
-    // Find service (e.g., Video Services, Video Shoot)
-    let service = groupedGraphic.find((s) => s.service === item.service_name);
-    if (!service) {
-      service = { service: item.service_name, editingTypes: [] };
-      groupedGraphic.push(service);
-    }
+    graphicRaw.forEach((item) => {
+      // Find service (e.g., Video Services, Video Shoot)
+      let service = groupedGraphic.find((s) => s.service === item.service_name);
+      if (!service) {
+        service = { service: item.service_name, editingTypes: [] };
+        groupedGraphic.push(service);
+      }
 
-    // Push editing types directly (attach category info in the row if needed)
-    service.editingTypes.push({
-      category: item.category_name,
-      type: item.editing_type_name || "N/A",
-      quantity: Number(item.quantity) || 1,
-      price: Number(item.editing_type_amount) || 0,
-      include_content_posting: Number(item.include_content_posting) || 0,
-      include_thumbnail_creation: Number(item.include_thumbnail_creation) || 0,
-      total: Number(item.total_amount) || 0,
+      // Push editing types directly (attach category info in the row if needed)
+      service.editingTypes.push({
+        category: item.category_name,
+        type: item.editing_type_name || "N/A",
+        quantity: Number(item.quantity) || 1,
+        price: Number(item.editing_type_amount) || 0,
+        include_content_posting: Number(item.include_content_posting) || 0,
+        include_thumbnail_creation:
+          Number(item.include_thumbnail_creation) || 0,
+        total: Number(item.total_amount) || 0,
+      });
     });
-  });
 
-  setGraphicData(groupedGraphic);
-  setAdsData(adsRaw);
-  setLoading(false);
-}, [serviceData]);
-console.log(graphicData);
+    setGraphicData(groupedGraphic);
+    setAdsData(adsRaw);
+    setLoading(false);
+  }, [serviceData]);
+  console.log(graphicData);
 
 const graphicTotal = graphicData.reduce(
   (sum, service) =>
@@ -217,16 +218,12 @@ const complimentaryTotal = complimentaryData.reduce((sum, service) => {
 }, 0);
 
 
-
-
-
-
-const adsTotal = adsData.reduce((sum, ad) => {
-  const amount = Number(ad.amount || 0);
-  const totalBudget = Number(ad.total_amount || 0);
-  const gstTotal = (amount * 18) / 100;
-  return sum + totalBudget + gstTotal;
-}, 0);
+  const adsTotal = adsData.reduce((sum, ad) => {
+    const amount = Number(ad.amount || 0);
+    const totalBudget = Number(ad.total_amount || 0);
+    const gstTotal = (amount * 18) / 100;
+    return sum + totalBudget + gstTotal;
+  }, 0);
   const grandTotal = graphicTotal + adsTotal;
 
   if (loading) {
@@ -695,4 +692,3 @@ const Wrapper = styled.div`
     }
   }
 `;
-

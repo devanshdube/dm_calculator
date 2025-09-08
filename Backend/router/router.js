@@ -32,6 +32,8 @@ const {
   addMembersToTeam,
   assignQuotationToTeam,
   saveComplimentaryData,
+  generateClientLink,
+  submitRequirement,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -66,6 +68,8 @@ const {
   retrieveTeamById,
   getAssignmentsSummary,
   getByIDComplimentaryData,
+  getRequirementsLink,
+  getRequirementsDetail,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -131,7 +135,12 @@ router.post("/assignQuotation", assignQuotation);
 router.post("/createTeam", createTeam);
 router.post("/addMembersToTeam/:id/members", addMembersToTeam);
 router.post("/assignQuotationToTeam", assignQuotationToTeam);
+
 router.post("/saveComplimentaryData", saveComplimentaryData);
+
+router.post("/generateClientLink", generateClientLink);
+router.post("/submitRequirement", submitRequirement);
+
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -207,6 +216,8 @@ router.get("/progress/by-txn/:txn_id", getProgressByTxn);
 router.get("/retrieveTeam", retrieveTeam);
 router.get("/retrieveTeamById/:id", retrieveTeamById);
 router.get("/getAssignmentsSummary/:txn_id", getAssignmentsSummary);
+router.get("/requirements", getRequirementsLink);
+router.get("/getRequirementsDetail/:linkId", getRequirementsDetail);
 // ---->  Get all routes END <----
 
 // ---->  DELETE all routes START <----

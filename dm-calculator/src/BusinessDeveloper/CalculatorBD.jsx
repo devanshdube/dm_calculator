@@ -14,9 +14,10 @@ import {
   DollarSign,
   Package,
   Clock,
-  CheckCircle,  X,
+  CheckCircle,
+  X,
   StickyNote,
-  Notebook
+  Notebook,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -43,18 +44,17 @@ const CalculatorBD = () =>  {
   const [addons, setAddons] = useState({});
   const [loading, setLoading] = useState(false);
   const [optionalAmounts, setOptionalAmounts] = useState([]);
-  
+
   console.log(data);
-  
+
   const [total, setTotal] = useState(0);
   const navigate = useNavigate();
   console.log(id, proposalId);
   const [editId, setEditId] = useState(null);
-       const [allPlanNote, setAllPlanNote] = useState([]);
-const [formData, setFormData] = useState({
+  const [allPlanNote, setAllPlanNote] = useState([]);
+  const [formData, setFormData] = useState({
     note_name: "",
     plan: "Customise",
-
   });
     const [selectedNotesId, setSelectedNotesId] = useState(null);
        const [showModal, setShowModal] = useState(false);
@@ -68,114 +68,112 @@ const [formData, setFormData] = useState({
     axios
       .get(`${baseURL}/auth/api/calculator/services/category/editing`)
       .then((res) => {
-     
-  setData(res.data.data);
+        setData(res.data.data);
       })
       .catch((err) => console.error(err));
   }, []);
 
-useEffect(() => {
-  axios.get(`${baseURL}/auth/api/calculator/optional-service-amounts`)
-    .then(res => {
-      if (res.data.status === "success") {
-        const services = res.data.data;
-        setOptionalServices(services);
+  useEffect(() => {
+    axios
+      .get(`${baseURL}/auth/api/calculator/optional-service-amounts`)
+      .then((res) => {
+        if (res.data.status === "success") {
+          const services = res.data.data;
+          setOptionalServices(services);
 
-        const initialAddons = {};
-        services.forEach(item => {
-          const key = item.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-          initialAddons[key] = false;
-        });
-        setAddons(initialAddons);
-        setOptionalAmounts(services); // already done in your code
-      }
-    })
-    .catch(err => console.error(err));
-}, []);
-
-useEffect(() => {
-  if (selectedService === "Video Services") {
-    setAddons({
-      thumbnail_creation: true,
-      content_posting: true,
-    });
-  } else if (selectedService === "Graphics Design") {
-    setAddons({
-      content_posting: true,
-      thumbnail_creation: false,
-    });
-  } else {
-    setAddons({});
-  }
-}, [selectedService]);
-
-// useEffect(() => {
-//   if (data.length && optionalServices.length) {
-//     const filtered = filterOptionalServices(data);
-//     setData(filtered);
-//   }
-// }, [data, optionalServices]);
-
-
-
-const getOptionalAddonAmount = (serviceName, editingTypeName) => {
-  const match = optionalAmounts.find(
-    (item) =>
-      item.service_name === serviceName &&
-      item.editing_type_name === editingTypeName
-  );
-  return match ? parseFloat(match.amount) : 0;
-};
-
-const handleEdit = (entry) => {
-  setEditId(entry.id);
-  setSelectedService(entry.service_name);
-  setSelectedCategory(entry.category_name);
-  setSelectedEditingType({
-    editing_type_id: entry.editing_type_id,
-    editing_type_name: entry.editing_type_name,
-    amount: parseFloat(entry.editing_type_amount),
-  });
-  setQuantity(parseInt(entry.quantity));
-
-  // Dynamically map optional services from entry
-  const updatedAddons = {};
-  optionalServices.forEach((opt) => {
-    const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-    const entryKey = `include_${key}`;
-    updatedAddons[key] = parseFloat(entry[entryKey]) > 0;
-  });
-
-  setAddons(updatedAddons);
-  setTotal(parseFloat(entry.total_amount));
-};
-
-
-const filterOptionalServices = (services) => {
-  return services
-    .map((service) => {
-      const filteredCategories = service.categories
-        .map((category) => {
-          const filteredEditing = category.editing_types.filter((editing) => {
-            // Check if this editing type is an optional service
-            const isOptional = optionalServices.some(
-              (opt) =>
-                opt.service_name === service.service_name &&
-                opt.category_name === category.category_name &&
-                opt.editing_type_name === editing.editing_type_name
-            );
-            return !isOptional; // Only keep non-optional services
+          const initialAddons = {};
+          services.forEach((item) => {
+            const key = item.editing_type_name
+              .toLowerCase()
+              .replace(/\s+/g, "_");
+            initialAddons[key] = false;
           });
+          setAddons(initialAddons);
+          setOptionalAmounts(services); // already done in your code
+        }
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
-          return { ...category, editing_types: filteredEditing };
-        })
-        .filter((cat) => cat.editing_types.length > 0);
+  useEffect(() => {
+    if (selectedService === "Video Services") {
+      setAddons({
+        thumbnail_creation: true,
+        content_posting: true,
+      });
+    } else if (selectedService === "Graphics Design") {
+      setAddons({
+        content_posting: true,
+        thumbnail_creation: false,
+      });
+    } else {
+      setAddons({});
+    }
+  }, [selectedService]);
 
-      return { ...service, categories: filteredCategories };
-    })
-    .filter((service) => service.categories.length > 0);
-};
+  // useEffect(() => {
+  //   if (data.length && optionalServices.length) {
+  //     const filtered = filterOptionalServices(data);
+  //     setData(filtered);
+  //   }
+  // }, [data, optionalServices]);
 
+  const getOptionalAddonAmount = (serviceName, editingTypeName) => {
+    const match = optionalAmounts.find(
+      (item) =>
+        item.service_name === serviceName &&
+        item.editing_type_name === editingTypeName
+    );
+    return match ? parseFloat(match.amount) : 0;
+  };
+
+  const handleEdit = (entry) => {
+    setEditId(entry.id);
+    setSelectedService(entry.service_name);
+    setSelectedCategory(entry.category_name);
+    setSelectedEditingType({
+      editing_type_id: entry.editing_type_id,
+      editing_type_name: entry.editing_type_name,
+      amount: parseFloat(entry.editing_type_amount),
+    });
+    setQuantity(parseInt(entry.quantity));
+
+    // Dynamically map optional services from entry
+    const updatedAddons = {};
+    optionalServices.forEach((opt) => {
+      const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+      const entryKey = `include_${key}`;
+      updatedAddons[key] = parseFloat(entry[entryKey]) > 0;
+    });
+
+    setAddons(updatedAddons);
+    setTotal(parseFloat(entry.total_amount));
+  };
+
+  const filterOptionalServices = (services) => {
+    return services
+      .map((service) => {
+        const filteredCategories = service.categories
+          .map((category) => {
+            const filteredEditing = category.editing_types.filter((editing) => {
+              // Check if this editing type is an optional service
+              const isOptional = optionalServices.some(
+                (opt) =>
+                  opt.service_name === service.service_name &&
+                  opt.category_name === category.category_name &&
+                  opt.editing_type_name === editing.editing_type_name
+              );
+              return !isOptional; // Only keep non-optional services
+            });
+
+            return { ...category, editing_types: filteredEditing };
+          })
+          .filter((cat) => cat.editing_types.length > 0);
+
+        return { ...service, categories: filteredCategories };
+      })
+      .filter((service) => service.categories.length > 0);
+  };
 
   const getSelectedService = data.find(
     (s) => s.service_name === selectedService
@@ -184,73 +182,78 @@ const filterOptionalServices = (services) => {
     (c) => c.category_name === selectedCategory
   );
 
-const handleSave = () => {
-  if (!selectedEditingType) return;
-  setLoading(true);
-  // Base amount
-  let baseAmount = selectedEditingType.amount * quantity;
+  const handleSave = () => {
+    if (!selectedEditingType) return;
+    setLoading(true);
+    // Base amount
+    let baseAmount = selectedEditingType.amount * quantity;
 
-  // Optional addon values
-  let optionalTotal = 0;
-  let include_content_posting = 0;
-  let include_thumbnail_creation = 0;
+    // Optional addon values
+    let optionalTotal = 0;
+    let include_content_posting = 0;
+    let include_thumbnail_creation = 0;
 
-  optionalServices.forEach((opt) => {
-    const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-    if (addons[key]) {
-      const amount = parseFloat(opt.amount);
-      const totalForThisAddon = amount * quantity; // ✅ multiply by quantity
+    optionalServices.forEach((opt) => {
+      const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+      if (addons[key]) {
+        const amount = parseFloat(opt.amount);
+        const totalForThisAddon = amount * quantity; // ✅ multiply by quantity
 
-      optionalTotal += totalForThisAddon;
+        optionalTotal += totalForThisAddon;
 
-      if (key === "content_posting") {
-        include_content_posting = amount; // Send unit amount, not total
-      } else if (key === "thumbnail_creation") {
-        include_thumbnail_creation = amount; // Send unit amount, not total
+        if (key === "content_posting") {
+          include_content_posting = amount; // Send unit amount, not total
+        } else if (key === "thumbnail_creation") {
+          include_thumbnail_creation = amount; // Send unit amount, not total
+        }
       }
-    }
-  });
-
-  const finalAmount = baseAmount + optionalTotal;
-  setTotal(finalAmount);
-
-  const payload = {
-    txn_id: proposalId,
-    client_id: id,
-    service_name: selectedService,
-    category_name: selectedCategory,
-    editing_type_name: selectedEditingType.editing_type_name,
-    editing_type_amount: selectedEditingType.amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount: finalAmount,
-    employee: userName,
-  };
-
-  const request = editId
-    ? axios.put(`${baseURL}/auth/api/calculator/updateGraphicEntryById/${editId}`, payload)
-    : axios.post(`${baseURL}/auth/api/calculator/saveCalculatorData`, payload);
-
-  request
-    .then((res) => {
-      resetForm();
-      if (res.data.status === "Success") {
-        Swal.fire({
-          icon: "success",
-          title: editId ? "Updated!" : "Saved!",
-          text: editId ? "Entry updated successfully" : "Saved successfully",
-        });
-        fetchData();
-          setLoading(false);
-      }
-    })
-    .catch((err) => {
-         setLoading(false);
-      console.error("Save error:", err);
     });
-};
 
+    const finalAmount = baseAmount + optionalTotal;
+    setTotal(finalAmount);
+
+    const payload = {
+      txn_id: proposalId,
+      client_id: id,
+      service_name: selectedService,
+      category_name: selectedCategory,
+      editing_type_name: selectedEditingType.editing_type_name,
+      editing_type_amount: selectedEditingType.amount,
+      quantity,
+      include_content_posting,
+      include_thumbnail_creation,
+      total_amount: finalAmount,
+      employee: userName,
+    };
+
+    const request = editId
+      ? axios.put(
+          `${baseURL}/auth/api/calculator/updateGraphicEntryById/${editId}`,
+          payload
+        )
+      : axios.post(
+          `${baseURL}/auth/api/calculator/saveCalculatorData`,
+          payload
+        );
+
+    request
+      .then((res) => {
+        resetForm();
+        if (res.data.status === "Success") {
+          Swal.fire({
+            icon: "success",
+            title: editId ? "Updated!" : "Saved!",
+            text: editId ? "Entry updated successfully" : "Saved successfully",
+          });
+          fetchData();
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        setLoading(false);
+        console.error("Save error:", err);
+      });
+  };
 
   const resetForm = () => {
     setEditId(null);
@@ -258,51 +261,42 @@ const handleSave = () => {
     setSelectedCategory("");
     setSelectedEditingType(null);
     setQuantity(1);
- const initialAddons = {};
-optionalServices.forEach(item => {
-  const key = item.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-  initialAddons[key] = false;
-});
-setAddons(initialAddons);
+    const initialAddons = {};
+    optionalServices.forEach((item) => {
+      const key = item.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+      initialAddons[key] = false;
+    });
+    setAddons(initialAddons);
 
     setTotal(0);
   };
 
-
-    const handleShow = () => {
-  
+  const handleShow = () => {
     setFormData({
       note_name: "",
-      plan:"Customise",
-     
-      
+      plan: "Customise",
     });
     setIsEditing(false);
     setShowModal(true);
   };
 
-   const handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-
-    
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
-   const handleClose = () => {
+  const handleClose = () => {
     setShowModal(false);
     setFormData({
       note_name: "",
-      plan:"",
-   
-   
-    
+      plan: "",
     });
   };
 
-    const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
@@ -347,7 +341,7 @@ setAddons(initialAddons);
             : "Note added successfully!",
         }).then(() => {
           setShowModal(false);
-           getAllPlanNotes();
+          getAllPlanNotes();
         });
       } else {
         Swal.fire({
@@ -379,97 +373,89 @@ setAddons(initialAddons);
     } finally {
       setLoading(false);
     }
-    
   };
-const handleSaveNotes = async () => {
-  try {
-  
+  const handleSaveNotes = async () => {
+    try {
+      const planNotes = allPlanNote.map((item) => ({
+        note_name: item.note_name,
+        plan: item.plan,
+      }));
 
-    const planNotes = allPlanNote.map((item) => ({
-      note_name: item.note_name,
-      plan: item.plan,
-    }));
+      const payload = { txn_id: proposalId, client_id: id, planNotes };
 
-    const payload = {   txn_id: proposalId,
-      client_id: id, planNotes };
+      await axios.post(
+        `${baseURL}/auth/api/calculator/saveClientIdwiseNotes`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-    await axios.post(
-      `${baseURL}/auth/api/calculator/saveClientIdwiseNotes`,
-      payload,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+      Swal.fire({
+        icon: "success",
+        title: "Notes Created",
+        text: `Notes saved successfully!`,
+      });
 
-    Swal.fire({
-      icon: "success",
-      title: "Notes Created",
-      text: `Notes saved successfully!`,
-    });
-
-    fetchData(); // refresh table
-  } catch (err) {
-    console.error("Save error:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Something went wrong while saving the notes.",
-    });
-  }
-};
-
-
+      fetchData(); // refresh table
+    } catch (err) {
+      console.error("Save error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong while saving the notes.",
+      });
+    }
+  };
 
   const handleDeleteNote = async (noteId) => {
-const confirm = await Swal.fire({
-  title: "Are you sure?",
-  text: "Do you want to delete this note permanently?",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonColor: "#d33",
-  cancelButtonColor: "#3085d6",
-  confirmButtonText: "Yes, delete it!",
-});
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this note permanently?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
 
-if (!confirm.isConfirmed) return;
+    if (!confirm.isConfirmed) return;
 
-try {
-  const response = await axios.delete(
-    `${baseURL}/auth/api/calculator/deletePlanNotesbyid/${noteId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    try {
+      const response = await axios.delete(
+        `${baseURL}/auth/api/calculator/deletePlanNotesbyid/${noteId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Note deleted successfully.",
+        });
+
+        // Refresh client list
+        getAllPlanNotes();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: response.data.message || "Unable to delete note.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong while deleting note.",
+      });
     }
-  );
-
-  if (response.data.status === "Success") {
-    Swal.fire({
-      icon: "success",
-      title: "Deleted!",
-      text: "Note deleted successfully.",
-    });
-
-    // Refresh client list
-    getAllPlanNotes();
-  } else {
-    Swal.fire({
-      icon: "error",
-      title: "Failed!",
-      text: response.data.message || "Unable to delete note.",
-    });
-  }
-} catch (error) {
-  console.error("Error deleting note:", error);
-  Swal.fire({
-    icon: "error",
-    title: "Error",
-    text: "Something went wrong while deleting note.",
-  });
-}
-};
-
-
+  };
 
   const fetchData = async () => {
     if (!id || !proposalId) return;
@@ -503,54 +489,50 @@ try {
     }
   };
   const getAllPlanNotes = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/auth/api/calculator/getPlanNotes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-  try {
-    const response = await axios.get(
-      `${baseURL}/auth/api/calculator/getPlanNotes`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      const notes = response.data.data;
 
-    const notes = response.data.data;
+      const filtered = notes.filter(
+        (note) => String(note.plan) === String(formData.plan) // type safe compare
+      );
 
-const filtered = notes.filter(
-      (note) => String(note.plan) === String(formData.plan) // type safe compare
-    );
+      console.log("Filtered Notes:", filtered);
 
-    console.log("Filtered Notes:", filtered);
-
-    setAllPlanNote(filtered);
-
-   
-
-  } catch (error) {
-    console.error("Error fetching No plan found:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Failed to fetch No plan found. Please try again.",
-    });
-
-    if (error.response && error.response.status === 401) {
+      setAllPlanNote(filtered);
+    } catch (error) {
+      console.error("Error fetching No plan found:", error);
       Swal.fire({
-        title: "Session Expired",
-        text: "Please login again.",
-        icon: "warning",
-        confirmButtonText: "OK",
-      }).then(() => {
-        dispatch(clearUser());
-        localStorage.removeItem("token");
-        navigate("/");
+        icon: "error",
+        title: "Error",
+        text: "Failed to fetch No plan found. Please try again.",
       });
+
+      if (error.response && error.response.status === 401) {
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
-  }
-};
+  };
   useEffect(() => {
     fetchData();
-      getAllPlanNotes();
+    getAllPlanNotes();
   }, [id, proposalId]);
 
   console.log(getData);
@@ -790,12 +772,58 @@ const filtered = notes.filter(
   </div>
 )}
 
+          {selectedService === "Graphics Design" &&
+            optionalServices?.length > 0 && (
+              <div className="space-y-4">
+                {optionalServices.map((opt) => {
+                  const key = opt.editing_type_name
+                    .toLowerCase()
+                    .replace(/\s+/g, "_");
+                  return (
+                    <div key={key}>
+                      <label className="block font-semibold">
+                        {opt.editing_type_name}?
+                      </label>
+                      <div className="flex gap-4 mt-2">
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded ${
+                            addons[key]
+                              ? "bg-green-600 text-white"
+                              : "bg-gray-300 text-black"
+                          }`}
+                          onClick={() =>
+                            setAddons((prev) => ({ ...prev, [key]: true }))
+                          }
+                        >
+                          YES
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded ${
+                            !addons[key]
+                              ? "bg-red-600 text-white"
+                              : "bg-gray-300 text-black"
+                          }`}
+                          onClick={() =>
+                            setAddons((prev) => ({ ...prev, [key]: false }))
+                          }
+                        >
+                          NO
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
           <button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"
-            onClick={handleSave} disabled = {loading}
+            onClick={handleSave}
+            disabled={loading}
           >
-           {loading ? 'Save...':'Calculate & Save'} 
+            {loading ? "Save..." : "Calculate & Save"}
           </button>
           <button
             className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"

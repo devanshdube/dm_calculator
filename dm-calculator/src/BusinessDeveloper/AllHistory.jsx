@@ -38,20 +38,20 @@ const AllHistory = () => {
           },
         }
       );
-    if (res.data.status === "Success") {
-      const uniqueTxnData = [];
-      const seenTxnIds = new Set();
+      if (res.data.status === "Success") {
+        const uniqueTxnData = [];
+        const seenTxnIds = new Set();
 
-      for (const item of res.data.data) {
-        // ✅ Skip items with missing/null/empty txn_id
-        if (item.txn_id && !seenTxnIds.has(item.txn_id)) {
-          seenTxnIds.add(item.txn_id);
-          uniqueTxnData.push(item);
+        for (const item of res.data.data) {
+          // ✅ Skip items with missing/null/empty txn_id
+          if (item.txn_id && !seenTxnIds.has(item.txn_id)) {
+            seenTxnIds.add(item.txn_id);
+            uniqueTxnData.push(item);
+          }
         }
-      }
 
-      setFetchServices(uniqueTxnData);
-    }
+        setFetchServices(uniqueTxnData);
+      }
     } catch (error) {
       console.log(error);
       if (error.response && error.response.status === 401) {
@@ -215,7 +215,7 @@ const AllHistory = () => {
                       Status
                     </th> */}
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                    Quotation Review
+                      Quotation Review
                     </th>
                   </tr>
                 </thead>
@@ -264,7 +264,7 @@ const AllHistory = () => {
                             // }
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                    Review
+                            Review
                           </button>
                         </td>
                       </tr>

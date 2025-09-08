@@ -14,6 +14,7 @@ const AdsCampaignCalculator = lazy(() =>
 );
 const ServicesLanding = lazy(() => import("../Admin/ServicesLanding"));
 const History = lazy(() => import("../Admin/History"));
+const ReviewRequirements = lazy(() => import("../Admin/ReviewRequirements"));
 
 const AdminRouter = () => {
   // const { currentUser } = useSelector((state) => state.user);

@@ -119,15 +119,14 @@ const AdminAdsCampign = () => {
       console.log(res.data);
 
       if (res.data.status === "Success") {
-        
-         Swal.fire({
-      icon: "success",
-      title: "Success",
-      text: res.data.message,
-      showConfirmButton: false,  
-          timer: 2000,              
-            timerProgressBar: true   
-    });
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: res.data.message,
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
         setFormData({
           ads_category: "",
           amt_range_start: "",
@@ -137,27 +136,26 @@ const AdminAdsCampign = () => {
         setEditingId(null);
         fetchAds();
       } else {
-        
-           Swal.fire({
-  icon: "error",
-  title: "Failed!",
-   text: response.data.message || "error",
-  showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
-});
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: res.data.message || "error",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
       }
     } catch (err) {
       console.log(err);
-      console.log(err.response?.data?.message);
-          Swal.fire({
-  icon: "error",
-  title: "Error!",
-   text: err.response?.data?.message || "Something went wrong",
-  showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
-});
+      console.log(err.res?.data?.message);
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: err.res?.data?.message || "Something went wrong",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
     }
   };
 
@@ -186,36 +184,34 @@ const AdminAdsCampign = () => {
           `${baseURL}/auth/api/calculator/ads/delete/${id}`
         );
         if (res.data.status === "Success") {
-         Swal.fire({
-      icon: "success",
-      title: "Success",
-      text: `Delete successfully!`,
-      showConfirmButton: false,  
-          timer: 2000,              
-            timerProgressBar: true   
-    });
+          Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: `Delete successfully!`,
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
           fetchAds();
         } else {
-        
-             Swal.fire({
-  icon: "error",
-  title: "Failed!",
-   text: response.data.message || "error",
-  showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
-});
+          Swal.fire({
+            icon: "error",
+            title: "Failed!",
+            text: res.data.message || "error",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
         }
       } catch (err) {
-        
         Swal.fire({
-  icon: "error",
-  title: "Error!",
-   text: err.response?.data?.message || "Something went wrong",
-  showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
-});
+          icon: "error",
+          title: "Error!",
+          text: err.response?.data?.message || "Something went wrong",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
       }
     }
   };

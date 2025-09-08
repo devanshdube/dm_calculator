@@ -26,7 +26,7 @@ import { useNavigate } from "react-router-dom";
 
 
 const AdminPlanHistory = () => {
-  const baseURL = `https://dmcalculator.dentalguru.software`;
+  const baseURL = `http://localhost:5555`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
   const userName = currentUser?.name;
@@ -358,7 +358,7 @@ const handleEdit = (entry) => {
       try {
         setLoading(true);
         const response = await axios.get(
-          "https://dmcalculator.dentalguru.software/auth/api/calculator/getAdsServices",
+          "http://localhost:5555/auth/api/calculator/getAdsServices",
           {
             headers: {
               "Content-Type": "application/json",
@@ -1333,7 +1333,7 @@ export default AdminPlanHistory;
 
 
 // const AdminPlanHistory = () => {
-//   const baseURL = `https://dmcalculator.dentalguru.software`;
+//   const baseURL = `http://localhost:5555`;
 //   const dispatch = useDispatch();
 //   const { currentUser, token } = useSelector((state) => state.user);
 //   const userName = currentUser?.name;

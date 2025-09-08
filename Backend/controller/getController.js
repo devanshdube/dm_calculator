@@ -1494,3 +1494,159 @@ exports.getByIDComplimentaryData = async (req, res) => {
     });
   }
 };
+
+exports.getRequirementsLink = async (req, res) => {
+  try {
+    // const query = `
+    //   SELECT
+    //     c.id AS client_id,
+    //     c.client_name,
+    //     l.id AS link_id,
+    //     l.created_by,
+    //     l.created_at AS link_created_at,
+    //     r.id,
+    //     COALESCE(SUM(r.total_amount), 0) AS total_amount
+    //   FROM dm_calculator_client_details c
+    //   LEFT JOIN client_requirement_links l ON l.client_id = c.id
+    //   LEFT JOIN requirement_submissions r ON r.link_id = l.id
+    //   GROUP BY c.id, c.client_name, l.id, l.created_by, l.created_at
+    //   ORDER BY l.created_at DESC
+    // `;
+    const query = `
+SELECT 
+  l.id AS link_id,
+  l.client_id,
+  c.client_name,
+  l.created_by,
+  l.created_at,
+  GROUP_CONCAT(r.id ORDER BY r.id) AS submission_ids,   -- <-- list of IDs
+  COALESCE(SUM(r.total_amount), 0) AS total_amount
+FROM client_requirement_links l
+LEFT JOIN dm_calculator_client_details c ON c.id = l.client_id
+LEFT JOIN requirement_submissions r ON r.link_id = l.id
+GROUP BY l.id, l.client_id, c.client_name, l.created_by, l.created_at
+ORDER BY l.created_at DESC;
+    `;
+
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error("Error fetching data:", err);
+        return res.status(500).json({ error: "Database query failed" });
+      }
+      res.json({ success: true, data: results });
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.getRequirementsDetail = async (req, res) => {
+  const linkId = req.params.linkId;
+
+  const sql = `
+    SELECT
+      l.id              AS link_id,
+      l.client_id,
+      c.client_name,
+      l.created_by,
+      l.created_at      AS link_created_at,
+
+      s.id              AS submission_id,
+      s.slug            AS submission_slug,
+      s.name            AS submission_name,
+      s.email           AS submission_email,
+      s.phone           AS submission_phone,
+      s.requirement     AS submission_requirement,
+      s.total_amount    AS submission_total_amount,
+      s.created_at      AS submission_created_at,
+
+      i.id              AS item_id,
+      i.category        AS item_category,
+      i.sub_category    AS item_sub_category,
+      i.unit_price      AS item_unit_price,
+      i.qty             AS item_qty,
+      i.line_total      AS item_line_total
+
+    FROM client_requirement_links l
+    LEFT JOIN dm_calculator_client_details c ON c.id = l.client_id
+    LEFT JOIN requirement_submissions s      ON s.link_id = l.id
+    LEFT JOIN requirement_submission_items i ON i.submission_id = s.id
+    WHERE l.id = ?
+    ORDER BY s.id DESC, i.id ASC;
+  `;
+
+  db.query(sql, [linkId], (err, rows) => {
+    if (err) {
+      console.error("getRequirementsDetail error:", err);
+      return res.status(500).json({ success: false, message: "DB error" });
+    }
+
+    if (!rows || rows.length === 0) {
+      return res.json({
+        success: true,
+        data: null,
+        message: "No data for this link_id",
+      });
+    }
+
+    // Top-level link meta (same for all rows)
+    const { link_id, client_id, client_name, created_by, link_created_at } =
+      rows[0];
+
+    // Group rows -> submissions[] -> items[]
+    const submissionsMap = new Map();
+
+    for (const r of rows) {
+      if (!r.submission_id) continue; // कोई submission ही नहीं
+
+      if (!submissionsMap.has(r.submission_id)) {
+        submissionsMap.set(r.submission_id, {
+          id: r.submission_id,
+          slug: r.submission_slug,
+          name: r.submission_name,
+          email: r.submission_email,
+          phone: r.submission_phone,
+          requirement: r.submission_requirement,
+          total_amount: Number(r.submission_total_amount || 0),
+          created_at: r.submission_created_at,
+          items: [],
+        });
+      }
+
+      if (r.item_id) {
+        submissionsMap.get(r.submission_id).items.push({
+          id: r.item_id,
+          category: r.item_category,
+          sub_category: r.item_sub_category,
+          unit_price: Number(r.item_unit_price || 0),
+          qty: Number(r.item_qty || 0),
+          line_total: Number(r.item_line_total || 0),
+        });
+      }
+    }
+
+    const submissions = Array.from(submissionsMap.values());
+
+    // Overall totals (अगर चाहिए)
+    const grand_total = submissions.reduce(
+      (sum, s) => sum + (s.total_amount || 0),
+      0
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        link: {
+          link_id,
+          client_id,
+          client_name,
+          created_by,
+          created_at: link_created_at,
+          grand_total,
+          submission_count: submissions.length,
+        },
+        submissions,
+      },
+    });
+  });
+};

@@ -9,6 +9,9 @@ import {
   Search,
   X,
   Building,
+  Link as LinkIcon,
+  ExternalLink,
+  Copy,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -34,6 +37,10 @@ const AdminClientDetails = () => {
     address: "",
     dg_employee: employeeName,
   });
+  // Generate Link State
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState("");
+  const [generating, setGenerating] = useState(false);
   // console.log(selectedClient);
 
   const [loading, setLoading] = useState(false);
@@ -136,9 +143,6 @@ const AdminClientDetails = () => {
           text: isEditing
             ? "Client updated successfully!"
             : "Client added successfully!",
-            showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
         }).then(() => {
           setShowModal(false);
           getAllClients();
@@ -162,83 +166,66 @@ const AdminClientDetails = () => {
           text:
             error.response.data.message ||
             "Failed to save client. Please try again.",
-                    showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Error",
-          
           text: "Failed to save client. Please try again.",
-                  showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
         });
       }
     } finally {
       setLoading(false);
     }
-    
   };
   const handleDeleteClient = async (clientId) => {
-const confirm = await Swal.fire({
-  title: "Are you sure?",
-  text: "Do you want to delete this client permanently?",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonColor: "#d33",
-  cancelButtonColor: "#3085d6",
-  confirmButtonText: "Yes, delete it!",
-});
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this client permanently?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
 
-if (!confirm.isConfirmed) return;
+    if (!confirm.isConfirmed) return;
 
-try {
-  const response = await axios.delete(
-    `${baseURL}/auth/api/calculator/deleteClientById/${clientId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    try {
+      const response = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteClientById/${clientId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Client deleted successfully.",
+        });
+
+        // Refresh client list
+        getAllClients();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: response.data.message || "Unable to delete client.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong while deleting client.",
+      });
     }
-  );
-
-  if (response.data.status === "Success") {
-    Swal.fire({
-      icon: "success",
-      title: "Deleted!",
-      text: "Client deleted successfully.",
-              showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
-    });
-
-    // Refresh client list
-    getAllClients();
-  } else {
-    Swal.fire({
-      icon: "error",
-      title: "Failed!",
-      text: response.data.message || "Unable to delete client.",
-              showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
-    });
-  }
-} catch (error) {
-  console.error("Error deleting client:", error);
-  Swal.fire({
-    icon: "error",
-    title: "Error",
-    text: "Something went wrong while deleting client.",
-            showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
-  });
-}
-};
+  };
 
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
@@ -307,9 +294,6 @@ try {
         icon: "error",
         title: "Error",
         text: "Failed to fetch clients. Please try again.",
-                showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
       });
       if (error.response && error.response.status === 401) {
         // Token is invalid or expired
@@ -317,9 +301,7 @@ try {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-                showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+          confirmButtonText: "OK",
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -370,34 +352,100 @@ try {
     navigate(`/admin/ServicesLanding/${selectedClient.id}/${proposalId}`);
   };
 
+  function toSqlDateTimeIST(date = new Date()) {
+    const pad = (n) => String(n).padStart(2, "0");
+    // Convert current time to IST (UTC+5:30)
+    const istOffsetMin = 330;
+    const utcMs = date.getTime() + date.getTimezoneOffset() * 60000;
+    const ist = new Date(utcMs + istOffsetMin * 60000);
+    return (
+      `${ist.getFullYear()}-${pad(ist.getMonth() + 1)}-${pad(ist.getDate())} ` +
+      `${pad(ist.getHours())}:${pad(ist.getMinutes())}:${pad(ist.getSeconds())}`
+    );
+  }
+
+  // Try backend create (recommended), else fallback to client-side
+  const handleGeneratePublicLink = async () => {
+    if (!selectedClient) {
+      Swal.fire({ icon: "warning", title: "Select a client first" });
+      return;
+    }
+    setGenerating(true);
+    try {
+      const expiresAt = toSqlDateTimeIST(
+        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      );
+
+      const payload = {
+        client_id: selectedClient.id,
+        created_by: employeeName,
+        expires_at: expiresAt,
+        is_active: 1,
+      };
+
+      console.log(payload);
+
+      const resp = await axios.post(
+        `${baseURL}/auth/api/calculator/generateClientLink`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const { status, data, message } = resp?.data || {};
+      if (status !== "Success" || !data?.slug) {
+        throw new Error(message || "Failed to generate link");
+      }
+
+      // 🧭 Build a safe, hash-aware public URL
+      const FRONTEND_ORIGIN = window.location.origin;
+      const useHash =
+        !!window.location.hash || window.location.href.includes("#/");
+
+      let finalUrl;
+      try {
+        const u = new URL(data.url);
+        const path = u.pathname + u.search + u.hash;
+
+        // ensure /public/r/... path hi ho
+        const cleanPath = path.startsWith("/public/")
+          ? path
+          : `/public/r/${data.slug}`;
+
+        finalUrl = `${FRONTEND_ORIGIN}${useHash ? "/#" : ""}${cleanPath}`;
+      } catch {
+        // parsing fail ho to slug se construct
+        finalUrl = `${FRONTEND_ORIGIN}${useHash ? "/#" : ""}/public/r/${
+          data.slug
+        }`;
+      }
+
+      setGeneratedLink(finalUrl);
+      setShowLinkModal(true);
+    } catch (err) {
+      console.error(err);
+      Swal.fire({ icon: "error", title: "Failed to generate link" });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedLink);
+      Swal.fire({
+        icon: "success",
+        title: "Link copied!",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+    } catch {
+      Swal.fire({ icon: "error", title: "Copy failed" });
+    }
+  };
+
   return (
     <>
-      {/* <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Client Details</h2>
-          <div className="flex gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="search"
-                value={keyword}
-                placeholder="Search clients..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
-                onChange={(e) => {
-                  setKeyword(e.target.value);
-                  setCurrentPage(0);
-                }}
-              />
-            </div>
-            <button
-              onClick={handleShow}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Client
-            </button>
-          </div>
-        </div> */}
       <div className="p-4 md:p-6  space-y-6 bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <h2 className="text-3xl font-semibold text-gray-800">
@@ -469,13 +517,13 @@ try {
                                 {/* <div className="grid grid-cols-2 gap-4 text-sm text-gray-600"> */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 break-words">
                                   <div className="flex items-center gap-2">
-                                   {client.email ? (
-                                     <>
-                                       <Mail className="w-4 h-4" />
-                                       {client.email}
-                                     </>
-                                   ) : null}
-                                 </div>
+                                    {client.email ? (
+                                      <>
+                                        <Mail className="w-4 h-4" />
+                                        {client.email}
+                                      </>
+                                    ) : null}
+                                  </div>
                                   <div className="flex items-center gap-2 break-words">
                                     <Phone className="w-4 h-4" />
                                     {client.phone}
@@ -510,12 +558,13 @@ try {
                                     Edit
                                   </button>
                                   <button
-  className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25"
-  onClick={() => handleDeleteClient(client.id)}
->
-  Delete
-</button>
-
+                                    className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25"
+                                    onClick={() =>
+                                      handleDeleteClient(client.id)
+                                    }
+                                  >
+                                    Delete
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -583,6 +632,16 @@ try {
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       Create Proposal
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleGeneratePublicLink();
+                      }}
+                      disabled={!selectedClient || generating}
+                      className="w-full px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 transition-colors shadow-md disabled:opacity-60"
+                    >
+                      {generating ? "Generating..." : "Generate Link"}
                     </button>
                     <button
                       onClick={() =>
@@ -668,7 +727,6 @@ try {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Enter organization name"
-                   
                   />
                 </div>
 
@@ -685,7 +743,6 @@ try {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Enter email address"
-                   
                   />
                 </div>
 
@@ -746,7 +803,6 @@ try {
                       ? "Update Client"
                       : "Save Client"}
                   </button>
-                  
 
                   {/* <button
                     type="submit"
@@ -757,6 +813,62 @@ try {
                   </button> */}
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Generate Link */}
+        {showLinkModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowLinkModal(false)}
+            />
+            <div className="relative bg-white w-full max-w-lg rounded-xl shadow-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <LinkIcon className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold">
+                    Requirement Form Link
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowLinkModal(false)}
+                  className="p-2 rounded-lg hover:bg-gray-100"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="text-sm text-gray-600">
+                  Share this link with the client. They can open it without
+                  login and submit their requirements.
+                </div>
+
+                <div className="p-3 rounded border bg-gray-50 break-all text-sm">
+                  {generatedLink}
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <a
+                    href={generatedLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Visit Link
+                  </a>
+                  <button
+                    onClick={handleCopyLink}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                  >
+                    <Copy className="w-4 h-4" /> Copy Link
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -920,4 +1032,32 @@ const PaginationContainer = styled.div`
                         {selectedClient.value}
                       </span>
                     </div> */
+}
+{
+  /* <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Client Details</h2>
+          <div className="flex gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="search"
+                value={keyword}
+                placeholder="Search clients..."
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
+                onChange={(e) => {
+                  setKeyword(e.target.value);
+                  setCurrentPage(0);
+                }}
+              />
+            </div>
+            <button
+              onClick={handleShow}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Client
+            </button>
+          </div>
+        </div> */
 }

@@ -463,6 +463,7 @@ const AssignQuotation = () => {
 
   // Loading Modal
   const [modalLoading, setModalLoading] = useState(false);
+  const [showModalquotation, setShowModalQuotation] = useState(false);
 
   const fetchAllClientServices = async () => {
     try {
@@ -496,6 +497,39 @@ const AssignQuotation = () => {
   };
 
   console.log(rows);
+
+  // --- deadline helpers ---
+  const normalizeDate = (d) => (d ? String(d).slice(0, 10) : "");
+
+  const pickTeamCommonDeadline = (assignees = []) => {
+    const uniq = Array.from(
+      new Set(assignees.map((a) => normalizeDate(a.deadline)).filter(Boolean))
+    );
+    return uniq.length === 1 ? uniq[0] : ""; // mixed => ""
+  };
+
+  async function getDisplayDeadline({ baseURL, token, txnId }) {
+    const res = await axios.get(
+      `${baseURL}/auth/api/calculator/getAssignmentsSummary/${txnId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (res?.data?.status !== "Success") return "";
+
+    const s = res.data.data || {};
+    if (s.mode === "single" && s.assignees?.[0]) {
+      return normalizeDate(s.assignees[0].deadline);
+    }
+    if (s.mode === "team") {
+      return pickTeamCommonDeadline(s.assignees || []);
+    }
+    return ""; // mixed / none
+  }
 
   useEffect(() => {
     fetchAllClientServices();
@@ -580,11 +614,13 @@ const AssignQuotation = () => {
   }, [keyword]);
 
   // open modal
-  const handleOpenProgressSingle = (row) => {
+  const handleOpenProgressSingle = async (row) => {
     const cid = row?.client_id;
     const txn = row?.txn_id;
     const uid = row?.user_id || null;
-    const dline = row?.deadline;
+    const dline = row?.deadline_local;
+    console.log(dline);
+
     if (!cid || !txn) {
       Swal.fire({
         icon: "warning",
@@ -600,17 +636,27 @@ const AssignQuotation = () => {
     setModalLoading(true);
     setShowModal(true);
 
-    if (modalTimerRef.current) clearTimeout(modalTimerRef.current);
-    modalTimerRef.current = setTimeout(() => {
-      setModalLoading(false);
-      modalTimerRef.current = null;
-    }, 1200);
+    try {
+      const d = await getDisplayDeadline({ baseURL, token, txnId: txn });
+      setSelectedDline(d || ""); // "" if none/mixed
+    } catch (e) {
+      console.error("deadline fetch error:", e);
+      setSelectedDline("");
+    } finally {
+      if (modalTimerRef.current) clearTimeout(modalTimerRef.current);
+      modalTimerRef.current = setTimeout(() => {
+        setModalLoading(false);
+        modalTimerRef.current = null;
+      }, 1200);
+    }
   };
 
-  const handleOpenProgressTeam = (group) => {
+  const handleOpenProgressTeam = async (group) => {
     const cid = group?.client_id;
     const txn = group?.txn_id;
-    const dline = group?.deadline;
+    const dline = group?.deadline_local;
+    console.log(dline);
+
     if (!cid || !txn) {
       Swal.fire({
         icon: "warning",
@@ -626,11 +672,19 @@ const AssignQuotation = () => {
     setSelectedDline(dline);
     setModalLoading(true);
 
-    if (modalTimerRef.current) clearTimeout(modalTimerRef.current);
-    modalTimerRef.current = setTimeout(() => {
-      setModalLoading(false);
-      modalTimerRef.current = null;
-    }, 1200);
+    try {
+      const d = await getDisplayDeadline({ baseURL, token, txnId: txn });
+      setSelectedDline(d || "");
+    } catch (e) {
+      console.error("deadline fetch error:", e);
+      setSelectedDline("");
+    } finally {
+      if (modalTimerRef.current) clearTimeout(modalTimerRef.current);
+      modalTimerRef.current = setTimeout(() => {
+        setModalLoading(false);
+        modalTimerRef.current = null;
+      }, 1200);
+    }
   };
 
   useEffect(() => {
@@ -640,6 +694,9 @@ const AssignQuotation = () => {
       return () => (document.body.style.overflow = prev);
     }
   }, [showModal]);
+
+  console.log(selectedDline);
+  console.log(rows);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -705,6 +762,9 @@ const AssignQuotation = () => {
                       <th className="text-left py-3 px-4 text-gray-200 uppercase tracking-wider text-xs">
                         Action
                       </th>
+                      <th className="text-left py-3 px-4 text-gray-200 uppercase tracking-wider text-xs">
+                        Quotation
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -741,7 +801,19 @@ const AssignQuotation = () => {
                               onClick={() => handleOpenProgressSingle(item)}
                               className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white"
                             >
-                              View / Update Progress
+                              View Progress
+                            </button>
+                          </td>
+                          <td className="py-5 px-6">
+                            <button
+                              onClick={() => {
+                                setSelectedClient(item.client_id);
+                                setSelectedTxn(item.txn_id);
+                                setShowModalQuotation(true);
+                              }}
+                              className="px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500"
+                            >
+                              Review
                             </button>
                           </td>
                         </tr>
@@ -818,6 +890,9 @@ const AssignQuotation = () => {
                       <th className="text-left py-3 px-4 text-gray-200 uppercase tracking-wider text-xs">
                         Action
                       </th>
+                      <th className="text-left py-3 px-4 text-gray-200 uppercase tracking-wider text-xs">
+                        Quotation
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -858,7 +933,19 @@ const AssignQuotation = () => {
                               className="px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500"
                               title={g.member_names}
                             >
-                              View / Update Progress
+                              View Progress
+                            </button>
+                          </td>
+                          <td className="py-5 px-6">
+                            <button
+                              onClick={() => {
+                                setSelectedClient(g.client_id);
+                                setSelectedTxn(g.txn_id);
+                                setShowModalQuotation(true);
+                              }}
+                              className="inline-block px-4 py-2 rounded-full text-xs font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
+                            >
+                              Review
                             </button>
                           </td>
                         </tr>
@@ -927,7 +1014,10 @@ const AssignQuotation = () => {
                   Client ID: {selectedClient}
                 </p>
                 <p className="text-sm text-red-500">
-                  Deadline: {moment(selectedDline).format("DD/MM/YYYY")}
+                  Deadline:{" "}
+                  {selectedDline
+                    ? moment(selectedDline).format("DD/MM/YYYY")
+                    : "-"}
                 </p>
               </div>
 
@@ -956,6 +1046,47 @@ const AssignQuotation = () => {
                     }
                   />
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Quotation Modal */}
+        {showModalquotation && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+              <button
+                onClick={() => setShowModalQuotation(false)}
+                className="absolute top-2 right-3 text-red-600 hover:text-gray-500 text-xl font-bold"
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <h2 className="text-lg font-semibold mb-4 text-center">
+                Select Quotation Type
+              </h2>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/admin/quotation/${selectedClient}/${selectedTxn}?gst=1`
+                    );
+                    setShowModalQuotation(false);
+                  }}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  With GST (18%)
+                </button>
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/admin/quotation/${selectedClient}/${selectedTxn}?gst=0`
+                    );
+                    setShowModalQuotation(false);
+                  }}
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  Without GST
+                </button>
               </div>
             </div>
           </div>
