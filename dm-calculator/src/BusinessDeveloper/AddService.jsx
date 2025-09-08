@@ -27,15 +27,16 @@ export default function AddService() {
   const navigate = useNavigate();
   const { id, proposalId } = useParams();
   const [getData, setGetData] = useState([]);
+  const [allPlanNote, setAllPlanNote] = useState([]);
+  const [getPlanData, setGetPlanData] = useState([]);
   const [getAdsData, setGetAdsData] = useState([]);
-    const [getPlanData, setGetPlanData] = useState([]);
+  const [getComplimenatryData, setGetComplimenatryData] = useState([]);
+   const [planName,setPlanName] = useState('');
   const [clientData, setClientData] = useState([]);
-   const [notesData, setNotesData] = useState([]);
-     const [planName,setPlanName] = useState('');
-  const [loading, setLoading] = useState(false);
-    const [showModal, setShowModal] = useState(false);
-  
+    const [loading, setLoading] = useState(false);
+ const [notesData, setNotesData] = useState([]);
 const { currentUser, token } = useSelector((state) => state.user);
+  const [showModal, setShowModal] = useState(false);
   const userName = currentUser?.name;
   const dispatch = useDispatch();
   console.log(id, proposalId);
@@ -45,7 +46,7 @@ const { currentUser, token } = useSelector((state) => state.user);
   const services = [
     {
       id: 1,
-      title: "Graphic & SEO Services",
+      title: "Graphic & SEO ",
       subtitle: "Visual Storytelling",
       description:
         "Transform your brand with stunning visuals that captivate and convert. From logos to complete brand identities.",
@@ -78,23 +79,7 @@ const { currentUser, token } = useSelector((state) => state.user);
         "Analytics & ROI",
       ],
     },
-    // {
-    //   id: 3,
-    //   title: "SEO Services",
-    //   subtitle: "Organic Visibility",
-    //   description:
-    //     "Dominate search results with comprehensive SEO strategies that boost your online presence and drive organic traffic.",
-    //   icon: Search,
-    //   gradient: "from-gray-600 to-slate-700",
-    //   bgPattern: "bg-gradient-to-br from-gray-50 to-slate-50",
-    //   navigation: "#",
-    //   features: [
-    //     "Keyword Research",
-    //     "On-Page SEO",
-    //     "Link Building",
-    //     "Technical SEO",
-    //   ],
-    // },
+    
   ];
 
   const fetchClient = async () => {
@@ -128,7 +113,67 @@ const { currentUser, token } = useSelector((state) => state.user);
       }
     }
   };
-  
+  const fetchPlanData = async () => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getAllPlanData`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.data.status === "Success") {
+        console.log(res.data.data);
+        setGetPlanData(res.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
+
+const getAllPlanNotes = async (planTitle) => {
+  try {
+    const response = await axios.get(
+      `${baseURL}/auth/api/calculator/getPlanNotes`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const notes = response.data.data;
+
+    // filter for this plan only
+    const filtered = notes.filter(
+      (note) => String(note.plan) === String(planTitle)
+    );
+
+    return filtered; // ⬅️ return directly instead of setting state
+  } catch (error) {
+    console.error("Error fetching plan notes:", error);
+    return [];
+  }
+};
+
+
+
+
+
 
   console.log(clientData);
   const clientName = clientData?.client_name;
@@ -146,7 +191,7 @@ const { currentUser, token } = useSelector((state) => state.user);
       );
       console.log(data.data);
       setGetData(data.data);
-            setPlanName(data.data[0].plan_name)
+      setPlanName(data.data[0].plan_name)
     } catch (error) {
       console.log(error);
       if (error.response && error.response.status === 401) {
@@ -155,9 +200,7 @@ const { currentUser, token } = useSelector((state) => state.user);
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-            showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+          confirmButtonText: "OK",
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -190,40 +233,6 @@ const { currentUser, token } = useSelector((state) => state.user);
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-   showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
-        }).then(() => {
-          dispatch(clearUser());
-          localStorage.removeItem("token");
-          navigate("/");
-        });
-      }
-    }
-  };
-
-    const fetchPlanData = async () => {
-    try {
-      const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getAllPlanData`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (res.data.status === "Success") {
-        console.log(res.data.data);
-        setGetPlanData(res.data.data);
-      }
-    } catch (error) {
-      console.log(error);
-      if (error.response && error.response.status === 401) {
-        // Token is invalid or expired
-        Swal.fire({
-          title: "Session Expired",
-          text: "Please login again.",
-          icon: "warning",
           confirmButtonText: "OK",
         }).then(() => {
           dispatch(clearUser());
@@ -233,31 +242,6 @@ const { currentUser, token } = useSelector((state) => state.user);
       }
     }
   };
-
-  const getAllPlanNotes = async (planTitle) => {
-  try {
-    const response = await axios.get(
-      `${baseURL}/auth/api/calculator/getPlanNotes`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const notes = response.data.data;
-
-    // filter for this plan only
-    const filtered = notes.filter(
-      (note) => String(note.plan) === String(planTitle)
-    );
-
-    return filtered; // ⬅️ return directly instead of setting state
-  } catch (error) {
-    console.error("Error fetching plan notes:", error);
-    return [];
-  }
-};
 
     const fetchClientNotes = async () => {
     try {
@@ -287,6 +271,40 @@ const { currentUser, token } = useSelector((state) => state.user);
       }
     }
   };
+  const fetchComplimenatryData = async () => {
+    if (!id || !proposalId) return;
+    try {
+      const { data } = await axios.get(
+        `${baseURL}/auth/api/calculator/getByIDComplimentaryData/${proposalId}/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(data.data);
+      setGetComplimenatryData(data.data);
+    } catch (error) {
+      console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
+  
 
   useEffect(() => {
     fetchClient();
@@ -294,18 +312,28 @@ const { currentUser, token } = useSelector((state) => state.user);
     fetchAdsData();
     fetchPlanData();
     fetchClientNotes();
-    
-  }, [id, proposalId]);
+    fetchComplimenatryData();
+  }, []);
 
   // Table Total Amount
 
-  const grandTotal = getData.reduce(
-    (acc, order) => acc + parseFloat(order.total_amount || 0),
-    0
-  );
+ const grandTotal = getData.reduce((acc, order) => {
+  // Skip Complimentary service
+  if (order.service_name?.toLowerCase() === "complimentary") {
+    return acc;
+  }
+
+  // Add total_amount if exists, otherwise total_ads
+  return acc + parseFloat(order.total_amount || 0);
+}, 0);
 
   const grandAdsTotal = getAdsData.reduce(
     (acc, order) => acc + parseFloat(order.total || 0),
+    0
+  );
+
+  const grandComplimentryTotal = getComplimenatryData.reduce(
+    (acc, order) => acc + parseFloat(order.total_amount || 0),
     0
   );
 
@@ -315,14 +343,15 @@ const { currentUser, token } = useSelector((state) => state.user);
 
   const adsCampLength = getAdsData.length;
 
-  const finalLength = graphLength + adsCampLength;
+  const complimenatryLength = getComplimenatryData.length;
+
+  const finalLength = graphLength + adsCampLength + complimenatryLength ;
 
   // Grand Total Amount
 
   const totalAmount = grandTotal + grandAdsTotal;
   console.log(totalAmount);
-
-  const groupByPlan = (data) => {
+const groupByPlan = (data) => {
   console.log(data);
   
   const grouped = {};
@@ -346,17 +375,23 @@ const { currentUser, token } = useSelector((state) => state.user);
     );
 
     // Add the amount (make sure item.amount is a number)
-    grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
+    if (item.service_name?.toLowerCase() !== "complimentary") {
+  grouped[item.plan_id].totalAmount += Number(item.total_amount || item.total_ads) || 0;
+}
   });
 
   return Object.values(grouped);
 };
 
   const plans = groupByPlan(getPlanData);
+
+   const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
 // When "Create Quotation" button is clicked
 const handleCreateQuotation = async (plan) => {
   try {
-    // fetch notes for this plan immediately (don’t wait for setState)
     const filteredNotes = await getAllPlanNotes(plan.title);
 
     if (filteredNotes.length === 0) {
@@ -364,9 +399,6 @@ const handleCreateQuotation = async (plan) => {
         icon: "info",
         title: "No Notes",
         text: "No notes found for this plan.",
-          showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
       });
       return;
     }
@@ -381,62 +413,120 @@ const handleCreateQuotation = async (plan) => {
         icon: "info",
         title: "No Data",
         text: "No services found for this plan.",
-          showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
       });
       return;
     }
+// ✅ Step 2: normal plan services (exclude Ads Campaign & Complimentary)
+const plans = filteredPlanData
+  .filter(
+    (item) =>
+      item.service_name !== "Ads Campaign" &&
+      item.service_name !== "Complimentary"
+  )
+  .map((item) => ({
+    service_name: item.service_name,
+    category_name: item.category_name,
+    editing_type_name: item.editing_type_name,
+    editing_type_amount: item.editing_type_amount,
+    quantity: item.quantity,
+    include_content_posting: item.include_content_posting,
+    include_thumbnail_creation: item.include_thumbnail_creation,
+    total_amount: item.total_amount,
+    plan_name: item.plan_name,
+    employee: userName,
+  }));
 
-    const plans = filteredPlanData.map((item) => ({
-    
-      service_name: item.service_name,
-      category_name: item.category_name,
-      editing_type_name: item.editing_type_name,
-      editing_type_amount: item.editing_type_amount,
-      quantity: item.quantity,
-      include_content_posting: item.include_content_posting,
-      include_thumbnail_creation: item.include_thumbnail_creation,
-      total_amount: item.total_amount,
-      plan_name: item.plan_name,
-      employee: userName,
-    }));
+// ✅ Step 3: Ads Campaign data
+const adsItems = filteredPlanData
+  .filter((item) => item.service_name === "Ads Campaign")
+  .map((item) => ({
+    txn_id: proposalId,
+    client_id: id,
+    id: generateUniqueId(),
+    category: item.category_name,
+    amount: item.amount_ads,
+    percent: item.percent_ads,
+    charge: item.charge_ads,
+    total: item.total_ads,
+    employee: userName,
+  }));
 
-    const planNotes = filteredNotes.map((item) => ({
-      note_name: item.note_name,
-      plan: item.plan,
-    }));
+// ✅ Step 4: Complimentary data
+const complimentaryItems = filteredPlanData
+  .filter((item) => item.service_name === "Complimentary")
+  .map((item) => ({
+    txn_id: proposalId,
+    client_id: id,
+    service_name: item.service_name,
+    category_name: item.category_name,
+    editing_type_name: item.editing_type_name,
+    editing_type_amount: item.editing_type_amount,
+    quantity: item.quantity,
+    include_content_posting: item.include_content_posting,
+    include_thumbnail_creation: item.include_thumbnail_creation,
+    total_amount: item.total_amount,
+    employee: userName,
+  }));
 
-    const payload = {   txn_id: proposalId,
-      client_id: id,plans, planNotes };
+// ✅ Step 5: notes
+const planNotes = filteredNotes.map((item) => ({
+  note_name: item.note_name,
+  plan: item.plan,
+}));
 
+// ✅ Save plans + notes
+const payload = { txn_id: proposalId, client_id: id, plans, planNotes };
+
+await axios.post(
+  `${baseURL}/auth/api/calculator/savePlanClientNotes`,
+  payload,
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
+
+// ✅ Save Ads Campaign (if any)
+if (adsItems.length > 0) {
+  await axios.post(
+    `${baseURL}/auth/api/calculator/saveAdsCampaign`,
+    { adsItems },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+}
+
+// ✅ Save Complimentary Services (if any)
+// ✅ Save Complimentary Services (if any)
+if (complimentaryItems.length > 0) {
+  for (const item of complimentaryItems) {
     await axios.post(
-      `${baseURL}/auth/api/calculator/savePlanClientNotes`,
-      payload,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+      `${baseURL}/auth/api/calculator/saveComplimentaryData`,
+      item, // send one object at a time
+      { headers: { Authorization: `Bearer ${token}` } }
     );
+  }
+}
+
+
 
     Swal.fire({
       icon: "success",
       title: "Quotation Created",
-      text: `Plan quotation saved successfully!`,
-        showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+      text: "Plan quotation saved successfully!",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
     });
 
-    fetchData(); // refresh table
+    fetchData();
+    fetchClientNotes();
+    fetchAdsData();
+    fetchComplimenatryData();
   } catch (err) {
     console.error("Save error:", err);
     Swal.fire({
       icon: "error",
       title: "Error",
       text: "Something went wrong while saving the quotation.",
-        showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
     });
   }
 };
@@ -455,45 +545,36 @@ const handleDeleteClientPlanData = async (txn_id) => {
       const res = await axios.delete(`${baseURL}/auth/api/calculator/deleteClientAllPlanData/${txn_id}`);
 
       if (res.data.status === "Success") {
-     
-         Swal.fire({
+      Swal.fire({
   icon: "success",
   title: "Deleted!",
-   text: 'Plan has been deleted',
+  text: "Plan has been deleted.",
   showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
+  timer: 2000,               
+  timerProgressBar: true     
 });
+
         
         // ✅ Refresh your list instead of reload
  
   
       setGetData([]);
       setPlanName('')
-        setNotesData([])
+      setNotesData([])
    fetchClientNotes();
+   fetchAdsData();
+   setGetAdsData([]);
+      setGetComplimenatryData([]);
+
+
       } else {
-        
-            Swal.fire({
-  icon: "error",
-  title: "Error!",
-   text: err.response?.data?.message || "Failed to delete plan",
-  showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
-});
+        Swal.fire("Error!", res.data.message || "Failed to delete plan.", "error");
+
       }
     } catch (err) {
       console.error("Delete error:", err);
-
-       Swal.fire({
-  icon: "error",
-  title: "Error!",
-   text: 'Something went wrong while deleting',
-  showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
-});
+      Swal.fire("Error!", "Something went wrong while deleting.", "error");
+      
     }
   }
 };
@@ -523,36 +604,111 @@ const handleDeleteClientPlanData = async (txn_id) => {
       if (result.status === "Success") {
         setGetData((prev) => prev.filter((item) => item.id !== entryId));
 
+      
         Swal.fire({
-          icon: "success",
-          title: "Deleted!",
-          text: "Entry has been deleted.",
-             showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
-        });
-           fetchClientNotes();
+  icon: "success",
+  title: "Deleted!",
+  text: "Entry has been deleted.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
+
+   fetchClientNotes();
 
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
-                showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
         });
+        Swal.fire({
+  icon: "error",
+  title: "Failed!",
+   text: result.message || "Failed to delete entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
+
       }
     } catch (error) {
       console.error("Error deleting entry:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "An error occurred while deleting entry.",
-              showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
-      });
+         Swal.fire({
+  icon: "error",
+     title: "Error",
+     text: "An error occurred while deleting entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
+    
+      
+    }
+  };
+  const handleDeleteComplimenatry = async (entryId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this entry?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteComplimenatryById/${entryId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+        setGetComplimenatryData((prev) => prev.filter((item) => item.id !== entryId));
+
+      
+        Swal.fire({
+  icon: "success",
+  title: "Deleted!",
+  text: "Entry has been deleted.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
+
+   fetchComplimenatryData();
+
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: result.message || "Failed to delete entry.",
+        });
+        Swal.fire({
+  icon: "error",
+  title: "Failed!",
+   text: result.message || "Failed to delete entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
+
+      }
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+         Swal.fire({
+  icon: "error",
+     title: "Error",
+     text: "An error occurred while deleting entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
+    
+      
     }
   };
   const handleDeleteClientNote = async (noteId) => {
@@ -582,31 +738,31 @@ const handleDeleteClientPlanData = async (txn_id) => {
           icon: "success",
           title: "Deleted!",
           text: "note has been deleted.",
-         showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+          timer: 2000,
+          showConfirmButton: false,
         });
+
         fetchClientNotes();
       } else {
-        Swal.fire({
-          icon: "error",
-          title: "Failed!",
-          text: result.message || "Failed to delete note.",
-                showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
-        });
+            Swal.fire({
+  icon: "error",
+  title: "Failed!",
+   text: result.message || "Failed to delete entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
       }
     } catch (error) {
       console.error("Error deleting note:", error);
       Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "An error occurred while deleting note.",
-              showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
-      });
+  icon: "error",
+     title: "Error",
+     text: "An error occurred while deleting entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
     }
   };
 
@@ -639,35 +795,39 @@ const handleDeleteClientPlanData = async (txn_id) => {
             icon: "success",
             title: "Deleted!",
             text: "Entry has been deleted.",
-                 showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+            timer: 2000,
+             showConfirmButton: false,          
+            timerProgressBar: true ,  
           });
           fetchAdsData()
           setGetAdsData([])
-          fetchClientNotes();
+        fetchClientNotes();
+
+          
         } else {
-          Swal.fire({
-            icon: "error",
-            title: "Failed!",
-            text: result.message || "Failed to delete entry.",
-                  showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
-          });
+              Swal.fire({
+  icon: "error",
+  title: "Failed!",
+   text: result.message || "Failed to delete entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
         }
       } catch (error) {
         console.error("Error deleting entry:", error);
         Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "An error occurred while deleting entry.",
-                showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
-        });
+  icon: "error",
+     title: "Error",
+     text: "An error occurred while deleting entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
       }
     };
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -737,11 +897,12 @@ const handleDeleteClientPlanData = async (txn_id) => {
 
             {/* Active Orders */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-slate-700 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
                   <Package className="w-6 h-6 text-white" />
                 </div>
-                <div>
+                <div>    
                   <p className="text-white/60 text-sm font-medium">
                     Total Orders
                   </p>
@@ -749,8 +910,7 @@ const handleDeleteClientPlanData = async (txn_id) => {
                 </div>
               </div>
             </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
   {finalLength ? (
     <button
       onClick={() => {
@@ -763,10 +923,10 @@ const handleDeleteClientPlanData = async (txn_id) => {
           <Notebook className="w-6 h-6 text-white" />
         </div>
         <div>
-          
-            <p className="text-white text-md font-medium">Quotation</p>
-                    <p className="text-3xl font-bold text-white  flex items-center justify-center gap-2 group/btn">Preview
-                       <ArrowRight className="w-4 h-4 text-white transform transition-transform group-hover/btn:translate-x-1" /></p>
+          <p className="text-white text-md font-medium">Quotation</p>
+          <p className="text-3xl font-bold text-white  flex items-center justify-center gap-2 group/btn">Preview
+             <ArrowRight className="w-4 h-4 text-white transform transition-transform group-hover/btn:translate-x-1" /></p>
+         
         </div>
       </div>
     </button>
@@ -776,8 +936,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
 </div>
 
           </div>
+          
         </div>
-<div className="">
+        <div className="">
            <p className="text-3xl font-bold text-white mb-3">
                     Plan Wise 
                   </p>
@@ -873,11 +1034,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
 </div>
  <div className="">
            <p className="text-3xl font-bold text-white mb-3">
-                    Customise Wise 
+                    Customise Wise Service
                   </p>
                   </div>
-
-
         {/* Services Grid */}
         <div className="grid md:grid-cols-4  gap-8  mx-auto mb-12">
           {services.map((service) => {
@@ -885,6 +1044,9 @@ const handleDeleteClientPlanData = async (txn_id) => {
             return (
               <div key={service.id} className="group relative">
                 {/* Card */}
+
+
+
                 <div
                   className={`
                   relative h-full bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20
@@ -914,7 +1076,20 @@ const handleDeleteClientPlanData = async (txn_id) => {
                         {service.subtitle}
                       </p>
                     </div>
-
+  <button
+                      onClick={() => {
+                        navigate(`${service.navigation}/${id}/${proposalId}`);
+                      }}
+                      className={`
+                      w-full mt-6 py-4 px-6 rounded-2xl font-semibold text-white
+                      bg-gradient-to-r ${service.gradient} shadow-lg
+                      transform transition-all duration-300 hover:shadow-xl hover:scale-105
+                      flex items-center justify-center gap-2 group/btn
+                    `}
+                    >
+                      Get Started
+                      <ArrowRight className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
+                    </button>
                     <p className="text-white/70 leading-relaxed">
                       {service.description}
                     </p>
@@ -935,20 +1110,8 @@ const handleDeleteClientPlanData = async (txn_id) => {
                     </div>
 
                     {/* CTA Button */}
-                    <button
-                      onClick={() => {
-                        navigate(`${service.navigation}/${id}/${proposalId}`);
-                      }}
-                      className={`
-                      w-full mt-6 py-4 px-6 rounded-2xl font-semibold text-white
-                      bg-gradient-to-r ${service.gradient} shadow-lg
-                      transform transition-all duration-300 hover:shadow-xl hover:scale-105
-                      flex items-center justify-center gap-2 group/btn
-                    `}
-                    >
-                      Get Started
-                      <ArrowRight className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
-                    </button>
+                    
+                  
                   </div>
 
                   {/* Hover effect overlay */}
@@ -969,10 +1132,20 @@ const handleDeleteClientPlanData = async (txn_id) => {
                 >
                   <div className="w-full h-full rounded-full animate-ping bg-gradient-to-r from-white/30 to-transparent"></div>
                 </div>
+
+
               </div>
             );
           })}
+
+
+
+
         </div>
+        
+
+
+
 
         {/* Client Orders */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-4">
@@ -997,7 +1170,7 @@ const handleDeleteClientPlanData = async (txn_id) => {
                   <th className="p-3">Editing Type</th>
                   <th className="p-3">Qty</th>
                   <th className="p-3">Amount</th>
-                     <th className="p-3">Action</th>
+                  <th className="p-3">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -1013,20 +1186,25 @@ const handleDeleteClientPlanData = async (txn_id) => {
                     <td className="p-3">{order.editing_type_name}</td>
                     <td className="p-3">{order.quantity}</td>
                     <td className="p-3">{order.total_amount}</td>
-                    <td><button
+                <td>
+                  <button
   className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
-       onClick={() =>    navigate(`/BD/calculator/${id}/${proposalId}`)}
+      onClick={() =>
+  navigate(`/BD/calculator/${id}/${proposalId}`, {
+       state: { servicetype: "paid" }
+  })
+}
 >
   Edit
 </button>
-
   <button
                       onClick={() => handleDelete(order.id)}
                       className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
                       title="Delete"
                     >
                       Delete
-                    </button></td>   
+                    </button>
+</td>    
                   </tr>
                 ))}
               </tbody>
@@ -1072,13 +1250,13 @@ const handleDeleteClientPlanData = async (txn_id) => {
                     <td className="p-3">{order.percent}</td>
                     <td className="p-3">{order.charge}</td>
                     <td className="p-3">{order.total}</td>
-                      <td> <button
+                    <td> <button
   className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
        onClick={() =>    navigate(`/BD/Adscalculator/${id}/${proposalId}`)}
 >
   Edit
 </button>
- <button
+  <button
                       onClick={() => handleDeleteads(order.id)}
                       className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
                       title="Delete"
@@ -1086,87 +1264,153 @@ const handleDeleteClientPlanData = async (txn_id) => {
                       Delete
                     </button>
 </td>  
+                   
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-  
         </div>
-         <div className="bg-white/10 backdrop-blur-sm mt-4 rounded-2xl p-6 border border-white/20">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <Package className="w-5 h-5" />
-                     Plan Detail
-                    </span>
-                    <span className="text-lg font-semibold text-green-400">
-                     {planName}
-                    </span>
-                  </h3>
-        
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full table-auto text-left text-sm text-white">
-                      <thead className="text-white/70 border-b border-white/20">
-                        <tr>
-                          <th className="p-3">Plan Name</th>
-                       
-                             <th className="p-3">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-            <tr>
-        
-                <td className="p-3">{planName}</td>
-                                     <td className="p-3">                   
-                                {planName?<button
-                                                 onClick={() => handleDeleteClientPlanData(proposalId)}
-                                                 className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
-                                                 title="Delete"
-                                               >
-                                                 Delete
-                                                 </button> : null } </td>
-            </tr>
-                          
-         
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full table-auto text-left text-sm text-white">
-                      <thead className="text-white/70 border-b border-white/20">
-                        <tr>
-                              
-                          <th className="p-3">Plan Client Note</th>
-                       
-                             <th className="p-3">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-            {notesData.map((note,index) => (
-              <tr
-                            key={note.id}
-                            className="hover:bg-white/10 border-b border-white/10 transition-colors"
-                          >
-                                
-                            <td className="p-3" >{note.note_name}</td>
-          
-                                     <td className="p-3">                   
-                                <button
-                                                 onClick={() => handleDeleteClientNote(note.id)}
-                                                 className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
-                                                 title="Delete"
-                                               >
-                                             Delete
-                                                 </button> </td>
-                                                 </tr>
-                                                   ))}
-         
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
 
-            {showModal && (
+           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border mt-4 border-white/20 mb-4">
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Recent Complimenatry Orders
+            </span>
+            <div className="text-lg font-semibold text-green-400">
+              Grand Total: ₹{grandComplimentryTotal.toLocaleString()} ,
+           
+                 Final Total: ₹0 
+           
+            </div>
+          </h3>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto text-left text-sm text-white">
+              <thead className="text-white/70 border-b border-white/20">
+                <tr>
+                  <th className="p-3">Index</th>
+                  <th className="p-3">Date</th>
+                  <th className="p-3">Service</th>
+                  <th className="p-3">Category</th>
+                  <th className="p-3">Editing Type</th>
+                  <th className="p-3">Qty</th>
+                  <th className="p-3">Amount</th>
+                  <th className="p-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {getComplimenatryData.map((order, index) => (
+                  <tr
+                    key={order.id}
+                    className="hover:bg-white/10 border-b border-white/10 transition-colors"
+                  >
+                    <td className="p-3">{index + 1}</td>
+                    <td className="p-3">{order.created_at}</td>
+                    <td className="p-3">{order.service_name}</td>
+                    <td className="p-3">{order.category_name}</td>
+                    <td className="p-3">{order.editing_type_name}</td>
+                    <td className="p-3">{order.quantity}</td>
+                    <td className="p-3">{order.total_amount}</td>
+                <td>
+                  <button
+  className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
+     onClick={() =>
+  navigate(`/BD/calculator/${id}/${proposalId}`, {
+    state: { servicetype: "complimentary" }
+  })
+}
+>
+  Edit
+</button>
+  <button
+                      onClick={() => handleDeleteComplimenatry(order.id)}
+                      className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                      title="Delete"
+                    >
+                      Delete
+                    </button>
+</td>    
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div className="bg-white/10 backdrop-blur-sm mt-4 rounded-2xl p-6 border border-white/20">
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+             Plan Detail
+            </span>
+            <span className="text-lg font-semibold text-green-400">
+             {planName}
+            </span>
+          </h3>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto text-left text-sm text-white">
+              <thead className="text-white/70 border-b border-white/20">
+                <tr>
+                  <th className="p-3">Plan Name</th>
+               
+                     <th className="p-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+    <tr>
+
+        <td className="p-3">{planName}</td>
+                             <td className="p-3">                   
+                        {planName?<button
+                                         onClick={() => handleDeleteClientPlanData(proposalId)}
+                                         className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                                         title="Delete"
+                                       >
+                                         Delete
+                                         </button> : null } </td>
+    </tr>
+                  
+ 
+              </tbody>
+            </table>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto text-left text-sm text-white">
+              <thead className="text-white/70 border-b border-white/20">
+                <tr>
+                      
+                  <th className="p-3">Plan Client Note</th>
+               
+                     <th className="p-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+    {notesData.map((note,index) => (
+      <tr
+                    key={note.id}
+                    className="hover:bg-white/10 border-b border-white/10 transition-colors"
+                  >
+                        
+                    <td className="p-3" >{note.note_name}</td>
+  
+                             <td className="p-3">                   
+                        <button
+                                         onClick={() => handleDeleteClientNote(note.id)}
+                                         className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                                         title="Delete"
+                                       >
+                                     Delete
+                                         </button> </td>
+                                         </tr>
+                                           ))}
+ 
+              </tbody>
+            </table>
+          </div>
+        </div>
+          {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
             <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
               <button

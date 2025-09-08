@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import {
   Palette,
   Megaphone,
@@ -24,9 +24,12 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
+import AdminComplimentaryData from "./AdminComplimentaryData";
 
 
 const AdminCalculator = () => {
+    const location = useLocation();
+  const [serviceType, setServiceType] = useState("paid");
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
@@ -60,16 +63,24 @@ const AdminCalculator = () => {
     const [selectedNotesId, setSelectedNotesId] = useState(null);
        const [showModal, setShowModal] = useState(false);
  const [isEditing, setIsEditing] = useState(false);
-
   useEffect(() => {
-    axios
-      .get(`${baseURL}/auth/api/calculator/services/category/editing`)
-      .then((res) => {
-     
-  setData(res.data.data);
-      })
-      .catch((err) => console.error(err));
-  }, []);
+    if (location.state?.servicetype) {
+      setServiceType(location.state.servicetype);
+    }
+  }, [location.state]);
+useEffect(() => {
+  axios
+    .get(`${baseURL}/auth/api/calculator/services/category/editing`)
+    .then((res) => {
+      // Filter out "Complementary" service
+      const filteredServices = res.data.data.filter(
+        (service) => service.service_name.toLowerCase() !== "complementary"
+      );
+      setData(filteredServices);
+    })
+    .catch((err) => console.error(err));
+}, []);
+
 
 useEffect(() => {
   axios.get(`${baseURL}/auth/api/calculator/optional-service-amounts`)
@@ -145,6 +156,8 @@ const handleEdit = (entry) => {
 
   setAddons(updatedAddons);
   setTotal(parseFloat(entry.total_amount));
+
+  
 };
 
 
@@ -295,6 +308,7 @@ setAddons(initialAddons);
     setIsEditing(false);
     setShowModal(true);
   };
+
 
    const handleChange = (e) => {
     const { name, value } = e.target;
@@ -649,22 +663,45 @@ const filtered = notes.filter(
       });
     }
   };
+  const grandTotal = getData.reduce(
+    (acc, order) => acc + parseFloat(order.total_amount),
+    0
+  );
 
   return (
     <>
+    
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white p-6">
+        
+        
         <div className="w-full max-w-2xl bg-white/10 backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-6">
+            <div>
+                <h2 className="text-3xl font-bold text-white text-center mb-6">
             🧮 Service Calculator
           </h2>
-          <button
+            <button
             onClick={() => navigate(-1)}
             className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
           >
             ← Go Back
           </button>
 
-          <div>
+            <label className="block font-semibold mb-1">Select Service Type:</label>
+             <select
+          value={serviceType}
+          onChange={(e) => setServiceType(e.target.value)}
+          className="w-full p-2 border rounded bg-white text-black"
+        >
+            <option value="">-- Choose Service --</option>
+          <option value="paid">Paid Service</option>
+          <option value="complimentary">Complimentary Service</option>
+        </select>
+          </div>
+ {serviceType === "paid" ? (
+  <div className="">
+          
+        
+          <div className="w-full max-w-2xl backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
             <label className="block font-semibold mb-1">Select Service</label>
             <select
               className="w-full p-2 border rounded bg-white text-black"
@@ -682,7 +719,7 @@ const filtered = notes.filter(
                 </option>
               ))}
             </select>
-          </div>
+        
 
           {getSelectedService && (
             <div>
@@ -829,11 +866,12 @@ const filtered = notes.filter(
             Reset Form
           </button>
 
-          {total > 0 && (
+
+       
             <div className="text-xl font-semibold text-center text-green-300 mt-4">
-              Total Amount: ₹{total}
+              Total Amount: ₹{grandTotal.toLocaleString()}
             </div>
-          )}
+        
           {/* Client Orders */}
 
           <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -858,15 +896,16 @@ const filtered = notes.filter(
                     <div className="text-lg text-white/80">
                       🎬 {order.editing_type_name} × {order.quantity}
                     </div>
-                    {(order.include_content_posting === "1" ||
-                      order.include_thumbnail_creation === "1") && (
-                      <div className="text-base text-white/60 italic">
-                        {order.include_content_posting === "0" &&
-                          "📢 Content Posting "}
-                        {order.include_thumbnail_creation === "0" &&
-                          "🖼 Thumbnail Creation"}
-                      </div>
-                    )}
+                  {(Number(order.include_content_posting) > 0 || Number(order.include_thumbnail_creation) > 0) && (
+  <div className="text-base text-white/60 italic">
+    {Number(order.include_content_posting) > 0 && (
+      <>📢 Content Posting  </>
+    )}
+    {Number(order.include_thumbnail_creation) > 0 && (
+      <>🖼 Thumbnail Creation </>
+    )}
+  </div>
+)}
                     {/* <div className="text-xs text-white/50">
                       🕒 {new Date(order.created_at).toLocaleString("en-IN")}
                     </div> */}
@@ -1090,8 +1129,15 @@ const filtered = notes.filter(
               </div>
             ))}
           </div> */}
+            </div>
+</div>
+  )  :serviceType === "complimentary"  ? (
+  <AdminComplimentaryData />
+) : null}
         </div>
+     
       </div>
+
     </>
   );
 };

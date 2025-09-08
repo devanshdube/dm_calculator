@@ -254,28 +254,19 @@ exports.updatePlanNameDetail = async (req, res) => {
 
 
 
-
-
-exports.updatePlandata = (req, res) => {
+exports.updatePlandata = async (req, res) => {
   const { id } = req.params;
-  const {
-    service_name,
-    category_name,
-    editing_type_name,
-    editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount, category_ads,amount_ads,percent_ads,charge_ads,total_ads,
-    employee,
-  } = req.body;
+  const data = req.body; // expect array of objects
+
+  if (!Array.isArray(data) || data.length === 0) {
+    return res.status(400).json({ status: "Failure", message: "No data received" });
+  }
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
   const query = `
     UPDATE plan_data
     SET
-
       service_name = ?,
       category_name = ?,
       editing_type_name = ?,
@@ -283,37 +274,63 @@ exports.updatePlandata = (req, res) => {
       quantity = ?,
       include_content_posting = ?,
       include_thumbnail_creation = ?,
-      total_amount = ?, category_ads ?,amount_ads ?,percent_ads ?,charge_ads ?,total_ads ?,
+      total_amount = ?,
+      amount_ads = ?,
+      percent_ads = ?,
+      charge_ads = ?,
+      total_ads = ?,
       employee = ?,
       created_at = ?
     WHERE id = ?
   `;
 
-  const values = [
-    service_name,
-    category_name,
-    editing_type_name,
-    editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,category_ads,amount_ads,percent_ads,charge_ads,total_ads,
-    employee,
-    updatedAt,
-    id,
-  ];
+  try {
+    const tasks = data.map((item) => {
+      const values = [
+        item.service_name || null,
+        item.category_name || null,
+        item.editing_type_name || null,
+        item.editing_type_amount || null,
+        item.quantity || null,
+        item.include_content_posting || 0,
+        item.include_thumbnail_creation || 0,
+        item.total_amount || null,
+        item.amount_ads || null,
+        item.percent_ads || null,
+        item.charge_ads || null,
+        item.total_ads || null,
+        item.employee || null,
+        updatedAt,
+        id, // push id here!
+      ];
 
-  db.query(query, values, (err, result) => {
-    if (err) {
-      console.error("Update Error:", err);
-      return res.status(500).json({ status: "Failure", message: "DB error" });
+      return new Promise((resolve, reject) => {
+        db.query(query, values, (err, result) => {
+          if (err) return reject(err);
+          resolve(result);
+        });
+      });
+    });
+
+    const results = await Promise.all(tasks);
+
+    const updatedRows = results.reduce((sum, r) => sum + r.affectedRows, 0);
+
+    if (updatedRows === 0) {
+      return res.status(404).json({ status: "Failure", message: "No matching entries found" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry updated successfully" });
-  });
+    res.status(200).json({
+      status: "Success",
+      message: `${updatedRows} entries updated successfully`,
+    });
+  } catch (err) {
+    console.error("Update Error:", err);
+    return res.status(500).json({ status: "Failure", message: "DB error" });
+  }
 };
+
+
 
 exports.updatePlanNotes = async (req, res) => {
   const { id } = req.params;
@@ -532,7 +549,73 @@ exports.reassignQuotation = (req, res) => {
         .json({ status: "Failure", message: "Internal Server Error" });
     }
   })();
-}; // working code
+}; 
+
+exports.updateComplimenatryDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+  } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE complimentary
+    SET
+      txn_id = ?,
+      client_id = ?,
+      service_name = ?,
+      category_name = ?,
+      editing_type_name = ?,
+      editing_type_amount = ?,
+      quantity = ?,
+      include_content_posting = ?,
+      include_thumbnail_creation = ?,
+      total_amount = ?,
+      employee = ?,
+      created_at = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+    updatedAt,
+    id,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry updated successfully" });
+  });
+};
+
+// working code
 
 // ------------------
 

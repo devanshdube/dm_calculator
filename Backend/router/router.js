@@ -31,6 +31,7 @@ const {
   createTeam,
   addMembersToTeam,
   assignQuotationToTeam,
+  saveComplimentaryData,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -64,6 +65,7 @@ const {
   retrieveTeam,
   retrieveTeamById,
   getAssignmentsSummary,
+  getByIDComplimentaryData,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -83,6 +85,7 @@ const {
   deletePlanClientNotes,
   removeMemberFromTeam,
   deleteTeam,
+  deleteComplimenatryById,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -92,7 +95,8 @@ const {
   updateClientDetails,
   updatePlandata,
   updatePlanNameDetail,
-  updatePlanNotes,updateServiceData
+  updatePlanNotes,updateServiceData,
+  updateComplimenatryDataById
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -119,7 +123,6 @@ router.post("/addEditingTypes", addEditingTypes);
 router.post("/saveCalculatorData", saveCalculatorData);
 router.post("/saveAdsCampaign", saveAdsCampaign);
 router.post("/saveCalculatorDataofplan", saveCalculatorDataOfPlan);
-router.post("/saveCalculatorDataofplanDetail", saveCalculatorDataOfPlanDetail);
 router.post("/saveClientWithPlan", saveClientWithPlan);
 router.post("/addNotebyplan", addNotebyplan);
 router.post("/savePlanClientNotes", savePlanClientNotes);
@@ -128,6 +131,7 @@ router.post("/assignQuotation", assignQuotation);
 router.post("/createTeam", createTeam);
 router.post("/addMembersToTeam/:id/members", addMembersToTeam);
 router.post("/assignQuotationToTeam", assignQuotationToTeam);
+router.post("/saveComplimentaryData", saveComplimentaryData);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -142,6 +146,7 @@ router.get(
   authenticateToken,
   getByIDCalculatorTransactions
 );
+
 router.get(
   "/getByIDAdsCampaignDetails/:txn_id/:client_id",
   authenticateToken,
@@ -176,6 +181,11 @@ router.get("/getAllPlanDetails", getPlanDetails);
 router.get("/getAllPlanDetailsById/:id", getPlanDetailsById);
 router.get("/getPlanNotes", getPlanNotes);
 router.get("/getClientNotesbyId/:client_id/:txn_id", getClientNotesbyId);
+router.get(
+  "/getByIDComplimentaryData/:txn_id/:client_id",
+  authenticateToken,
+  getByIDComplimentaryData
+);
 
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);
@@ -234,6 +244,8 @@ router.delete(
 
 router.delete("/deleteTeam/:id", deleteTeam);
 
+router.delete("/deleteComplimenatryById/:id", deleteComplimenatryById);
+
 // ---->  DELETE all routes END <----
 
 // ---->  UPDATE all routes START <----
@@ -247,6 +259,7 @@ router.put("/updatePlanName/:id", updatePlanNameDetail);
 router.put("/updatePlanNotes/:id", updatePlanNotes);
 router.put("/updateServiceData/:editing_type_id", updateServiceData);
 router.put("/reassignQuotation", reassignQuotation);
+router.put("/updateComplimenatryDataById/:id", updateComplimenatryDataById);
 // router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----
 

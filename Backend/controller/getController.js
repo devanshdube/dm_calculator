@@ -985,12 +985,11 @@ exports.getPlanNotes = async (req, res) => {
   }
 };
 exports.getClientNotesbyId = async (req, res) => {
-  const { id } = req.params;
+   const { client_id, txn_id } = req.params;
   try {
     db.query(
-      "SELECT * FROM plan_client_notes WHERE client_id = ?",
-      [id],
-      (err, results) => {
+      "SELECT * FROM plan_client_notes WHERE client_id = ? AND txn_id = ?",
+      [client_id,txn_id],(err, results) => {
         if (err) {
           return res.status(500).json({
             status: "Failure",
@@ -1020,6 +1019,7 @@ exports.getClientNotesbyId = async (req, res) => {
     });
   }
 };
+
 
 //NEW Work
 exports.retrieveUser = async (req, res) => {
@@ -1456,4 +1456,41 @@ exports.getAssignmentsSummary = (req, res) => {
       },
     });
   });
+};
+exports.getByIDComplimentaryData = async (req, res) => {
+  const { txn_id, client_id } = req.params;
+
+  try {
+    db.query(
+      "SELECT * FROM complimentary WHERE txn_id = ? AND client_id = ?",
+      [txn_id, client_id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No calculator transactions found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
 };

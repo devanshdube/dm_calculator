@@ -13,6 +13,7 @@ import {
   IndianRupee,
   User,
   Notebook,
+  Gift,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -29,6 +30,7 @@ export default function ServicesLanding() {
   const [allPlanNote, setAllPlanNote] = useState([]);
   const [getPlanData, setGetPlanData] = useState([]);
   const [getAdsData, setGetAdsData] = useState([]);
+  const [getComplimenatryData, setGetComplimenatryData] = useState([]);
    const [planName,setPlanName] = useState('');
   const [clientData, setClientData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -44,7 +46,7 @@ const { currentUser, token } = useSelector((state) => state.user);
   const services = [
     {
       id: 1,
-      title: "Graphic & SEO Services",
+      title: "Graphic & SEO ",
       subtitle: "Visual Storytelling",
       description:
         "Transform your brand with stunning visuals that captivate and convert. From logos to complete brand identities.",
@@ -269,7 +271,39 @@ const getAllPlanNotes = async (planTitle) => {
       }
     }
   };
-
+  const fetchComplimenatryData = async () => {
+    if (!id || !proposalId) return;
+    try {
+      const { data } = await axios.get(
+        `${baseURL}/auth/api/calculator/getByIDComplimentaryData/${proposalId}/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(data.data);
+      setGetComplimenatryData(data.data);
+    } catch (error) {
+      console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
   
 
   useEffect(() => {
@@ -278,17 +312,29 @@ const getAllPlanNotes = async (planTitle) => {
     fetchAdsData();
     fetchPlanData();
     fetchClientNotes();
+    fetchComplimenatryData();
   }, []);
 
   // Table Total Amount
 
-  const grandTotal = getData.reduce(
-    (acc, order) => acc + parseFloat(order.total_amount || 0),
-    0
-  );
+ const grandTotal = getData.reduce((acc, order) => {
+  // Skip Complimentary service
+  if (order.service_name?.toLowerCase() === "complimentary") {
+    return acc;
+  }
+
+  // Add total_amount if exists, otherwise total_ads
+  return acc + parseFloat(order.total_amount || 0);
+}, 0);
+
 
   const grandAdsTotal = getAdsData.reduce(
     (acc, order) => acc + parseFloat(order.total || 0),
+    0
+  );
+
+  const grandComplimentryTotal = getComplimenatryData.reduce(
+    (acc, order) => acc + parseFloat(order.total_amount || 0),
     0
   );
 
@@ -298,7 +344,9 @@ const getAllPlanNotes = async (planTitle) => {
 
   const adsCampLength = getAdsData.length;
 
-  const finalLength = graphLength + adsCampLength;
+  const complimenatryLength = getComplimenatryData.length;
+
+  const finalLength = graphLength + adsCampLength + complimenatryLength ;
 
   // Grand Total Amount
 
@@ -328,17 +376,25 @@ const groupByPlan = (data) => {
     );
 
     // Add the amount (make sure item.amount is a number)
-    grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
+   // Add amount but skip Complimentary services
+if (item.service_name?.toLowerCase() !== "complimentary") {
+  grouped[item.plan_id].totalAmount += Number(item.total_amount || item.total_ads) || 0;
+}
+
   });
 
   return Object.values(grouped);
 };
 
   const plans = groupByPlan(getPlanData);
+
+   const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
 // When "Create Quotation" button is clicked
 const handleCreateQuotation = async (plan) => {
   try {
-    // fetch notes for this plan immediately (don’t wait for setState)
     const filteredNotes = await getAllPlanNotes(plan.title);
 
     if (filteredNotes.length === 0) {
@@ -363,50 +419,111 @@ const handleCreateQuotation = async (plan) => {
       });
       return;
     }
+// ✅ Step 2: normal plan services (exclude Ads Campaign & Complimentary)
+const plans = filteredPlanData
+  .filter(
+    (item) =>
+      item.service_name !== "Ads Campaign" &&
+      item.service_name !== "Complimentary"
+  )
+  .map((item) => ({
+    service_name: item.service_name,
+    category_name: item.category_name,
+    editing_type_name: item.editing_type_name,
+    editing_type_amount: item.editing_type_amount,
+    quantity: item.quantity,
+    include_content_posting: item.include_content_posting,
+    include_thumbnail_creation: item.include_thumbnail_creation,
+    total_amount: item.total_amount,
+    plan_name: item.plan_name,
+    employee: userName,
+  }));
 
-    const plans = filteredPlanData.map((item) => ({
-    
-      service_name: item.service_name,
-      category_name: item.category_name,
-      editing_type_name: item.editing_type_name,
-      editing_type_amount: item.editing_type_amount,
-      quantity: item.quantity,
-      include_content_posting: item.include_content_posting,
-      include_thumbnail_creation: item.include_thumbnail_creation,
-      total_amount: item.total_amount,
-      plan_name: item.plan_name,
-      employee: userName,
-    }));
+// ✅ Step 3: Ads Campaign data
+const adsItems = filteredPlanData
+  .filter((item) => item.service_name === "Ads Campaign")
+  .map((item) => ({
+    txn_id: proposalId,
+    client_id: id,
+    id: generateUniqueId(),
+    category: item.category_name,
+    amount: item.amount_ads,
+    percent: item.percent_ads,
+    charge: item.charge_ads,
+    total: item.total_ads,
+    employee: userName,
+  }));
 
-    const planNotes = filteredNotes.map((item) => ({
-      note_name: item.note_name,
-      plan: item.plan,
-    }));
+// ✅ Step 4: Complimentary data
+const complimentaryItems = filteredPlanData
+  .filter((item) => item.service_name === "Complimentary")
+  .map((item) => ({
+    txn_id: proposalId,
+    client_id: id,
+    service_name: item.service_name,
+    category_name: item.category_name,
+    editing_type_name: item.editing_type_name,
+    editing_type_amount: item.editing_type_amount,
+    quantity: item.quantity,
+    include_content_posting: item.include_content_posting,
+    include_thumbnail_creation: item.include_thumbnail_creation,
+    total_amount: item.total_amount,
+    employee: userName,
+  }));
 
-    const payload = {   txn_id: proposalId,
-      client_id: id,plans, planNotes };
+// ✅ Step 5: notes
+const planNotes = filteredNotes.map((item) => ({
+  note_name: item.note_name,
+  plan: item.plan,
+}));
 
+// ✅ Save plans + notes
+const payload = { txn_id: proposalId, client_id: id, plans, planNotes };
+
+await axios.post(
+  `${baseURL}/auth/api/calculator/savePlanClientNotes`,
+  payload,
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
+
+// ✅ Save Ads Campaign (if any)
+if (adsItems.length > 0) {
+  await axios.post(
+    `${baseURL}/auth/api/calculator/saveAdsCampaign`,
+    { adsItems },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+}
+
+// ✅ Save Complimentary Services (if any)
+// ✅ Save Complimentary Services (if any)
+if (complimentaryItems.length > 0) {
+  for (const item of complimentaryItems) {
     await axios.post(
-      `${baseURL}/auth/api/calculator/savePlanClientNotes`,
-      payload,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+      `${baseURL}/auth/api/calculator/saveComplimentaryData`,
+      item, // send one object at a time
+      { headers: { Authorization: `Bearer ${token}` } }
     );
-
-  Swal.fire({
-  icon: "success",
-  title: "Quotation Created",
-  text: "Plan quotation saved successfully!",
-  showConfirmButton: false,  
-  timer: 2000,               
-  timerProgressBar: true     
-});
+  }
+}
 
 
-    fetchData(); // refresh table
-   fetchClientNotes();
 
+    Swal.fire({
+      icon: "success",
+      title: "Quotation Created",
+      text: "Plan quotation saved successfully!",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+
+    fetchData();
+    fetchClientNotes();
+    fetchAdsData();
+    fetchComplimenatryData();
   } catch (err) {
     console.error("Save error:", err);
     Swal.fire({
@@ -448,6 +565,10 @@ const handleDeleteClientPlanData = async (txn_id) => {
       setPlanName('')
       setNotesData([])
    fetchClientNotes();
+   fetchAdsData();
+   setGetAdsData([]);
+   setGetComplimenatryData([]);
+
 
       } else {
         Swal.fire("Error!", res.data.message || "Failed to delete plan.", "error");
@@ -497,6 +618,71 @@ const handleDeleteClientPlanData = async (txn_id) => {
 });
 
    fetchClientNotes();
+
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: result.message || "Failed to delete entry.",
+        });
+        Swal.fire({
+  icon: "error",
+  title: "Failed!",
+   text: result.message || "Failed to delete entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
+
+      }
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+         Swal.fire({
+  icon: "error",
+     title: "Error",
+     text: "An error occurred while deleting entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
+    
+      
+    }
+  };
+  const handleDeleteComplimenatry = async (entryId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this entry?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteComplimenatryById/${entryId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+        setGetComplimenatryData((prev) => prev.filter((item) => item.id !== entryId));
+
+      
+        Swal.fire({
+  icon: "success",
+  title: "Deleted!",
+  text: "Entry has been deleted.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
+
+   fetchComplimenatryData();
 
       } else {
         Swal.fire({
@@ -851,7 +1037,7 @@ const handleDeleteClientPlanData = async (txn_id) => {
 </div>
  <div className="">
            <p className="text-3xl font-bold text-white mb-3">
-                    Customise Wise 
+                    Customise Wise Service
                   </p>
                   </div>
         {/* Services Grid */}
@@ -1006,7 +1192,11 @@ const handleDeleteClientPlanData = async (txn_id) => {
                 <td>
                   <button
   className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
-       onClick={() =>    navigate(`/admin/calculator/${id}/${proposalId}`)}
+      onClick={() =>
+  navigate(`/admin/calculator/${id}/${proposalId}`, {
+       state: { servicetype: "paid" }
+  })
+}
 >
   Edit
 </button>
@@ -1078,6 +1268,73 @@ const handleDeleteClientPlanData = async (txn_id) => {
                     </button>
 </td>  
                    
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border mt-4 border-white/20 mb-4">
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Recent Complimenatry Orders
+            </span>
+            <div className="text-lg font-semibold text-green-400">
+              Grand Total: ₹{grandComplimentryTotal.toLocaleString()} ,
+           
+                 Final Total: ₹0 
+           
+            </div>
+          </h3>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto text-left text-sm text-white">
+              <thead className="text-white/70 border-b border-white/20">
+                <tr>
+                  <th className="p-3">Index</th>
+                  <th className="p-3">Date</th>
+                  <th className="p-3">Service</th>
+                  <th className="p-3">Category</th>
+                  <th className="p-3">Editing Type</th>
+                  <th className="p-3">Qty</th>
+                  <th className="p-3">Amount</th>
+                  <th className="p-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {getComplimenatryData.map((order, index) => (
+                  <tr
+                    key={order.id}
+                    className="hover:bg-white/10 border-b border-white/10 transition-colors"
+                  >
+                    <td className="p-3">{index + 1}</td>
+                    <td className="p-3">{order.created_at}</td>
+                    <td className="p-3">{order.service_name}</td>
+                    <td className="p-3">{order.category_name}</td>
+                    <td className="p-3">{order.editing_type_name}</td>
+                    <td className="p-3">{order.quantity}</td>
+                    <td className="p-3">{order.total_amount}</td>
+                <td>
+                  <button
+  className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
+     onClick={() =>
+  navigate(`/admin/calculator/${id}/${proposalId}`, {
+    state: { servicetype: "complimentary" }
+  })
+}
+>
+  Edit
+</button>
+  <button
+                      onClick={() => handleDeleteComplimenatry(order.id)}
+                      className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
+                      title="Delete"
+                    >
+                      Delete
+                    </button>
+</td>    
                   </tr>
                 ))}
               </tbody>

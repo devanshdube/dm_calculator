@@ -154,7 +154,9 @@ useEffect(() => {
     );
 
     // Add the amount (make sure item.amount is a number)
-    grouped[item.plan_id].totalAmount += Number(item.total_amount) || 0;
+   if (item.service_name?.toLowerCase() !== "complimentary") {
+  grouped[item.plan_id].totalAmount += Number(item.total_amount || item.total_ads) || 0;
+}
   });
 
   return Object.values(grouped);
@@ -189,13 +191,16 @@ const handleCreateQuotation = async (plan) => {
     }));
   };
 
+ const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
 const handleSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
 
   const proposalId = Date.now(); // txn_id
-  
-  
+  console.log("Txn ID:", proposalId);
 
   try {
     // Step 1: filter plan-wise data
@@ -208,9 +213,9 @@ const handleSubmit = async (e) => {
         icon: "info",
         title: "No Data",
         text: "No services found for this plan.",
-          showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
       return;
     }
@@ -222,90 +227,145 @@ const handleSubmit = async (e) => {
       email: formData?.email || "",
       phone: formData?.phone || "",
       address: formData?.address || "",
-      dg_employee: userName, // jo login user hoga
+      dg_employee: userName,
     };
 
-    // Step 3: prepare plans array
-    const plans = filteredPlanData.map((item) => ({
-      service_name: item.service_name,
-      category_name: item.category_name,
-      editing_type_name: item.editing_type_name,
-      editing_type_amount: item.editing_type_amount,
-      quantity: item.quantity,
-      include_content_posting: item.include_content_posting,
-      include_thumbnail_creation: item.include_thumbnail_creation,
-      total_amount: item.total_amount,
-      plan_name: item.plan_name,
-      employee: userName,
+    // Step 3: separate Ads Campaign, Complimentary, and other plan services
+    const adsItems = filteredPlanData
+      .filter((item) => item.service_name === "Ads Campaign")
+      .map((item) => ({
+        txn_id: proposalId,
+        client_id: null, // will get later
+        id: generateUniqueId(),
+        category: item.category_name,
+        amount: item.amount_ads,
+        percent: item.percent_ads,
+        charge: item.charge_ads,
+        total: item.total_ads,
+        employee: userName,
+      }));
+
+    const complimentaryItems = filteredPlanData
+      .filter((item) => item.service_name === "Complimentary")
+      .map((item) => ({
+        txn_id: proposalId,
+        client_id: null, // will get later
+        service_name: item.service_name,
+        category_name: item.category_name,
+        editing_type_name: item.editing_type_name,
+        editing_type_amount: item.editing_type_amount,
+        quantity: item.quantity,
+        include_content_posting: item.include_content_posting,
+        include_thumbnail_creation: item.include_thumbnail_creation,
+        total_amount: item.total_amount,
+        employee: userName,
+      }));
+
+    const plans = filteredPlanData
+      .filter(
+        (item) =>
+          item.service_name !== "Ads Campaign" &&
+          item.service_name !== "Complimentary"
+      )
+      .map((item) => ({
+        service_name: item.service_name,
+        category_name: item.category_name,
+        editing_type_name: item.editing_type_name,
+        editing_type_amount: item.editing_type_amount,
+        quantity: item.quantity,
+        include_content_posting: item.include_content_posting,
+        include_thumbnail_creation: item.include_thumbnail_creation,
+        total_amount: item.total_amount,
+        plan_name: item.plan_name,
+        employee: userName,
+      }));
+
+    // Step 4: notes
+    const planNotes = allPlanNote.map((item) => ({
+      note_name: item.note_name,
     }));
 
-    const planNotes = allPlanNote.map((item)=>({
-      note_name:item.note_name,
-     
-
-    }));
-    console.log(planNotes);
-    
-
-    // Step 4: single payload with client + plans
+    // Step 5: save client with plan
     const payload = {
       txn_id: proposalId,
       ...clientDetail,
-      plans, // ⬅️ array of all services
+      plans,
       planNotes,
     };
 
-    // Step 5: single API call
     const res = await axios.post(
       `${baseURL}/auth/api/calculator/saveClientWithPlan`,
       payload,
       {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       }
     );
 
     const { status, message, client_id } = res.data;
 
     if (status === "Success") {
+      // Step 6: Save Ads Campaign if exists
+      if (adsItems.length > 0) {
+        const adsPayload = {
+          adsItems: adsItems.map((item) => ({
+            ...item,
+            client_id, // link client_id after saving client
+          })),
+        };
+
+        await axios.post(
+          `${baseURL}/auth/api/calculator/saveAdsCampaign`,
+          adsPayload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      // ✅ Step 7: Save Complimentary services (one by one)
+      if (complimentaryItems.length > 0) {
+        for (const item of complimentaryItems) {
+          await axios.post(
+            `${baseURL}/auth/api/calculator/saveComplimentaryData`,
+            { ...item, client_id }, // attach client_id
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        }
+      }
+
       Swal.fire({
         icon: "success",
         title: "Quotation Created",
         text: message,
-          showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
 
       setShowModal(false);
-      navigate(`/BD/client/service/history/${client_id}`); // ⬅️ API ka client_id
+      navigate(`/BD/client/service/history/${client_id}`);
     } else {
       Swal.fire({
         icon: "error",
         title: "Error",
         text: message || "Failed to save quotation",
-          showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
-
   } catch (err) {
     console.error("Save error:", err);
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: err.response.data.message,
-        showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+      text: err.response?.data?.message || "Something went wrong",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
     });
   } finally {
     setLoading(false);
   }
 };
-
 
   const handleClose = () => {
     setShowModal(false);

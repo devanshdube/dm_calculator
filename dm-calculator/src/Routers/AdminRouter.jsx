@@ -5,6 +5,7 @@ import styled from "styled-components";
 import Quotation from "../Admin/Quotation";
 import AdminAddPlan from "../Admin/AdminAddPlan";
 import AdminPlanHistory from "../Admin/AdminPlanHistory";
+import AdminComplimentaryData from "../Admin/AdminComplimentaryData";
 
 const AdminDashboard = lazy(() => import("../Admin/AdminDashboard"));
 const AdminCalculator = lazy(() => import("../Admin/AdminCalculator"));
@@ -48,6 +49,10 @@ const AdminRouter = () => {
             <Route path="quotation/:id/:txn_id" element={<Quotation />} />
 
             <Route path="plan-details/:id" element={<AdminPlanHistory />} />
+            <Route
+              path="complimentary/:id/:proposalId"
+              element={<AdminComplimentaryData />}
+            />
           </Routes>
         </Suspense>
       </Wrapper>

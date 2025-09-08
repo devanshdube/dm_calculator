@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import {
   Palette,
   Megaphone,
@@ -21,9 +21,12 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
+import AdminComplimentaryData from "../Admin/AdminComplimentaryData";
 
 
 const CalculatorBD = () =>  {
+   const location = useLocation();
+    const [serviceType, setServiceType] = useState("paid");
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
@@ -56,7 +59,11 @@ const [formData, setFormData] = useState({
     const [selectedNotesId, setSelectedNotesId] = useState(null);
        const [showModal, setShowModal] = useState(false);
  const [isEditing, setIsEditing] = useState(false);
-
+ useEffect(() => {
+    if (location.state?.servicetype) {
+      setServiceType(location.state.servicetype);
+    }
+  }, [location.state]);
   useEffect(() => {
     axios
       .get(`${baseURL}/auth/api/calculator/services/category/editing`)
@@ -594,22 +601,45 @@ const filtered = notes.filter(
       });
     }
   };
+  const grandTotal = getData.reduce(
+    (acc, order) => acc + parseFloat(order.total_amount || order.total_ads),
+    0
+  );
 
   return (
     <>
+     
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white p-6">
+        
+        
         <div className="w-full max-w-2xl bg-white/10 backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-6">
+            <div>
+                <h2 className="text-3xl font-bold text-white text-center mb-6">
             🧮 Service Calculator
           </h2>
-          <button
+            <button
             onClick={() => navigate(-1)}
             className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
           >
             ← Go Back
           </button>
 
-          <div>
+            <label className="block font-semibold mb-1">Select Service Type:</label>
+             <select
+          value={serviceType}
+          onChange={(e) => setServiceType(e.target.value)}
+          className="w-full p-2 border rounded bg-white text-black"
+        >
+            <option value="">-- Choose Service --</option>
+          <option value="paid">Paid Service</option>
+          <option value="complimentary">Complimentary Service</option>
+        </select>
+          </div>
+ {serviceType === "paid" ? (
+  <div className="">
+          
+        
+          <div className="w-full max-w-2xl backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
             <label className="block font-semibold mb-1">Select Service</label>
             <select
               className="w-full p-2 border rounded bg-white text-black"
@@ -627,7 +657,7 @@ const filtered = notes.filter(
                 </option>
               ))}
             </select>
-          </div>
+        
 
           {getSelectedService && (
             <div>
@@ -693,6 +723,7 @@ const filtered = notes.filter(
               onChange={(e) => setQuantity(parseInt(e.target.value))}
             />
           </div>
+
 {selectedService === "Video Services" && optionalServices?.length > 0 && (
   <div className="space-y-4">
     {optionalServices.map((opt) => {
@@ -773,11 +804,12 @@ const filtered = notes.filter(
             Reset Form
           </button>
 
-          {total > 0 && (
+
+       
             <div className="text-xl font-semibold text-center text-green-300 mt-4">
-              Total Amount: ₹{total}
+              Total Amount: ₹{grandTotal.toLocaleString()}
             </div>
-          )}
+        
           {/* Client Orders */}
 
           <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -802,15 +834,16 @@ const filtered = notes.filter(
                     <div className="text-lg text-white/80">
                       🎬 {order.editing_type_name} × {order.quantity}
                     </div>
-                    {(order.include_content_posting === "1" ||
-                      order.include_thumbnail_creation === "1") && (
-                      <div className="text-base text-white/60 italic">
-                        {order.include_content_posting === "0" &&
-                          "📢 Content Posting "}
-                        {order.include_thumbnail_creation === "0" &&
-                          "🖼 Thumbnail Creation"}
-                      </div>
-                    )}
+                  {(Number(order.include_content_posting) > 0 || Number(order.include_thumbnail_creation) > 0) && (
+  <div className="text-base text-white/60 italic">
+    {Number(order.include_content_posting) > 0 && (
+      <>📢 Content Posting  </>
+    )}
+    {Number(order.include_thumbnail_creation) > 0 && (
+      <>🖼 Thumbnail Creation </>
+    )}
+  </div>
+)}
                     {/* <div className="text-xs text-white/50">
                       🕒 {new Date(order.created_at).toLocaleString("en-IN")}
                     </div> */}
@@ -840,160 +873,209 @@ const filtered = notes.filter(
               </div>
             ))}
           </div>
-
-         
+          
+          
+                    
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <Package className="w-5 h-5" />
+                     Notes Section 
+                    </h3>
+          
+                      <button
+                        onClick={handleShow}
+                      className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+                    >
+                      + Add Notes
+                    </button>
+                      <button
+                        onClick={handleSaveNotes}
+                      className="px-4 py-2 float-end bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition"
+                    >
+                      💾 Save Notes
+                    </button>
+            <div className="space-y-4">
+                      {allPlanNote.map((notes) => (
+                        <div
+                          key={notes.id}
+                          className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
+                            {/* Left Section: Info */}
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 font-semibold text-lg">
+                              
+                                <span>
+                                  → {notes.note_name}
+                                </span>
+                              </div>
                              
-                   <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                               <Package className="w-5 h-5" />
-                              Notes Section 
-                             </h3>
-                   
-                               <button
-                                 onClick={handleShow}
-                               className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
-                             >
-                               + Add Notes
-                             </button>
-                               <button
-                                 onClick={handleSaveNotes}
-                               className="px-4 py-2 float-end bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition"
-                             >
-                               💾 Save Notes
-                             </button>
-                     <div className="space-y-4">
-                               {allPlanNote.map((notes) => (
-                                 <div
-                                   key={notes.id}
-                                   className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
-                                 >
-                                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
-                                     {/* Left Section: Info */}
-                                     <div className="space-y-1">
-                                       <div className="flex items-center gap-2 font-semibold text-lg">
-                                       
-                                         <span>
-                                           → {notes.note_name}
-                                         </span>
-                                       </div>
-                                      
-                                     
-                                    
-                                     </div>
-                   
-                                     {/* Right Section: Amount + Delete */}
-                                     <div className="flex items-center gap-2 sm:gap-4">
-                                       <button
-                                                       onClick={(e) => {
-                                                         e.stopPropagation(); // prevent card onClick
-                                                      setSelectedNotesId(notes)
-                                                         setFormData({
-                                                           note_name: notes.note_name,
-                                                           plan:notes.plan
-                                                          
-                                                         });
-                                                         setIsEditing(true);
-                                                         setShowModal(true);
-                                                       }}
-                                                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                                         title="Edit"  >
-                                                        ✎
-                                                     </button>
-                                       <button
-                                         onClick={() => handleDeleteNote(notes.id)}
-                                         className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                                         title="Delete"
-                                       >
-                                         ×
-                                       </button>
-                                     </div>
-                                   </div>
-                                 </div>
-                               ))}
-                             </div>
-                   
-                   
-                   
-                   
-                        {showModal && (
-                             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                               {/* Backdrop */}
-                               <div
-                                 className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
-                                 onClick={handleClose}
-                               />
-                   
-                               {/* Modal */}
-                               <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
-                                 {/* Header */}
-                                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                                   <div className="flex items-center gap-3">
-                                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                       <StickyNote className="w-5 h-5 text-blue-600" />
-                                     </div>
-                                     <h2 className="text-xl font-semibold text-gray-900">
-                                       {isEditing ? "Edit Note" : "Add New Note"}
-                                     </h2>
-                                   </div>
-                                   <button
-                                     onClick={handleClose}
-                                     className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                                   >
-                                     <X className="w-5 h-5" />
-                                   </button>
-                                 </div>
-                   
-                                 {/* Form */}
-                                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                                   {/* Note */}
-                                   <div>
-                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                       <Notebook className="w-4 h-4 inline mr-2" />
-                                       Note
-                                     </label>
-                               <textarea
-                     name="note_name"
-                     value={formData.note_name}
-                     onChange={handleChange}
-                     className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
-                     placeholder="Enter note details"
-                     rows={4} // number of visible lines
-                     required
-                   ></textarea>
-                   </div>
-                   
-                         
-                   
-                                   {/* Buttons */}
-                                   <div className="flex justify-end gap-3 pt-4">
-                                     <button
-                                       type="button"
-                                       onClick={handleClose}
-                                       className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                                     >
-                                       Cancel
-                                     </button>
-                                     <button
-                                       type="submit"
-                                       disabled={loading}
-                                       className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-                                     >
-                                       {loading
-                                         ? isEditing
-                                           ? "Updating..."
-                                           : "Saving..."
-                                         : isEditing
-                                         ? "Update Note"
-                                         : "Save Note"}
-                                     </button>
-                                     
-                   
-                                   </div>
-                                 </form>
-                               </div>
-                             </div>
-                           )}
+                            
+                           
+                            </div>
+          
+                            {/* Right Section: Amount + Delete */}
+                            <div className="flex items-center gap-2 sm:gap-4">
+                              <button
+                                              onClick={(e) => {
+                                                e.stopPropagation(); // prevent card onClick
+                                             setSelectedNotesId(notes)
+                                                setFormData({
+                                                  note_name: notes.note_name,
+                                                  plan:notes.plan
+                                                 
+                                                });
+                                                setIsEditing(true);
+                                                setShowModal(true);
+                                              }}
+                                               className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                                title="Edit"  >
+                                               ✎
+                                            </button>
+                              <button
+                                onClick={() => handleDeleteNote(notes.id)}
+                                className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                                title="Delete"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+          
+          
+          
+          
+               {showModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                      {/* Backdrop */}
+                      <div
+                        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+                        onClick={handleClose}
+                      />
+          
+                      {/* Modal */}
+                      <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <StickyNote className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-gray-900">
+                              {isEditing ? "Edit Note" : "Add New Note"}
+                            </h2>
+                          </div>
+                          <button
+                            onClick={handleClose}
+                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+          
+                        {/* Form */}
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                          {/* Note */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <Notebook className="w-4 h-4 inline mr-2" />
+                              Note
+                            </label>
+                      <textarea
+            name="note_name"
+            value={formData.note_name}
+            onChange={handleChange}
+            className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+            placeholder="Enter note details"
+            rows={4} // number of visible lines
+            required
+          ></textarea>
+          </div>
+          
+                
+          
+                          {/* Buttons */}
+                          <div className="flex justify-end gap-3 pt-4">
+                            <button
+                              type="button"
+                              onClick={handleClose}
+                              className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={loading}
+                              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                            >
+                              {loading
+                                ? isEditing
+                                  ? "Updating..."
+                                  : "Saving..."
+                                : isEditing
+                                ? "Update Note"
+                                : "Save Note"}
+                            </button>
+                            
+          
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
+          {/* <div className="space-y-3">
+            {getData.map((order) => (
+              <div
+                key={order.id}
+                className="flex items-center justify-between p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/15 transition-colors"
+              >
+                <div className="flex flex-wrap gap-6 text-white items-center">
+                  <div className="flex items-center gap-1">
+                    <Megaphone className="w-4 h-4 text-yellow-400" />
+                    <span className="font-medium">
+                      {order.service_name} → {order.category_name}
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    🎬 {order.editing_type_name} × {order.quantity}
+                  </div>
+                  <div className="text-xs italic text-white/70">
+                    {order.include_content_posting === "1" &&
+                      "📢 Content Posting"}
+                    {order.include_thumbnail_creation === "1" &&
+                      " 🖼 Thumbnail Creation"}
+                  </div>
+                  <div className="text-xs text-white/50">
+                    🕒 {new Date(order.created_at).toLocaleString("en-IN")}
+                  </div>
+                  <div className="ml-auto text-green-400 font-bold text-lg">
+                    <div className="text-green-400 font-bold text-lg">
+                      ₹{parseFloat(order.total_amount).toLocaleString()}
+                    </div>
+                    <button
+                      onClick={() => handleDelete(order.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold"
+                      title="Delete"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div> */}
+            </div>
+</div>
+  )  :serviceType === "complimentary"  ? (
+  <AdminComplimentaryData />
+) : null}
         </div>
+     
       </div>
+
     </>
   );
 };

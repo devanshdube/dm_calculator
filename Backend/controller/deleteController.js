@@ -213,43 +213,7 @@ exports.deleteGraphicEntryById = async (req, res) => {
     });
   }
 };
-exports.deleteGraphicEntryById = async (req, res) => {
-  const { id } = req.params;
 
-  try {
-    db.query(
-      "DELETE FROM calculator_transactions WHERE id = ?",
-      [id],
-      (err, result) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error while deleting entry",
-            error: err,
-          });
-        }
-
-        if (result.affectedRows === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No Graphic entry found to delete",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          message: "Campaign entry deleted successfully",
-        });
-      }
-    );
-  } catch (error) {
-    res.status(500).json({
-      status: "Failure",
-      message: "Server error",
-      error,
-    });
-  }
-};
 
 exports.deleteClientById = async (req, res) => {
   const { id } = req.params;
@@ -547,6 +511,7 @@ exports.deleteClientAllPlanData = async (req, res) => {
   const deleteCalculatorQuery = "DELETE FROM calculator_transactions WHERE txn_id = ?";
   const deleteAdsCampaignQuery = "DELETE FROM ads_campaign_details WHERE txn_id = ?";
   const deleteNotesClient = "DELETE FROM plan_client_notes WHERE txn_id = ?";
+  const deleteComplimenatry = "DELETE FROM complimentary WHERE txn_id = ?";
 
   db.query(deleteCalculatorQuery, [txn_id], (err1, result1) => {
     if (err1) {
@@ -575,11 +540,21 @@ exports.deleteClientAllPlanData = async (req, res) => {
           });
         }
 
+      db.query(deleteComplimenatry, [txn_id], (err4, result4) => {
+        if (err4) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error deleting from Complimentary",
+            error: err4,
+          });
+        }
+
         const deletedFromCalculator = result1.affectedRows > 0;
         const deletedFromAds = result2.affectedRows > 0;
         const deletedFromNotes = result3.affectedRows > 0;
+        const deletedFromComplimentary = result4.affectedRows > 0;
 
-        if (!deletedFromCalculator && !deletedFromAds && !deletedFromNotes) {
+        if (!deletedFromCalculator && !deletedFromAds && !deletedFromNotes  && !deletedFromComplimentary) {
           return res.status(404).json({
             status: "Failure",
             message: "No transaction found with the given txn_id",
@@ -593,11 +568,13 @@ exports.deleteClientAllPlanData = async (req, res) => {
               deletedFromCalculator ? "calculator_transactions" : null,
               deletedFromAds ? "ads_campaign_details" : null,
               deletedFromNotes ? "plan_client_notes" : null,
+              deletedFromComplimentary ? "complimentary" : null,
             ]
               .filter(Boolean)
               .join(", ")
           } successfully`,
         });
+      });
       });
     });
   });
@@ -694,6 +671,43 @@ exports.deleteTeam = async (req, res) => {
     return res.status(500).json({
       status: "Failure",
       message: "Internal Server Error",
+    });
+  }
+};
+exports.deleteComplimenatryById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    db.query(
+      "DELETE FROM complimentary WHERE id = ?",
+      [id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error while deleting entry",
+            error: err,
+          });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No complimentary entry found to delete",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          message: "complimentary entry deleted successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
     });
   }
 };

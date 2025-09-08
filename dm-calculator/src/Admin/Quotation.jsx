@@ -23,6 +23,7 @@ export default function Quotation() {
   const [serviceData, setServiceData] = useState([]);
   const [graphicData, setGraphicData] = useState([]);
   const [adsData, setAdsData] = useState([]);
+  const [complimentaryData, setComplimentaryData] = useState([]);
   const [notesData, setNotesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clientData, setClientData] = useState([]);
@@ -113,7 +114,39 @@ export default function Quotation() {
       }
     }
   };
+  const fetchComplimentaryData = async () => {
 
+    try {
+      const { data } = await axios.get(
+        `${baseURL}/auth/api/calculator/getByIDComplimentaryData/${txn_id}/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(data.data);
+      setComplimentaryData(data.data);
+    } catch (error) {
+      console.log(error);
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
   const clientName = clientData?.client_name;
   const clientAddress = clientData?.address;
   const clientPhone = clientData?.phone;
@@ -122,6 +155,7 @@ export default function Quotation() {
     fetchServices();
     fetchClient();
     fetchClientNotes();
+    fetchComplimentaryData();
   }, [id, txn_id]);
 
 useEffect(() => {
@@ -172,6 +206,16 @@ const graphicTotal = graphicData.reduce(
     ),
   0
 );
+const complimentaryTotal = complimentaryData.reduce((sum, service) => {
+  // prefer total_amount if available, otherwise editing_type_amount * quantity
+  const amount =
+    service.total_amount !== null && service.total_amount !== undefined
+      ? Number(service.total_amount)
+      : Number(service.editing_type_amount || 0) * Number(service.quantity || 0);
+
+  return sum + amount;
+}, 0);
+
 
 
 
@@ -452,7 +496,91 @@ const adsTotal = adsData.reduce((sum, ad) => {
     </p>
   </section>
 )}
+       {complimentaryData.length > 0 && (
+  <section className="mb-2">
+    <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
+      Complimentary Services
+    </h3>
 
+    {complimentaryData.map((service, idx) => (
+      <div key={idx} className="mb-6">
+  
+
+        <table className="w-full border text-sm">
+          <thead className="bg-indigo-100">
+            <tr>
+              <th className="border px-3 py-2 text-left">Category</th>
+              <th className="border px-3 py-2 text-left">Creative Type</th>
+              <th className="border px-3 py-2 text-right">Quantity</th>
+              <th className="border px-3 py-2 text-right">Price (₹)</th>
+              <th className="border px-3 py-2 text-right">Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {complimentaryData.map((edit, eidx) => {
+              const qty = edit.quantity;
+              const base = edit.editing_type_amount;
+              const thumb = edit.include_thumbnail_creation;
+              const posting = edit.include_content_posting;
+
+              const totalBase = base * qty;
+              const totalThumb = thumb * qty;
+              const totalPost = posting * qty;
+
+              return (
+                <React.Fragment key={eidx}>
+                  {/* Base Editing */}
+                  <tr className="bg-white">
+                    <td className="border px-3 py-2">{edit.category_name}</td>
+                    <td className="border px-3 py-2">{edit.editing_type_name}</td>
+                    <td className="border px-3 py-2 text-right">{qty}</td>
+                    <td className="border px-3 py-2 text-right">₹{base}</td>
+                    <td className="border px-3 py-2 text-right font-semibold">
+                      ₹{totalBase}
+                    </td>
+                  </tr>
+
+                  {/* Thumbnail */}
+                  {thumb > 0 && (
+                    <tr className="bg-gray-50">
+                      <td className="border px-3 py-2">{edit.category_name}</td>
+                      <td className="border px-3 py-2">Thumbnail Creation</td>
+                      <td className="border px-3 py-2 text-right">{qty}</td>
+                      <td className="border px-3 py-2 text-right">₹{thumb}</td>
+                      <td className="border px-3 py-2 text-right font-semibold">
+                        ₹{totalThumb}
+                      </td>
+                    </tr>
+                  )}
+
+                  {/* Content Posting */}
+                  {posting > 0 && (
+                    <tr className="bg-gray-50">
+                      <td className="border px-3 py-2">{edit.category_name}</td>
+                      <td className="border px-3 py-2">Content Posting</td>
+                      <td className="border px-3 py-2 text-right">{qty}</td>
+                      <td className="border px-3 py-2 text-right">₹{posting}</td>
+                      <td className="border px-3 py-2 text-right font-semibold">
+                        ₹{totalPost}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    ))}
+
+    <p className="text-right text-lg font-semibold">
+       Total: ₹{complimentaryTotal.toLocaleString()}
+    </p>
+    <p className="text-right text-lg font-semibold">
+      Complimentary Total: ₹0
+    </p>
+  </section>
+)}
 
                     {/* Grand Total Section */}
                     <section className="text-right border-t pt-3 mb-6">
