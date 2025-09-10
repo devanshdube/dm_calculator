@@ -11,7 +11,7 @@ import img2 from "../assets/Dg 2copy.png";
 import img3 from "../assets/dghead.jpeg";
 
 export default function Quotation() {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const { id, txn_id } = useParams();
   const location = useLocation();
   const query = new URLSearchParams(location.search);
@@ -92,7 +92,7 @@ export default function Quotation() {
         `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${txn_id}`,
         {
           headers: {
-            "Content-Type": "application/json", 
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
@@ -115,7 +115,6 @@ export default function Quotation() {
     }
   };
   const fetchComplimentaryData = async () => {
-
     try {
       const { data } = await axios.get(
         `${baseURL}/auth/api/calculator/getByIDComplimentaryData/${txn_id}/${id}`,
@@ -136,9 +135,9 @@ export default function Quotation() {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -158,75 +157,71 @@ export default function Quotation() {
     fetchComplimentaryData();
   }, [id, txn_id]);
 
-useEffect(() => {
-  if (serviceData.length === 0) return;
+  useEffect(() => {
+    if (serviceData.length === 0) return;
 
-  const graphicRaw = serviceData.filter(
-    (item) => item.service_type === "Graphic Service"
-  );
-  const adsRaw = serviceData.filter(
-    (item) => item.service_type === "Ads Campaign"
-  );
+    const graphicRaw = serviceData.filter(
+      (item) => item.service_type === "Graphic Service"
+    );
+    const adsRaw = serviceData.filter(
+      (item) => item.service_type === "Ads Campaign"
+    );
 
-  const groupedGraphic = [];
+    const groupedGraphic = [];
 
-  graphicRaw.forEach((item) => {
-    // Find service (e.g., Video Services, Video Shoot)
-    let service = groupedGraphic.find((s) => s.service === item.service_name);
-    if (!service) {
-      service = { service: item.service_name, editingTypes: [] };
-      groupedGraphic.push(service);
-    }
+    graphicRaw.forEach((item) => {
+      // Find service (e.g., Video Services, Video Shoot)
+      let service = groupedGraphic.find((s) => s.service === item.service_name);
+      if (!service) {
+        service = { service: item.service_name, editingTypes: [] };
+        groupedGraphic.push(service);
+      }
 
-    // Push editing types directly (attach category info in the row if needed)
-    service.editingTypes.push({
-      category: item.category_name,
-      type: item.editing_type_name || "N/A",
-      quantity: Number(item.quantity) || 1,
-      price: Number(item.editing_type_amount) || 0,
-      include_content_posting: Number(item.include_content_posting) || 0,
-      include_thumbnail_creation: Number(item.include_thumbnail_creation) || 0,
-      total: Number(item.total_amount) || 0,
+      // Push editing types directly (attach category info in the row if needed)
+      service.editingTypes.push({
+        category: item.category_name,
+        type: item.editing_type_name || "N/A",
+        quantity: Number(item.quantity) || 1,
+        price: Number(item.editing_type_amount) || 0,
+        include_content_posting: Number(item.include_content_posting) || 0,
+        include_thumbnail_creation:
+          Number(item.include_thumbnail_creation) || 0,
+        total: Number(item.total_amount) || 0,
+      });
     });
-  });
 
-  setGraphicData(groupedGraphic);
-  setAdsData(adsRaw);
-  setLoading(false);
-}, [serviceData]);
-console.log(graphicData);
+    setGraphicData(groupedGraphic);
+    setAdsData(adsRaw);
+    setLoading(false);
+  }, [serviceData]);
+  console.log(graphicData);
 
-const graphicTotal = graphicData.reduce(
-  (sum, service) =>
-    sum +
-    service.editingTypes.reduce(
-      (editSum, edit) =>
-        editSum + (edit.total || edit.price * edit.quantity),
-      0
-    ),
-  0
-);
-const complimentaryTotal = complimentaryData.reduce((sum, service) => {
-  // prefer total_amount if available, otherwise editing_type_amount * quantity
-  const amount =
-    service.total_amount !== null && service.total_amount !== undefined
-      ? Number(service.total_amount)
-      : Number(service.editing_type_amount || 0) * Number(service.quantity || 0);
+  const graphicTotal = graphicData.reduce(
+    (sum, service) =>
+      sum +
+      service.editingTypes.reduce(
+        (editSum, edit) => editSum + (edit.total || edit.price * edit.quantity),
+        0
+      ),
+    0
+  );
+  const complimentaryTotal = complimentaryData.reduce((sum, service) => {
+    // prefer total_amount if available, otherwise editing_type_amount * quantity
+    const amount =
+      service.total_amount !== null && service.total_amount !== undefined
+        ? Number(service.total_amount)
+        : Number(service.editing_type_amount || 0) *
+          Number(service.quantity || 0);
 
-  return sum + amount;
-}, 0);
+    return sum + amount;
+  }, 0);
 
-
-
-
-
-
-const adsTotal = adsData.reduce((sum, ad) => {
-  const amount = Number(ad.amount || 0);
-  const totalBudget = Number(ad.total_amount || 0);
-  const gstTotal = (amount * 18) / 100;
-  return sum + totalBudget + gstTotal;
-}, 0);
+  const adsTotal = adsData.reduce((sum, ad) => {
+    const amount = Number(ad.amount || 0);
+    const totalBudget = Number(ad.total_amount || 0);
+    const gstTotal = (amount * 18) / 100;
+    return sum + totalBudget + gstTotal;
+  }, 0);
   const grandTotal = graphicTotal + adsTotal;
 
   if (loading) {
@@ -237,18 +232,15 @@ const adsTotal = adsData.reduce((sum, ad) => {
     );
   }
 
-   const handlePrintPage = () => {
-    
-
+  const handlePrintPage = () => {
     document.title = `Quotation of ${clientName}`;
     window.print();
-  
   };
   return (
     <Wrapper>
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
         {/* Hidden on print - Action Buttons */}
-        
+
         <div className="print:hidden flex justify-end gap-3 my-4">
           <button
             onClick={handlePrintPage}
@@ -336,251 +328,343 @@ const adsTotal = adsData.reduce((sum, ad) => {
                     </div>
 
                     {/* Graphic Services */}
-                 {graphicData.length > 0 && (
-  <section className="mb-2">
-    <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
-      Graphic Services
-    </h3>
+                    {graphicData.length > 0 && (
+                      <section className="mb-2">
+                        <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
+                          Graphic Services
+                        </h3>
 
-    {graphicData.map((service, idx) => (
-      <div key={idx} className="mb-6">
-        <h4 className="font-semibold text-lg mb-2">{service.service}</h4>
+                        {graphicData.map((service, idx) => (
+                          <div key={idx} className="mb-6">
+                            <h4 className="font-semibold text-lg mb-2">
+                              {service.service}
+                            </h4>
 
-        <table className="w-full border text-sm">
-          <thead className="bg-indigo-100">
-            <tr>
-              <th className="border px-3 py-2 text-left">Category</th>
-              <th className="border px-3 py-2 text-left">Creative Type</th>
-              <th className="border px-3 py-2 text-right">Quantity</th>
-              <th className="border px-3 py-2 text-right">Price (₹)</th>
-              <th className="border px-3 py-2 text-right">Total (₹)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {service.editingTypes.map((edit, eidx) => {
-              const qty = edit.quantity;
-              const base = edit.price;
-              const thumb = edit.include_thumbnail_creation;
-              const posting = edit.include_content_posting;
+                            <table className="w-full border text-sm">
+                              <thead className="bg-indigo-100">
+                                <tr>
+                                  <th className="border px-3 py-2 text-left">
+                                    Category
+                                  </th>
+                                  <th className="border px-3 py-2 text-left">
+                                    Creative Type
+                                  </th>
+                                  <th className="border px-3 py-2 text-right">
+                                    Quantity
+                                  </th>
+                                  <th className="border px-3 py-2 text-right">
+                                    Price (₹)
+                                  </th>
+                                  <th className="border px-3 py-2 text-right">
+                                    Total (₹)
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {service.editingTypes.map((edit, eidx) => {
+                                  const qty = edit.quantity;
+                                  const base = edit.price;
+                                  const thumb = edit.include_thumbnail_creation;
+                                  const posting = edit.include_content_posting;
 
-              const totalBase = base * qty;
-              const totalThumb = thumb * qty;
-              const totalPost = posting * qty;
+                                  const totalBase = base * qty;
+                                  const totalThumb = thumb * qty;
+                                  const totalPost = posting * qty;
 
-              return (
-                <React.Fragment key={eidx}>
-                  {/* Base Editing */}
-                  <tr className="bg-white">
-                    <td className="border px-3 py-2">{edit.category}</td>
-                    <td className="border px-3 py-2">{edit.type}</td>
-                    <td className="border px-3 py-2 text-right">{qty}</td>
-                    <td className="border px-3 py-2 text-right">₹{base}</td>
-                    <td className="border px-3 py-2 text-right font-semibold">
-                      ₹{totalBase}
-                    </td>
-                  </tr>
+                                  return (
+                                    <React.Fragment key={eidx}>
+                                      {/* Base Editing */}
+                                      <tr className="bg-white">
+                                        <td className="border px-3 py-2">
+                                          {edit.category}
+                                        </td>
+                                        <td className="border px-3 py-2">
+                                          {edit.type}
+                                        </td>
+                                        <td className="border px-3 py-2 text-right">
+                                          {qty}
+                                        </td>
+                                        <td className="border px-3 py-2 text-right">
+                                          ₹{base}
+                                        </td>
+                                        <td className="border px-3 py-2 text-right font-semibold">
+                                          ₹{totalBase}
+                                        </td>
+                                      </tr>
 
-                  {/* Thumbnail */}
-                  {thumb > 0 && (
-                    <tr className="bg-gray-50">
-                      <td className="border px-3 py-2">{edit.category}</td>
-                      <td className="border px-3 py-2">Thumbnail Creation</td>
-                      <td className="border px-3 py-2 text-right">{qty}</td>
-                      <td className="border px-3 py-2 text-right">₹{thumb}</td>
-                      <td className="border px-3 py-2 text-right font-semibold">
-                        ₹{totalThumb}
-                      </td>
-                    </tr>
-                  )}
+                                      {/* Thumbnail */}
+                                      {thumb > 0 && (
+                                        <tr className="bg-gray-50">
+                                          <td className="border px-3 py-2">
+                                            {edit.category}
+                                          </td>
+                                          <td className="border px-3 py-2">
+                                            Thumbnail Creation
+                                          </td>
+                                          <td className="border px-3 py-2 text-right">
+                                            {qty}
+                                          </td>
+                                          <td className="border px-3 py-2 text-right">
+                                            ₹{thumb}
+                                          </td>
+                                          <td className="border px-3 py-2 text-right font-semibold">
+                                            ₹{totalThumb}
+                                          </td>
+                                        </tr>
+                                      )}
 
-                  {/* Content Posting */}
-                  {posting > 0 && (
-                    <tr className="bg-gray-50">
-                      <td className="border px-3 py-2">{edit.category}</td>
-                      <td className="border px-3 py-2">Content Posting</td>
-                      <td className="border px-3 py-2 text-right">{qty}</td>
-                      <td className="border px-3 py-2 text-right">₹{posting}</td>
-                      <td className="border px-3 py-2 text-right font-semibold">
-                        ₹{totalPost}
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    ))}
+                                      {/* Content Posting */}
+                                      {posting > 0 && (
+                                        <tr className="bg-gray-50">
+                                          <td className="border px-3 py-2">
+                                            {edit.category}
+                                          </td>
+                                          <td className="border px-3 py-2">
+                                            Content Posting
+                                          </td>
+                                          <td className="border px-3 py-2 text-right">
+                                            {qty}
+                                          </td>
+                                          <td className="border px-3 py-2 text-right">
+                                            ₹{posting}
+                                          </td>
+                                          <td className="border px-3 py-2 text-right font-semibold">
+                                            ₹{totalPost}
+                                          </td>
+                                        </tr>
+                                      )}
+                                    </React.Fragment>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        ))}
 
-    <p className="text-right text-lg font-semibold">
-      Graphic Total: ₹{graphicTotal.toLocaleString()}
-    </p>
-  </section>
-)}
+                        <p className="text-right text-lg font-semibold">
+                          Graphic Total: ₹{graphicTotal.toLocaleString()}
+                        </p>
+                      </section>
+                    )}
 
                     {/* Ads Services */}
-               {/* Ads Services */}
-{adsData.length > 0 && (
-  <section className="mb-5">
-    <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">
-      Ads Services
-    </h3>
-    <table className="w-full border text-sm">
-      <thead className="bg-indigo-100">
-        <tr>
-          <th className="border px-3 py-2 text-left">Service</th>
-          <th className="border px-3 py-2 text-right">Amount (₹)</th>
-          <th className="border px-3 py-2 text-right">Percentage (%)</th>
-         
-          <th className="border px-3 py-2 text-right">Final Total (₹)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {adsData.map((ad, idx) => {
-          const amount = Number(ad.amount || 0);
-          const percent = Number(ad.percent || 0);
-          const charge = Number(ad.charge || 0);
-          const totalBudget = Number(ad.charge || 0);
+                    {/* Ads Services */}
+                    {adsData.length > 0 && (
+                      <section className="mb-5">
+                        <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">
+                          Ads Services
+                        </h3>
+                        <table className="w-full border text-sm">
+                          <thead className="bg-indigo-100">
+                            <tr>
+                              <th className="border px-3 py-2 text-left">
+                                Service
+                              </th>
+                              <th className="border px-3 py-2 text-right">
+                                Amount (₹)
+                              </th>
+                              <th className="border px-3 py-2 text-right">
+                                Percentage (%)
+                              </th>
 
-          // Static 18% GST row
-            const gstPercent = 18;
-          const gstCharge = (amount * gstPercent) / 100;
-          const gstTotal = amount + gstCharge;
+                              <th className="border px-3 py-2 text-right">
+                                Final Total (₹)
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {adsData.map((ad, idx) => {
+                              const amount = Number(ad.amount || 0);
+                              const percent = Number(ad.percent || 0);
+                              const charge = Number(ad.charge || 0);
+                              const totalBudget = Number(ad.charge || 0);
 
-          return (
-            <React.Fragment key={idx}>
-              {/* Row 1 - dynamic Ad Budget */}
+                              // Static 18% GST row
+                              const gstPercent = 18;
+                              const gstCharge = (amount * gstPercent) / 100;
+                              const gstTotal = amount + gstCharge;
 
-              <tr className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                <td className="border px-3 py-2">{ad.category_name} Budget (GST)</td>
-                <td className="border px-3 py-2 text-right">
-                  {amount.toLocaleString()}
-                </td>
-                <td className="border px-3 py-2 text-right">{gstPercent}</td>
-               
-                <td className="border px-3 py-2 text-right font-semibold">
-                  {gstTotal.toLocaleString()}
-                </td>
-              </tr>
+                              return (
+                                <React.Fragment key={idx}>
+                                  {/* Row 1 - dynamic Ad Budget */}
 
-              {/* Row 2 - static Ads Charges (18%) */}
-              <tr className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                <td className="border px-3 py-2">{ad.category_name} Charges </td>
-                <td className="border px-3 py-2 text-right">
-                  {amount.toLocaleString()}
-                </td>
-                <td className="border px-3 py-2 text-right">{percent}</td>
-           
-                <td className="border px-3 py-2 text-right font-semibold">
-                  {totalBudget.toLocaleString()}
-                </td>
-              </tr>
-            </React.Fragment>
-          );
-        })}
-      </tbody>
-    </table>
+                                  <tr
+                                    className={
+                                      idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                                    }
+                                  >
+                                    <td className="border px-3 py-2">
+                                      {ad.category_name} Budget (GST)
+                                    </td>
+                                    <td className="border px-3 py-2 text-right">
+                                      {amount.toLocaleString()}
+                                    </td>
+                                    <td className="border px-3 py-2 text-right">
+                                      {gstPercent}
+                                    </td>
 
-    {/* Ads Total = budget total + gst total */}
-    <p className="text-right text-lg font-semibold mt-1">
-      Ads Total: ₹
-      {adsData
-        .reduce((sum, ad) => {
-          const amount = Number(ad.amount || 0);
-          const totalBudget = Number(ad.total_amount || 0);
-          const gstTotal = (amount * 18) / 100;
-          return sum + totalBudget + gstTotal;
-        }, 0)
-        .toLocaleString()}
-    </p>
-  </section>
-)}
-       {complimentaryData.length > 0 && (
-  <section className="mb-2">
-    <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
-      Complimentary Services
-    </h3>
+                                    <td className="border px-3 py-2 text-right font-semibold">
+                                      {gstTotal.toLocaleString()}
+                                    </td>
+                                  </tr>
 
-    {complimentaryData.map((service, idx) => (
-      <div key={idx} className="mb-6">
-  
+                                  {/* Row 2 - static Ads Charges (18%) */}
+                                  <tr
+                                    className={
+                                      idx % 2 === 0 ? "bg-gray-50" : "bg-white"
+                                    }
+                                  >
+                                    <td className="border px-3 py-2">
+                                      {ad.category_name} Charges{" "}
+                                    </td>
+                                    <td className="border px-3 py-2 text-right">
+                                      {amount.toLocaleString()}
+                                    </td>
+                                    <td className="border px-3 py-2 text-right">
+                                      {percent}
+                                    </td>
 
-        <table className="w-full border text-sm">
-          <thead className="bg-indigo-100">
-            <tr>
-              <th className="border px-3 py-2 text-left">Category</th>
-              <th className="border px-3 py-2 text-left">Creative Type</th>
-              <th className="border px-3 py-2 text-right">Quantity</th>
-              <th className="border px-3 py-2 text-right">Price (₹)</th>
-              <th className="border px-3 py-2 text-right">Total (₹)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {complimentaryData.map((edit, eidx) => {
-              const qty = edit.quantity;
-              const base = edit.editing_type_amount;
-              const thumb = edit.include_thumbnail_creation;
-              const posting = edit.include_content_posting;
+                                    <td className="border px-3 py-2 text-right font-semibold">
+                                      {totalBudget.toLocaleString()}
+                                    </td>
+                                  </tr>
+                                </React.Fragment>
+                              );
+                            })}
+                          </tbody>
+                        </table>
 
-              const totalBase = base * qty;
-              const totalThumb = thumb * qty;
-              const totalPost = posting * qty;
+                        {/* Ads Total = budget total + gst total */}
+                        <p className="text-right text-lg font-semibold mt-1">
+                          Ads Total: ₹
+                          {adsData
+                            .reduce((sum, ad) => {
+                              const amount = Number(ad.amount || 0);
+                              const totalBudget = Number(ad.total_amount || 0);
+                              const gstTotal = (amount * 18) / 100;
+                              return sum + totalBudget + gstTotal;
+                            }, 0)
+                            .toLocaleString()}
+                        </p>
+                      </section>
+                    )}
+                    {complimentaryData.length > 0 && (
+                      <section className="mb-2">
+                        <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
+                          Complimentary Services
+                        </h3>
 
-              return (
-                <React.Fragment key={eidx}>
-                  {/* Base Editing */}
-                  <tr className="bg-white">
-                    <td className="border px-3 py-2">{edit.category_name}</td>
-                    <td className="border px-3 py-2">{edit.editing_type_name}</td>
-                    <td className="border px-3 py-2 text-right">{qty}</td>
-                    <td className="border px-3 py-2 text-right">₹{base}</td>
-                    <td className="border px-3 py-2 text-right font-semibold">
-                      ₹{totalBase}
-                    </td>
-                  </tr>
+                        {complimentaryData.map((service, idx) => (
+                          <div key={idx} className="mb-6">
+                            <table className="w-full border text-sm">
+                              <thead className="bg-indigo-100">
+                                <tr>
+                                  <th className="border px-3 py-2 text-left">
+                                    Category
+                                  </th>
+                                  <th className="border px-3 py-2 text-left">
+                                    Creative Type
+                                  </th>
+                                  <th className="border px-3 py-2 text-right">
+                                    Quantity
+                                  </th>
+                                  <th className="border px-3 py-2 text-right">
+                                    Price (₹)
+                                  </th>
+                                  <th className="border px-3 py-2 text-right">
+                                    Total (₹)
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {complimentaryData.map((edit, eidx) => {
+                                  const qty = edit.quantity;
+                                  const base = edit.editing_type_amount;
+                                  const thumb = edit.include_thumbnail_creation;
+                                  const posting = edit.include_content_posting;
 
-                  {/* Thumbnail */}
-                  {thumb > 0 && (
-                    <tr className="bg-gray-50">
-                      <td className="border px-3 py-2">{edit.category_name}</td>
-                      <td className="border px-3 py-2">Thumbnail Creation</td>
-                      <td className="border px-3 py-2 text-right">{qty}</td>
-                      <td className="border px-3 py-2 text-right">₹{thumb}</td>
-                      <td className="border px-3 py-2 text-right font-semibold">
-                        ₹{totalThumb}
-                      </td>
-                    </tr>
-                  )}
+                                  const totalBase = base * qty;
+                                  const totalThumb = thumb * qty;
+                                  const totalPost = posting * qty;
 
-                  {/* Content Posting */}
-                  {posting > 0 && (
-                    <tr className="bg-gray-50">
-                      <td className="border px-3 py-2">{edit.category_name}</td>
-                      <td className="border px-3 py-2">Content Posting</td>
-                      <td className="border px-3 py-2 text-right">{qty}</td>
-                      <td className="border px-3 py-2 text-right">₹{posting}</td>
-                      <td className="border px-3 py-2 text-right font-semibold">
-                        ₹{totalPost}
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    ))}
+                                  return (
+                                    <React.Fragment key={eidx}>
+                                      {/* Base Editing */}
+                                      <tr className="bg-white">
+                                        <td className="border px-3 py-2">
+                                          {edit.category_name}
+                                        </td>
+                                        <td className="border px-3 py-2">
+                                          {edit.editing_type_name}
+                                        </td>
+                                        <td className="border px-3 py-2 text-right">
+                                          {qty}
+                                        </td>
+                                        <td className="border px-3 py-2 text-right">
+                                          ₹{base}
+                                        </td>
+                                        <td className="border px-3 py-2 text-right font-semibold">
+                                          ₹{totalBase}
+                                        </td>
+                                      </tr>
 
-    <p className="text-right text-lg font-semibold">
-       Total: ₹{complimentaryTotal.toLocaleString()}
-    </p>
-    <p className="text-right text-lg font-semibold">
-      Complimentary Total: ₹0
-    </p>
-  </section>
-)}
+                                      {/* Thumbnail */}
+                                      {thumb > 0 && (
+                                        <tr className="bg-gray-50">
+                                          <td className="border px-3 py-2">
+                                            {edit.category_name}
+                                          </td>
+                                          <td className="border px-3 py-2">
+                                            Thumbnail Creation
+                                          </td>
+                                          <td className="border px-3 py-2 text-right">
+                                            {qty}
+                                          </td>
+                                          <td className="border px-3 py-2 text-right">
+                                            ₹{thumb}
+                                          </td>
+                                          <td className="border px-3 py-2 text-right font-semibold">
+                                            ₹{totalThumb}
+                                          </td>
+                                        </tr>
+                                      )}
+
+                                      {/* Content Posting */}
+                                      {posting > 0 && (
+                                        <tr className="bg-gray-50">
+                                          <td className="border px-3 py-2">
+                                            {edit.category_name}
+                                          </td>
+                                          <td className="border px-3 py-2">
+                                            Content Posting
+                                          </td>
+                                          <td className="border px-3 py-2 text-right">
+                                            {qty}
+                                          </td>
+                                          <td className="border px-3 py-2 text-right">
+                                            ₹{posting}
+                                          </td>
+                                          <td className="border px-3 py-2 text-right font-semibold">
+                                            ₹{totalPost}
+                                          </td>
+                                        </tr>
+                                      )}
+                                    </React.Fragment>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        ))}
+
+                        <p className="text-right text-lg font-semibold">
+                          Total: ₹{complimentaryTotal.toLocaleString()}
+                        </p>
+                        <p className="text-right text-lg font-semibold">
+                          Complimentary Total: ₹0
+                        </p>
+                      </section>
+                    )}
 
                     {/* Grand Total Section */}
                     <section className="text-right border-t pt-3 mb-6">

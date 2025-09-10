@@ -54,6 +54,7 @@ const AdminRouter = () => {
               path="complimentary/:id/:proposalId"
               element={<AdminComplimentaryData />}
             />
+            <Route path="/review/:linkId" element={<ReviewRequirements />} />
           </Routes>
         </Suspense>
       </Wrapper>

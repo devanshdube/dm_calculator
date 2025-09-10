@@ -178,6 +178,16 @@ const AdminClientDetails = () => {
       setLoading(false);
     }
   };
+
+  const isFkConstraintError = (payload) => {
+    const code = payload?.code || payload?.error?.code;
+    const errno = payload?.errno || payload?.error?.errno;
+    const st = payload?.sqlState || payload?.error?.sqlState;
+    return (
+      code === "ER_ROW_IS_REFERENCED_2" || errno === 1451 || st === "23000"
+    );
+  };
+
   const handleDeleteClient = async (clientId) => {
     const confirm = await Swal.fire({
       title: "Are you sure?",
@@ -210,14 +220,36 @@ const AdminClientDetails = () => {
 
         // Refresh client list
         getAllClients();
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Failed!",
-          text: response.data.message || "Unable to delete client.",
+      }
+      // else {
+      //   Swal.fire({
+      //     icon: "error",
+      //     title: "Failed!",
+      //     text: response.data.message || "Unable to delete client.",
+      //   });
+      // }
+      const data = response?.data || {};
+      if (isFkConstraintError(data)) {
+        return Swal.fire({
+          icon: "info",
+          title: "Cannot Delete",
+          text: "This entry cannot be deleted because it is referenced by other data. Like (Link or Assign)",
         });
       }
+      return Swal.fire({
+        icon: "error",
+        title: "Failed!",
+        text: data?.message || "Unable to delete client.",
+      });
     } catch (error) {
+      const data = error?.response?.data;
+      if (isFkConstraintError(data)) {
+        return Swal.fire({
+          icon: "info",
+          title: "Cannot Delete",
+          text: "This entry cannot be deleted because it is referenced by other data. Like (Link or Assign)",
+        });
+      }
       console.error("Error deleting client:", error);
       Swal.fire({
         icon: "error",

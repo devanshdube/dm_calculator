@@ -90,6 +90,7 @@ const {
   removeMemberFromTeam,
   deleteTeam,
   deleteComplimenatryById,
+  deleteRequirementsBundle,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -99,8 +100,9 @@ const {
   updateClientDetails,
   updatePlandata,
   updatePlanNameDetail,
-  updatePlanNotes,updateServiceData,
-  updateComplimenatryDataById
+  updatePlanNotes,
+  updateServiceData,
+  updateComplimenatryDataById,
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -140,7 +142,6 @@ router.post("/saveComplimentaryData", saveComplimentaryData);
 
 router.post("/generateClientLink", generateClientLink);
 router.post("/submitRequirement", submitRequirement);
-
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -256,6 +257,8 @@ router.delete(
 router.delete("/deleteTeam/:id", deleteTeam);
 
 router.delete("/deleteComplimenatryById/:id", deleteComplimenatryById);
+
+router.delete("/deleteRequirementsBundle/:linkId", deleteRequirementsBundle);
 
 // ---->  DELETE all routes END <----
 

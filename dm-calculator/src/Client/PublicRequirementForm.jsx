@@ -3,6 +3,8 @@ import React, { useMemo, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const baseURL = `https://dmcalculator.dentalguru.software`;
 
@@ -173,6 +175,7 @@ export default function PublicRequirementForm() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+  const [lastPdfData, setLastPdfData] = useState(null);
 
   // ---- helpers ----
   const handleChange = (e) => {
@@ -276,6 +279,276 @@ export default function PublicRequirementForm() {
     return true;
   }, [form, hasAtLeastOneItem]);
 
+  // ---------- PDF helpers ----------
+
+  // fits 6 columns in A4 portrait cleanly
+  const generatePDF = ({
+    slug,
+    form,
+    selectedItems,
+    feesTotal,
+    grandTotal,
+  }) => {
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const MARGIN = 20; // tighter margins => more table width (595 - 40 = 555)
+    const lineY = 26;
+
+    // header
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(16);
+    doc.text("Requirement Submission", MARGIN, 40);
+
+    doc.setFontSize(10);
+    const now = new Date();
+    doc.text(
+      `Ref: ${slug} | Date: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
+      MARGIN,
+      40 + lineY
+    );
+
+    // client block
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    const yBase = 40 + lineY * 2;
+    const info = [
+      `Name: ${form.name || "-"}`,
+      `Phone: ${form.phone || "-"}`,
+      `Email: ${form.email || "-"}`,
+    ];
+    info.forEach((t, i) => doc.text(t, MARGIN, yBase + i * 16));
+
+    let afterY = yBase + 50;
+    if (form.requirement) {
+      const reqLines = doc.splitTextToSize(
+        `Additional Requirements: ${form.requirement}`,
+        555 - 2 * 0 // same inner width as table; tweak if you like
+      );
+      doc.text(reqLines, MARGIN, yBase + 60);
+      afterY = yBase + 60 + reqLines.length * 12 + 10;
+    }
+
+    // table
+    if (selectedItems.length > 0) {
+      const MONEY_PREFIX = "INR ";
+      const formatMoney = (n) =>
+        `${MONEY_PREFIX}${Number(n || 0).toLocaleString("en-IN")}`;
+      const percentStr = (r) => `${Math.round((r || 0) * 100)}%`;
+
+      const head = [
+        ["Category", "Sub Category", "Qty", "Rate", "Fee", "Total"],
+      ];
+      const body = selectedItems.map((it) => {
+        if (it.type === "percent") {
+          const fee = Math.round((it.qty || 0) * (it.rate || 0));
+          const total = (it.qty || 0) + fee;
+          return [
+            it.category,
+            it.name,
+            Number(it.qty || 0).toLocaleString("en-IN"), // budget
+            percentStr(it.rate),
+            formatMoney(fee),
+            formatMoney(total),
+          ];
+        } else {
+          const line = (it.qty || 0) * (it.price || 0);
+          return [
+            it.category,
+            it.name,
+            String(it.qty || 0),
+            formatMoney(it.price || 0),
+            formatMoney(line),
+            formatMoney(line),
+          ];
+        }
+      });
+
+      autoTable(doc, {
+        head,
+        body,
+        startY: afterY,
+        theme: "grid",
+        margin: { left: MARGIN, right: MARGIN }, // inner width = 595 - 40 = 555
+        styles: {
+          font: "helvetica",
+          fontSize: 9,
+          cellPadding: 6,
+          lineWidth: 0.4,
+          lineColor: [220, 220, 220],
+          overflow: "linebreak",
+          valign: "middle",
+        },
+        headStyles: { fillColor: [33, 150, 243], textColor: 255 },
+        // Column widths sum to ~555 (fits perfectly)
+        columnStyles: {
+          0: { cellWidth: 80 }, // Category
+          1: { cellWidth: 210 }, // Sub Category (long text)
+          2: { cellWidth: 55, halign: "right" }, // Qty/Budget
+          3: { cellWidth: 55, halign: "right" }, // Rate/Unit
+          4: { cellWidth: 75, halign: "right" }, // Fee
+          5: { cellWidth: 80, halign: "right" }, // Total
+        },
+      });
+
+      afterY = (doc.lastAutoTable?.finalY || afterY) + 16;
+    } else {
+      doc.setFontSize(10);
+      doc.text("No specific line items selected.", MARGIN, afterY);
+      afterY += 16;
+    }
+
+    // totals
+    const MONEY_PREFIX = "INR ";
+    const fmt = (n) =>
+      `${MONEY_PREFIX}${Number(n || 0).toLocaleString("en-IN")}`;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text(`Fees Subtotal: ${fmt(feesTotal)}`, MARGIN, afterY);
+    doc.setFont("helvetica", "bold");
+    doc.text(
+      `Grand Total (incl. ad budgets): ${fmt(grandTotal)}`,
+      MARGIN,
+      afterY + 18
+    );
+
+    // footer
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(
+      "Note: This PDF is auto-generated from DM Calculator. Prices are indicative; taxes extra where applicable.",
+      MARGIN,
+      820
+    );
+
+    const safeName = (form.name || "Client").replace(/[^\w\-]+/g, "_");
+    doc.save(`Requirement_${safeName}_${slug}.pdf`);
+  };
+
+  // const formatINR = (n) =>
+  //   `₹ ${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(
+  //     Math.round(n || 0)
+  //   )}`;
+
+  // const pct = (r) => `${Math.round((r || 0) * 100)}%`;
+
+  // const generatePDF = ({
+  //   slug,
+  //   form,
+  //   selectedItems,
+  //   feesTotal,
+  //   grandTotal,
+  // }) => {
+  //   const doc = new jsPDF({ unit: "pt", format: "a4" });
+  //   const marginX = 40;
+  //   const lineY = 26;
+
+  //   // Header
+  //   doc.setFontSize(16);
+  //   doc.text("Requirement Submission", marginX, 40);
+  //   doc.setFontSize(10);
+  //   const now = new Date();
+  //   doc.text(
+  //     `Ref: ${slug} | Date: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
+  //     marginX,
+  //     40 + lineY
+  //   );
+
+  //   // Client block
+  //   doc.setFontSize(11);
+  //   const yBase = 40 + lineY * 2;
+  //   const info = [
+  //     `Name: ${form.name || "-"}`,
+  //     `Phone: ${form.phone || "-"}`,
+  //     `Email: ${form.email || "-"}`,
+  //   ];
+  //   info.forEach((t, i) => doc.text(t, marginX, yBase + i * 16));
+
+  //   if (form.requirement) {
+  //     const reqLines = doc.splitTextToSize(
+  //       `Additional Requirements: ${form.requirement}`,
+  //       515
+  //     );
+  //     doc.text(reqLines, marginX, yBase + 60);
+  //   }
+
+  //   // Table when there are line items
+  //   let afterTableY = yBase + (form.requirement ? 80 : 50);
+  //   if (selectedItems.length > 0) {
+  //     const head = [
+  //       ["Category", "Sub Category", "Qty/Budget", "Rate/Unit", "Fee", "Gross"],
+  //     ];
+  //     const body = selectedItems.map((it) => {
+  //       if (it.type === "percent") {
+  //         const fee = feeOf(it);
+  //         const gross = (it.qty || 0) + fee;
+  //         return [
+  //           it.category,
+  //           it.name,
+  //           formatINR(it.qty || 0),
+  //           pct(it.rate),
+  //           formatINR(fee),
+  //           formatINR(gross),
+  //         ];
+  //       } else {
+  //         const line = feeOf(it);
+  //         return [
+  //           it.category,
+  //           it.name,
+  //           String(it.qty || 0),
+  //           formatINR(it.price || 0),
+  //           formatINR(line),
+  //           formatINR(line),
+  //         ];
+  //       }
+  //     });
+
+  //     autoTable(doc, {
+  //       head,
+  //       body,
+  //       startY: afterTableY,
+  //       styles: { fontSize: 9, cellPadding: 6 },
+  //       headStyles: { fillColor: [33, 150, 243] },
+  //       columnStyles: {
+  //         2: { halign: "right" },
+  //         3: { halign: "right" },
+  //         4: { halign: "right" },
+  //         5: { halign: "right" },
+  //       },
+  //     });
+
+  //     afterTableY = (doc.lastAutoTable?.finalY || afterTableY) + 16;
+  //   } else {
+  //     // No selected items – show a small note
+  //     doc.setFontSize(10);
+  //     doc.text("No specific line items selected.", marginX, afterTableY);
+  //     afterTableY += 16;
+  //   }
+
+  //   // Totals
+  //   doc.setFontSize(11);
+  //   doc.text(`Fees Subtotal: ${formatINR(feesTotal)}`, marginX, afterTableY);
+  //   doc.setFont(undefined, "bold");
+  //   doc.text(
+  //     `Grand Total (incl. ad budgets): ${formatINR(grandTotal)}`,
+  //     marginX,
+  //     afterTableY + 18
+  //   );
+  //   doc.setFont(undefined, "normal");
+
+  //   // Footer
+  //   const footerY = 820;
+  //   doc.setFontSize(9);
+  //   doc.text(
+  //     "Note: This PDF is auto-generated from DM Calculator. Prices are indicative; taxes extra where applicable.",
+  //     marginX,
+  //     footerY
+  //   );
+
+  //   const safeName = (form.name || "Client").replace(/[^\w\-]+/g, "_");
+  //   const fileName = `Requirement_${safeName}_${slug}.pdf`;
+  //   doc.save(fileName);
+  // };
+
   // ---- submit (JSON) ----
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -312,6 +585,15 @@ export default function PublicRequirementForm() {
       );
 
       if (resp?.data?.status === "Success") {
+        const snapshot = {
+          slug,
+          form: { ...form },
+          selectedItems: selectedItems.map((i) => ({ ...i })),
+          feesTotal,
+          grandTotal,
+        };
+        setLastPdfData(snapshot);
+        generatePDF(snapshot);
         setDone(true);
       } else {
         setError(resp?.data?.message || "Submission failed. Please try again.");
@@ -337,6 +619,14 @@ export default function PublicRequirementForm() {
             Your requirements have been submitted successfully. Our team will
             reach out shortly.
           </p>
+          <div className="mt-6">
+            <button
+              onClick={() => lastPdfData && generatePDF(lastPdfData)}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Download PDF again
+            </button>
+          </div>
         </div>
       </div>
     );

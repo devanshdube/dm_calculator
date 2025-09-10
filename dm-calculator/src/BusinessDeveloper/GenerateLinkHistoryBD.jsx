@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Calendar, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import moment from "moment";
+// import moment from "moment";
 import styled from "styled-components";
 import ReactPaginate from "react-paginate";
 
@@ -82,9 +82,9 @@ const GenerateLinkHistoryBD = () => {
                   <th className="text-left py-4 px-6 text-gray-200 uppercase text-sm">
                     Index
                   </th>
-                  <th className="text-left py-4 px-6 text-gray-200 uppercase text-sm">
+                  {/* <th className="text-left py-4 px-6 text-gray-200 uppercase text-sm">
                     Date
-                  </th>
+                  </th> */}
                   <th className="text-left py-4 px-6 text-gray-200 uppercase text-sm">
                     Client
                   </th>
@@ -112,10 +112,10 @@ const GenerateLinkHistoryBD = () => {
                       <td className="py-5 px-6 text-white font-semibold">
                         {offset + index + 1}
                       </td>
-                      <td className="py-5 px-6 flex items-center gap-2 text-gray-300">
+                      {/* <td className="py-5 px-6 flex items-center gap-2 text-gray-300">
                         <Calendar className="w-4 h-4 text-purple-400" />
                         {moment(item.created_at).format("DD/MM/YYYY")}
-                      </td>
+                      </td> */}
                       <td className="py-5 px-6 text-white font-medium">
                         {item.client_name}
                       </td>
