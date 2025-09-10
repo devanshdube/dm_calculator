@@ -301,6 +301,9 @@ const ClientDetails = () => {
         icon: "error",
         title: "Error",
         text: "Failed to fetch clients. Please try again.",
+               showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
       });
       if (error.response && error.response.status === 401) {
         // Token is invalid or expired

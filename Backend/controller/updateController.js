@@ -614,6 +614,73 @@ exports.updateComplimenatryDataById = (req, res) => {
       .json({ status: "Success", message: "Entry updated successfully" });
   });
 };
+exports.updateNoteDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+    note_text
+  } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE notes_data
+    SET
+      note_text = ?,
+      created_at = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+  note_text,
+    updatedAt,
+    id,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry updated of Note successfully" });
+  });
+};
+
+exports.updateClientNoteDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+    note_name
+  } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE plan_client_notes
+    SET
+      note_name = ?,
+      created_at = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+  note_name,
+    updatedAt,
+    id,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry updated of Client Note successfully" });
+  });
+};
 
 // working code
 

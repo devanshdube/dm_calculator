@@ -54,7 +54,7 @@ const AdminCalculator = () => {
   const navigate = useNavigate();
   console.log(id, proposalId);
   const [editId, setEditId] = useState(null);
-     const [allPlanNote, setAllPlanNote] = useState([]);
+     const [allClientNote, setAllClientNote] = useState([]);
      const [formData, setFormData] = useState({
     note_name: "",
     plan: "Customise",
@@ -63,6 +63,10 @@ const AdminCalculator = () => {
     const [selectedNotesId, setSelectedNotesId] = useState(null);
        const [showModal, setShowModal] = useState(false);
  const [isEditing, setIsEditing] = useState(false);
+ const [predefinedNotes, setPredefinedNotes] = useState([]); // fetched from API
+const [selectedNotes, setSelectedNotes] = useState([]); // selected + manual
+const [manualNote, setManualNote] = useState("");
+
   useEffect(() => {
     if (location.state?.servicetype) {
       setServiceType(location.state.servicetype);
@@ -72,9 +76,9 @@ useEffect(() => {
   axios
     .get(`${baseURL}/auth/api/calculator/services/category/editing`)
     .then((res) => {
-      // Filter out "Complementary" service
+      // Filter out "Complimentary" service
       const filteredServices = res.data.data.filter(
-        (service) => service.service_name.toLowerCase() !== "complementary"
+        (service) => service.service_name.toLowerCase() !== "complimentary"
       );
       setData(filteredServices);
     })
@@ -124,6 +128,25 @@ useEffect(() => {
 //   }
 // }, [data, optionalServices]);
 
+const fetchPredefinedNotes = async () => {
+  try {
+    const { data } = await axios.get(
+      `${baseURL}/auth/api/calculator/getNoteData`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    setPredefinedNotes(data.data || []);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+useEffect(() => {
+  fetchPredefinedNotes();
+}, []);
 
 
 const getOptionalAddonAmount = (serviceName, editingTypeName) => {
@@ -331,7 +354,7 @@ setAddons(initialAddons);
 
       if (isEditing && selectedNotesId) {
         response = await axios.put(
-          `${baseURL}/auth/api/calculator/updatePlanNotes/${selectedNotesId.id}`,
+          `${baseURL}/auth/api/calculator/updateClientNoteDataById/${selectedNotesId.id}`,
           formData,
           {
             headers: {
@@ -412,17 +435,36 @@ setAddons(initialAddons);
     }
     
   };
+  const handleAddPredefinedNote = (note) => {
+  if (!selectedNotes.find((n) => n.id === note.id)) {
+    setSelectedNotes([...selectedNotes, { id: note.id, note_name: note.note_text, type: "predefined" }]);
+  }
+};
+const handleAddManualNote = () => {
+  if (manualNote.trim() !== "") {
+    setSelectedNotes([
+      ...selectedNotes,
+      { id: Date.now(), note_name: manualNote, type: "manual" },
+    ]);
+    setManualNote("");
+  }
+};
+
+const handleRemoveNote = (id) => {
+  setSelectedNotes(selectedNotes.filter((note) => note.id !== id));
+};
 const handleSaveNotes = async () => {
   try {
-  
-
-    const planNotes = allPlanNote.map((item) => ({
+    const planNotes = selectedNotes.map((item) => ({
       note_name: item.note_name,
-      plan: item.plan,
+ 
     }));
 
-    const payload = {   txn_id: proposalId,
-      client_id: id, planNotes };
+    const payload = {
+      txn_id: proposalId,
+      client_id: id,
+      planNotes,
+    };
 
     await axios.post(
       `${baseURL}/auth/api/calculator/saveClientIdwiseNotes`,
@@ -436,9 +478,9 @@ const handleSaveNotes = async () => {
       icon: "success",
       title: "Notes Created",
       text: `Notes saved successfully!`,
-      showConfirmButton: false,  
-          timer: 2000,              
-            timerProgressBar: true   
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
     });
 
     fetchData(); // refresh table
@@ -448,72 +490,69 @@ const handleSaveNotes = async () => {
       icon: "error",
       title: "Error",
       text: "Something went wrong while saving the notes.",
-      showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
     });
   }
 };
 
 
+   const handleDeleteClientNote = async (noteId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this note ?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
 
-  const handleDeleteNote = async (noteId) => {
-const confirm = await Swal.fire({
-  title: "Are you sure?",
-  text: "Do you want to delete this note permanently?",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonColor: "#d33",
-  cancelButtonColor: "#3085d6",
-  confirmButtonText: "Yes, delete it!",
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deletePlanClientNotes/${noteId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+      
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "note has been deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        fetchClientNotes();
+      } else {
+            Swal.fire({
+  icon: "error",
+  title: "Failed!",
+   text: result.message || "Failed to delete entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
 });
-
-if (!confirm.isConfirmed) return;
-
-try {
-  const response = await axios.delete(
-    `${baseURL}/auth/api/calculator/deletePlanNotesbyid/${noteId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      }
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      Swal.fire({
+  icon: "error",
+     title: "Error",
+     text: "An error occurred while deleting entry.",
+  showConfirmButton: false,  
+  timer: 2000,              
+  timerProgressBar: true    
+});
     }
-  );
+  };
 
-  if (response.data.status === "Success") {
-    Swal.fire({
-      icon: "success",
-      title: "Deleted!",
-      text: "Note deleted successfully.",
-      showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
-    });
-
-    // Refresh client list
-    getAllPlanNotes();
-  } else {
-    Swal.fire({
-      icon: "error",
-      title: "Failed!",
-      text: response.data.message || "Unable to delete note.",
-      showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
-    });
-  }
-} catch (error) {
-  console.error("Error deleting note:", error);
-  Swal.fire({
-    icon: "error",
-    title: "Error",
-    text: "Something went wrong while deleting note.",
-    showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
-  });
-}
-};
 
   const fetchData = async () => {
     if (!id || !proposalId) return;
@@ -552,7 +591,7 @@ try {
 
   try {
     const response = await axios.get(
-      `${baseURL}/auth/api/calculator/getPlanNotes`,
+      `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${proposalId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -562,13 +601,8 @@ try {
 
     const notes = response.data.data;
 
-const filtered = notes.filter(
-      (note) => String(note.plan) === String(formData.plan) // type safe compare
-    );
 
-    console.log("Filtered Notes:", filtered);
-
-    setAllPlanNote(filtered);
+    setAllClientNote(notes);
 
    
 
@@ -943,20 +977,74 @@ const filtered = notes.filter(
                      Notes Section 
                     </h3>
           
-                      <button
-                        onClick={handleShow}
-                      className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
-                    >
-                      + Add Notes
-                    </button>
-                      <button
-                        onClick={handleSaveNotes}
-                      className="px-4 py-2 float-end bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition"
-                    >
-                      💾 Save Notes
-                    </button>
-            <div className="space-y-4">
-                      {allPlanNote.map((notes) => (
+                    
+          
+      <div className="space-y-4">
+  {/* Dropdown for predefined notes */}
+  <select
+    className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none text-black focus:ring-2 focus:ring-purple-500"
+    onChange={(e) => {
+      const note = predefinedNotes.find(
+        (n) => n.id === parseInt(e.target.value)
+      );
+      if (note) handleAddPredefinedNote(note);
+    }}
+  >
+    <option value="">-- Select Predefined Note --</option>
+    {predefinedNotes.map((note) => (
+      <option key={note.id} value={note.id}>
+        {note.note_text}
+      </option>
+    ))}
+  </select>
+
+  {/* Manual Note Input */}
+  <div className="flex gap-2">
+    <input
+      type="text"
+      value={manualNote}
+      onChange={(e) => setManualNote(e.target.value)}
+      placeholder="Enter custom note"
+      className="flex-1 p-2 rounded-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+    />
+    <button
+      onClick={handleAddManualNote}
+      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
+    >
+      + Add
+    </button>
+  </div>
+
+  {/* Selected Notes List */}
+  <div className="space-y-2">
+    {selectedNotes.map((note) => (
+      <div
+        key={note.id}
+        className="p-3 bg-gray-100 rounded-lg flex justify-between items-center border border-gray-300"
+      >
+        <span className="text-gray-800 font-medium">{note.note_name}</span>
+        <button
+          onClick={() => handleRemoveNote(note.id)}
+          className="bg-red-500 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold transition"
+          title="Remove"
+        >
+          ×
+        </button>
+      </div>
+    ))}
+  </div>
+
+  {/* Save Button */}
+  <button
+    onClick={handleSaveNotes}
+    className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition"
+  >
+    💾 Save Notes
+  </button>
+</div>
+
+   <div className="space-y-4">
+                      {allClientNote.map((notes) => (
                         <div
                           key={notes.id}
                           className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
@@ -994,7 +1082,7 @@ const filtered = notes.filter(
                                                ✎
                                             </button>
                               <button
-                                onClick={() => handleDeleteNote(notes.id)}
+                                onClick={() => handleDeleteClientNote(notes.id)}
                                 className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
                                 title="Delete"
                               >
@@ -1007,9 +1095,7 @@ const filtered = notes.filter(
                     </div>
           
           
-          
-          
-               {showModal && (
+    {showModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                       {/* Backdrop */}
                       <div
@@ -1087,7 +1173,6 @@ const filtered = notes.filter(
                       </div>
                     </div>
                   )}
-
           {/* <div className="space-y-3">
             {getData.map((order) => (
               <div

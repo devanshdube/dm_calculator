@@ -34,6 +34,7 @@ const {
   saveComplimentaryData,
   generateClientLink,
   submitRequirement,
+  saveNotesData,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -70,6 +71,7 @@ const {
   getByIDComplimentaryData,
   getRequirementsLink,
   getRequirementsDetail,
+  getNoteData,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -90,6 +92,7 @@ const {
   removeMemberFromTeam,
   deleteTeam,
   deleteComplimenatryById,
+  deleteNoteById,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -100,7 +103,9 @@ const {
   updatePlandata,
   updatePlanNameDetail,
   updatePlanNotes,updateServiceData,
-  updateComplimenatryDataById
+  updateComplimenatryDataById,
+  updateNoteDataById,
+  updateClientNoteDataById
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -140,6 +145,7 @@ router.post("/saveComplimentaryData", saveComplimentaryData);
 
 router.post("/generateClientLink", generateClientLink);
 router.post("/submitRequirement", submitRequirement);
+router.post("/saveNotesData", saveNotesData);
 
 
 // ---->  Get all routes START <----
@@ -218,6 +224,7 @@ router.get("/retrieveTeamById/:id", retrieveTeamById);
 router.get("/getAssignmentsSummary/:txn_id", getAssignmentsSummary);
 router.get("/requirements", getRequirementsLink);
 router.get("/getRequirementsDetail/:linkId", getRequirementsDetail);
+router.get("/getNoteData", getNoteData);
 // ---->  Get all routes END <----
 
 // ---->  DELETE all routes START <----
@@ -256,6 +263,7 @@ router.delete(
 router.delete("/deleteTeam/:id", deleteTeam);
 
 router.delete("/deleteComplimenatryById/:id", deleteComplimenatryById);
+router.delete("/deleteNoteById/:id", deleteNoteById);
 
 // ---->  DELETE all routes END <----
 
@@ -271,6 +279,8 @@ router.put("/updatePlanNotes/:id", updatePlanNotes);
 router.put("/updateServiceData/:editing_type_id", updateServiceData);
 router.put("/reassignQuotation", reassignQuotation);
 router.put("/updateComplimenatryDataById/:id", updateComplimenatryDataById);
+router.put("/updateNoteDataById/:id", updateNoteDataById);
+router.put("/updateClientNoteDataById/:id", updateClientNoteDataById);
 // router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----
 

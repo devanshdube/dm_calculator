@@ -3213,3 +3213,33 @@ exports.submitRequirement = (req, res) => {
     });
   });
 };
+
+exports.saveNotesData = (req, res) => {
+  const {
+    note_text
+   
+  } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    INSERT INTO notes_data (
+    note_text,
+      created_at
+    ) VALUES (?, ?)
+  `;
+
+  const values = [
+   note_text,
+    createdAt,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Insert Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res.status(200).json({ status: "Success", message: "Saved Notes successfully" });
+  });
+};

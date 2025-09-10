@@ -64,14 +64,18 @@ const CalculatorBD = () =>  {
       setServiceType(location.state.servicetype);
     }
   }, [location.state]);
-  useEffect(() => {
-    axios
-      .get(`${baseURL}/auth/api/calculator/services/category/editing`)
-      .then((res) => {
-        setData(res.data.data);
-      })
-      .catch((err) => console.error(err));
-  }, []);
+useEffect(() => {
+  axios
+    .get(`${baseURL}/auth/api/calculator/services/category/editing`)
+    .then((res) => {
+      // Filter out "Complimentary" service
+      const filteredServices = res.data.data.filter(
+        (service) => service.service_name.toLowerCase() !== "complimentary"
+      );
+      setData(filteredServices);
+    })
+    .catch((err) => console.error(err));
+}, []);
 
   useEffect(() => {
     axios

@@ -23,7 +23,7 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 
 export default function AddService() {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const { id, proposalId } = useParams();
   const [getData, setGetData] = useState([]);

@@ -143,6 +143,9 @@ const AdminClientDetails = () => {
           text: isEditing
             ? "Client updated successfully!"
             : "Client added successfully!",
+                   showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         }).then(() => {
           setShowModal(false);
           getAllClients();
@@ -153,6 +156,9 @@ const AdminClientDetails = () => {
           title: "Error",
           text:
             response.data.message || "Failed to save client. Please try again.",
+                   showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       }
     } catch (error) {
@@ -166,12 +172,18 @@ const AdminClientDetails = () => {
           text:
             error.response.data.message ||
             "Failed to save client. Please try again.",
+                   showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Error",
           text: "Failed to save client. Please try again.",
+                 showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       }
     } finally {
@@ -206,6 +218,9 @@ const AdminClientDetails = () => {
           icon: "success",
           title: "Deleted!",
           text: "Client deleted successfully.",
+                 showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
 
         // Refresh client list
@@ -215,6 +230,9 @@ const AdminClientDetails = () => {
           icon: "error",
           title: "Failed!",
           text: response.data.message || "Unable to delete client.",
+                 showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
         });
       }
     } catch (error) {
@@ -223,6 +241,9 @@ const AdminClientDetails = () => {
         icon: "error",
         title: "Error",
         text: "Something went wrong while deleting client.",
+               showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
       });
     }
   };

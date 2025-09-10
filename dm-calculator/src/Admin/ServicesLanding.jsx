@@ -14,6 +14,7 @@ import {
   User,
   Notebook,
   Gift,
+  FileText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -23,7 +24,7 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 
 export default function ServicesLanding() {
-  const baseURL = `http://localhost:5555`;
+  const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const { id, proposalId } = useParams();
   const [getData, setGetData] = useState([]);
@@ -79,6 +80,24 @@ const { currentUser, token } = useSelector((state) => state.user);
         "Analytics & ROI",
       ],
     },
+{
+  id: 3,
+  title: "Notes",
+  subtitle: "Key Highlights",
+  description:
+    "Attach important remarks, reminders, and special conditions to your quotation.",
+  icon: FileText, // you can import from lucide-react
+  gradient: "from-purple-600 to-indigo-700",
+  bgPattern: "bg-gradient-to-br from-purple-50 to-indigo-50",
+  navigation: "/admin/note-section",
+  features: [
+    "Custom remarks",
+    "Special conditions",
+    "Internal reminders",
+    "Client-specific highlights",
+  ],
+}
+
     
   ];
 
