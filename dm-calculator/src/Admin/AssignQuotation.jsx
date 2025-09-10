@@ -718,7 +718,7 @@ const AssignQuotation = () => {
             <input
               type="text"
               value={keyword}
-              placeholder="Search by txn / client / member / team"
+              placeholder="Search by txn / client / team"
               className="w-full sm:w-80 pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 backdrop-blur-sm hover:bg-gray-700/50 transition-all text-sm"
               onChange={(e) => setKeyword(e.target.value)}
             />

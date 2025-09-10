@@ -51,9 +51,9 @@ const History = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-      showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -87,9 +87,9 @@ const History = () => {
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-    showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -126,9 +126,9 @@ const History = () => {
           icon: "success",
           title: "Deleted!",
           text: "Quatation deleted successfully.",
-            showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
 
         // Refresh client list
@@ -139,9 +139,9 @@ const History = () => {
           icon: "error",
           title: "Failed!",
           text: response.data.message || "Unable to delete client.",
-            showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -150,9 +150,9 @@ const History = () => {
         icon: "error",
         title: "Error",
         text: "Something went wrong while deleting client.",
-          showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };
@@ -197,9 +197,9 @@ const History = () => {
         icon: "warning",
         title: "Missing Information",
         text: !cid ? "Client ID not found." : "Transaction ID not found.",
-          showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
       return;
     }

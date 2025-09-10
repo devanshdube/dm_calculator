@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -16,7 +15,7 @@ import {
   Package,
   Clock,
   CheckCircle,
-    User,
+  User,
   X,
   StickyNote,
   Notebook,
@@ -24,7 +23,6 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
-
 
 const AdminComplimentaryData = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
@@ -42,105 +40,95 @@ const AdminComplimentaryData = () => {
 
   const [addons, setAddons] = useState({});
 
-
   const [loading, setLoading] = useState(false);
-  
+
   console.log(data);
-  
+
   const [total, setTotal] = useState(0);
   const navigate = useNavigate();
   console.log(id, proposalId);
   const [editId, setEditId] = useState(null);
-     const [allPlanNote, setAllPlanNote] = useState([]);
-     const [formData, setFormData] = useState({
+  const [allPlanNote, setAllPlanNote] = useState([]);
+  const [formData, setFormData] = useState({
     note_name: "",
     plan: "Customise",
-
   });
-    const [selectedNotesId, setSelectedNotesId] = useState(null);
-       const [showModal, setShowModal] = useState(false);
- const [isEditing, setIsEditing] = useState(false);
+  const [selectedNotesId, setSelectedNotesId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-useEffect(() => {
-  axios
-    .get(`${baseURL}/auth/api/calculator/services/category/editing`)
-    .then((res) => {
-      // Keep only "Complimentary" service
-      const complimentaryService = res.data.data.filter(
-        (service) => service.service_name.toLowerCase() === "complimentary"
-      );
-      setData(complimentaryService);
-    })
-    .catch((err) => console.error(err));
-}, []);
+  useEffect(() => {
+    axios
+      .get(`${baseURL}/auth/api/calculator/services/category/editing`)
+      .then((res) => {
+        // Keep only "Complimentary" service
+        const complimentaryService = res.data.data.filter(
+          (service) => service.service_name.toLowerCase() === "complimentary"
+        );
+        setData(complimentaryService);
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
+  useEffect(() => {
+    axios
+      .get(`${baseURL}/auth/api/calculator/optional-service-amounts`)
+      .then((res) => {
+        if (res.data.status === "success") {
+          const services = res.data.data;
+          setOptionalServices(services);
 
-useEffect(() => {
-  axios.get(`${baseURL}/auth/api/calculator/optional-service-amounts`)
-    .then(res => {
-      if (res.data.status === "success") {
-        const services = res.data.data;
-        setOptionalServices(services);
+          const initialAddons = {};
+          services.forEach((item) => {
+            const key = item.editing_type_name
+              .toLowerCase()
+              .replace(/\s+/g, "_");
+            initialAddons[key] = false;
+          });
+          setAddons(initialAddons);
+        }
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
-        const initialAddons = {};
-        services.forEach(item => {
-          const key = item.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-          initialAddons[key] = false;
-        });
-        setAddons(initialAddons);
-     
-      }
-    })
-    .catch(err => console.error(err));
-}, []);
+  // useEffect(() => {
+  //   if (selectedService === "Video Services") {
+  //     setAddons({
+  //       thumbnail_creation: true,
+  //       content_posting: true,
+  //     });
+  //   } else if (selectedService === "Graphics Design") {
+  //     setAddons({
+  //       content_posting: true,
+  //       thumbnail_creation: false,
+  //     });
+  //   } else {
+  //     setAddons({});
+  //   }
+  // }, [selectedService]);
 
-// useEffect(() => {
-//   if (selectedService === "Video Services") {
-//     setAddons({
-//       thumbnail_creation: true,
-//       content_posting: true,
-//     });
-//   } else if (selectedService === "Graphics Design") {
-//     setAddons({
-//       content_posting: true,
-//       thumbnail_creation: false,
-//     });
-//   } else {
-//     setAddons({});
-//   }
-// }, [selectedService]);
+  const handleEdit = (entry) => {
+    setEditId(entry.id);
+    setSelectedService(entry.service_name);
+    setSelectedCategory(entry.category_name);
+    setSelectedEditingType({
+      editing_type_id: entry.editing_type_id,
+      editing_type_name: entry.editing_type_name,
+      amount: parseFloat(entry.editing_type_amount),
+    });
+    setQuantity(parseInt(entry.quantity));
 
+    // Dynamically map optional services from entry
+    const updatedAddons = {};
+    optionalServices.forEach((opt) => {
+      const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+      const entryKey = `include_${key}`;
+      updatedAddons[key] = parseFloat(entry[entryKey]) > 0;
+    });
 
-
-
-
-const handleEdit = (entry) => {
-  setEditId(entry.id);
-  setSelectedService(entry.service_name);
-  setSelectedCategory(entry.category_name);
-  setSelectedEditingType({
-    editing_type_id: entry.editing_type_id,
-    editing_type_name: entry.editing_type_name,
-    amount: parseFloat(entry.editing_type_amount),
-  });
-  setQuantity(parseInt(entry.quantity));
-
-  // Dynamically map optional services from entry
-  const updatedAddons = {};
-  optionalServices.forEach((opt) => {
-    const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-    const entryKey = `include_${key}`;
-    updatedAddons[key] = parseFloat(entry[entryKey]) > 0;
-  });
-
-  setAddons(updatedAddons);
-  setTotal(parseFloat(entry.total_amount));
-
-  
-};
-
-
-
+    setAddons(updatedAddons);
+    setTotal(parseFloat(entry.total_amount));
+  };
 
   const getSelectedService = data.find(
     (s) => s.service_name === selectedService
@@ -149,78 +137,82 @@ const handleEdit = (entry) => {
     (c) => c.category_name === selectedCategory
   );
 
-const handleSave = () => {
-  if (!selectedEditingType) return;
-  setLoading(true);
+  const handleSave = () => {
+    if (!selectedEditingType) return;
+    setLoading(true);
 
-  // Base amount
-  let baseAmount = selectedEditingType.amount * quantity;
+    // Base amount
+    let baseAmount = selectedEditingType.amount * quantity;
 
-  // Optional addon values
-  let optionalTotal = 0;
-  let include_content_posting = 0;
-  let include_thumbnail_creation = 0;
+    // Optional addon values
+    let optionalTotal = 0;
+    let include_content_posting = 0;
+    let include_thumbnail_creation = 0;
 
     optionalServices.forEach((opt) => {
       const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
       if (addons[key]) {
         const amount = parseFloat(opt.amount);
-      const totalForThisAddon = amount * quantity; // ✅ multiply by quantity
+        const totalForThisAddon = amount * quantity; // ✅ multiply by quantity
 
         optionalTotal += totalForThisAddon;
 
         if (key === "content_posting") {
-        include_content_posting = amount; // Send unit amount, not total
+          include_content_posting = amount; // Send unit amount, not total
         } else if (key === "thumbnail_creation") {
-        include_thumbnail_creation = amount; // Send unit amount, not total
+          include_thumbnail_creation = amount; // Send unit amount, not total
         }
       }
     });
 
-  const finalAmount = baseAmount + optionalTotal;
-  setTotal(finalAmount);
+    const finalAmount = baseAmount + optionalTotal;
+    setTotal(finalAmount);
 
-  const payload = {
-    txn_id: proposalId,
-    client_id: id,
-    service_name: selectedService,
-    category_name: selectedCategory,
-    editing_type_name: selectedEditingType.editing_type_name,
-    editing_type_amount: selectedEditingType.amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount: finalAmount,
-    employee: userName,
-  };
+    const payload = {
+      txn_id: proposalId,
+      client_id: id,
+      service_name: selectedService,
+      category_name: selectedCategory,
+      editing_type_name: selectedEditingType.editing_type_name,
+      editing_type_amount: selectedEditingType.amount,
+      quantity,
+      include_content_posting,
+      include_thumbnail_creation,
+      total_amount: finalAmount,
+      employee: userName,
+    };
 
-  const request = editId
-    ? axios.put(`${baseURL}/auth/api/calculator/updateComplimenatryDataById/${editId}`, payload)
-    : axios.post(`${baseURL}/auth/api/calculator/saveComplimentaryData`, payload);
+    const request = editId
+      ? axios.put(
+          `${baseURL}/auth/api/calculator/updateComplimenatryDataById/${editId}`,
+          payload
+        )
+      : axios.post(
+          `${baseURL}/auth/api/calculator/saveComplimentaryData`,
+          payload
+        );
 
-  request
-    .then((res) => {
-      resetForm();
-      if (res.data.status === "Success") {
-        Swal.fire({
-          icon: "success",
-          title: editId ? "Updated!" : "Saved!",
-          text: editId ? "Entry updated successfully" : "Saved successfully",
-            showConfirmButton: false,  
-     timer: 2000,              
-     timerProgressBar: true 
-        });
-        fetchData();
+    request
+      .then((res) => {
+        resetForm();
+        if (res.data.status === "Success") {
+          Swal.fire({
+            icon: "success",
+            title: editId ? "Updated!" : "Saved!",
+            text: editId ? "Entry updated successfully" : "Saved successfully",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
+          fetchData();
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
         setLoading(false);
-      }
-    })
-    .catch((err) => {
-      setLoading(false);
-      console.error("Save error:", err);
-    });
-};
-
-
+        console.error("Save error:", err);
+      });
+  };
 
   const resetForm = () => {
     setEditId(null);
@@ -228,32 +220,24 @@ const handleSave = () => {
     setSelectedCategory("");
     setSelectedEditingType(null);
     setQuantity(1);
- const initialAddons = {};
-optionalServices.forEach(item => {
-  const key = item.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-  initialAddons[key] = false;
-});
-setAddons(initialAddons);
+    const initialAddons = {};
+    optionalServices.forEach((item) => {
+      const key = item.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+      initialAddons[key] = false;
+    });
+    setAddons(initialAddons);
 
     setTotal(0);
   };
 
-
-
-   const handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-
-    
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
-
-   
-
-
 
   const fetchData = async () => {
     if (!id || !proposalId) return;
@@ -277,9 +261,9 @@ setAddons(initialAddons);
           title: "Session Expired",
           text: "Please login again.",
           icon: "warning",
-          showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         }).then(() => {
           dispatch(clearUser());
           localStorage.removeItem("token");
@@ -289,16 +273,11 @@ setAddons(initialAddons);
     }
   };
 
-
   useEffect(() => {
     fetchData();
-
   }, [id, proposalId]);
 
   console.log(getData);
-  
-
-
 
   const handleDelete = async (entryId) => {
     const confirm = await Swal.fire({
@@ -327,18 +306,18 @@ setAddons(initialAddons);
           icon: "success",
           title: "Deleted!",
           text: "Entry has been deleted.",
-          showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed!",
           text: result.message || "Failed to delete entry.",
-          showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -347,9 +326,9 @@ setAddons(initialAddons);
         icon: "error",
         title: "Error",
         text: "An error occurred while deleting entry.",
-        showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };
@@ -360,295 +339,290 @@ setAddons(initialAddons);
 
   return (
     <>
-      
-        <div className="w-full max-w-2xl backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
-        
+      <div className="w-full max-w-2xl backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
+        <div>
+          <label className="block font-semibold mb-1">Select Service</label>
+          <select
+            className="w-full p-2 border rounded bg-white text-black"
+            value={selectedService}
+            onChange={(e) => {
+              setSelectedService(e.target.value);
+              setSelectedCategory("");
+              setSelectedEditingType(null);
+            }}
+          >
+            <option value="">-- Choose Service --</option>
+            {data.map((service) => (
+              <option key={service.service_id} value={service.service_name}>
+                {service.service_name}
+              </option>
+            ))}
+          </select>
+        </div>
 
+        {getSelectedService && (
           <div>
-            <label className="block font-semibold mb-1">Select Service</label>
+            <label className="block font-semibold mb-1">Select Category</label>
             <select
               className="w-full p-2 border rounded bg-white text-black"
-              value={selectedService}
+              value={selectedCategory}
               onChange={(e) => {
-                setSelectedService(e.target.value);
-                setSelectedCategory("");
+                setSelectedCategory(e.target.value);
                 setSelectedEditingType(null);
               }}
             >
-              <option value="">-- Choose Service --</option>
-              {data.map((service) => (
-                <option key={service.service_id} value={service.service_name}>
-                  {service.service_name}
+              <option value="">-- Choose Category --</option>
+              {getSelectedService.categories.map((category) => (
+                <option
+                  key={category.category_id}
+                  value={category.category_name}
+                >
+                  {category.category_name}
                 </option>
               ))}
             </select>
           </div>
+        )}
 
-          {getSelectedService && (
-            <div>
-              <label className="block font-semibold mb-1">
-                Select Category
-              </label>
-              <select
-                className="w-full p-2 border rounded bg-white text-black"
-                value={selectedCategory}
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value);
-                  setSelectedEditingType(null);
-                }}
-              >
-                <option value="">-- Choose Category --</option>
-                {getSelectedService.categories.map((category) => (
-                  <option
-                    key={category.category_id}
-                    value={category.category_name}
-                  >
-                    {category.category_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {getSelectedCategory && (
-            <div>
-              <label className="block font-semibold mb-1">
-                Select Editing Type
-              </label>
-              <select
-                className="w-full p-2 border rounded bg-white text-black"
-                value={selectedEditingType?.editing_type_id || ""}
-                onChange={(e) => {
-                  const edit = getSelectedCategory.editing_types.find(
-                    (et) => et.editing_type_id === parseInt(e.target.value)
-                  );
-                  setSelectedEditingType(edit);
-                }}
-              >
-                <option value="">-- Choose Editing Type --</option>
-                {getSelectedCategory.editing_types.map((edit) => (
-                  <option
-                    key={edit.editing_type_id}
-                    value={edit.editing_type_id}
-                  >
-                    {edit.editing_type_name} - ₹{edit.amount}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
+        {getSelectedCategory && (
           <div>
-            <label className="block font-semibold mb-1">Quantity</label>
-            <input
-              type="number"
+            <label className="block font-semibold mb-1">
+              Select Editing Type
+            </label>
+            <select
               className="w-full p-2 border rounded bg-white text-black"
-              min={1}
-              value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value))}
-            />
+              value={selectedEditingType?.editing_type_id || ""}
+              onChange={(e) => {
+                const edit = getSelectedCategory.editing_types.find(
+                  (et) => et.editing_type_id === parseInt(e.target.value)
+                );
+                setSelectedEditingType(edit);
+              }}
+            >
+              <option value="">-- Choose Editing Type --</option>
+              {getSelectedCategory.editing_types.map((edit) => (
+                <option key={edit.editing_type_id} value={edit.editing_type_id}>
+                  {edit.editing_type_name} - ₹{edit.amount}
+                </option>
+              ))}
+            </select>
           </div>
+        )}
 
-  <div className="space-y-4">
-    {optionalServices.map((opt) => {
-      const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-      return (
-        <div key={key}>
-          <label className="block font-semibold">Optional ({opt.editing_type_name})?</label>
-          <div className="flex gap-4 mt-2">
-            <button
-              type="button"
-              className={`px-4 py-2 rounded ${
-                addons[key] ? "bg-green-600 text-white" : "bg-gray-300 text-black"
-              }`}
-              onClick={() => setAddons((prev) => ({ ...prev, [key]: true }))}
-            >
-              YES
-            </button>
-            <button
-              type="button"
-              className={`px-4 py-2 rounded ${
-                !addons[key] ? "bg-red-600 text-white" : "bg-gray-300 text-black"
-              }`}
-              onClick={() => setAddons((prev) => ({ ...prev, [key]: false }))}
-            >
-              NO
-            </button>
-          </div>
+        <div>
+          <label className="block font-semibold mb-1">Quantity</label>
+          <input
+            type="number"
+            className="w-full p-2 border rounded bg-white text-black"
+            min={1}
+            value={quantity}
+            onChange={(e) => setQuantity(parseInt(e.target.value))}
+          />
         </div>
-      );
-    })}
-  </div>
 
-
-
-
-          <button
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"
-            onClick={handleSave} disabled = {loading}
-          >
-           {loading ? 'Save...':'Calculate & Save'} 
-          </button>
-          <button
-            className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"
-            onClick={resetForm}
-          >
-            Reset Form
-          </button>
-
-
-       
-            <div className="text-xl font-semibold text-center text-green-300 mt-4">
-              Total Amount: ₹{grandTotal.toLocaleString()}
-            </div>
-        
-          {/* Client Orders */}
-
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Recent Client Orders
-          </h3>
-          <div className="space-y-4">
-            {getData.map((order) => (
-              <div
-                key={order.id}
-                className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
-                  {/* Left Section: Info */}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 font-semibold text-lg">
-                      <Megaphone className="w-5 h-5 text-yellow-400" />
-                      <span>
-                        {order.service_name} → {order.category_name}
-                      </span>
-                    </div>
-                    <div className="text-lg text-white/80">
-                      🎬 {order.editing_type_name} × {order.quantity}
-                    </div>
-           {(Number(order.include_content_posting) > 0 || Number(order.include_thumbnail_creation) > 0) && (
-  <div className="text-base text-white/60 italic">
-    {Number(order.include_content_posting) > 0 && (
-      <>📢 Content Posting  </>
-    )}
-    {Number(order.include_thumbnail_creation) > 0 && (
-      <>🖼 Thumbnail Creation </>
-    )}
-  </div>
-)}
-
-
-                    {/* <div className="text-xs text-white/50">
-                      🕒 {new Date(order.created_at).toLocaleString("en-IN")}
-                    </div> */}
-                  </div>
-
-                  {/* Right Section: Amount + Delete */}
-                  <div className="flex items-center gap-2 sm:gap-4">
-                    <div className="text-green-400 font-bold text-xl">
-                      ₹{parseFloat(order.total_amount).toLocaleString()}
-                    </div>
-                    <button
-                      onClick={() => handleEdit(order)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                      title="Edit"
-                    >
-                      ✎
-                    </button>
-                    <button
-                      onClick={() => handleDelete(order.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                      title="Delete"
-                    >
-                      ×
-                    </button>
-                  </div>
+        <div className="space-y-4">
+          {optionalServices.map((opt) => {
+            const key = opt.editing_type_name
+              .toLowerCase()
+              .replace(/\s+/g, "_");
+            return (
+              <div key={key}>
+                <label className="block font-semibold">
+                  Optional ({opt.editing_type_name})?
+                </label>
+                <div className="flex gap-4 mt-2">
+                  <button
+                    type="button"
+                    className={`px-4 py-2 rounded ${
+                      addons[key]
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-300 text-black"
+                    }`}
+                    onClick={() =>
+                      setAddons((prev) => ({ ...prev, [key]: true }))
+                    }
+                  >
+                    YES
+                  </button>
+                  <button
+                    type="button"
+                    className={`px-4 py-2 rounded ${
+                      !addons[key]
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-300 text-black"
+                    }`}
+                    onClick={() =>
+                      setAddons((prev) => ({ ...prev, [key]: false }))
+                    }
+                  >
+                    NO
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-          
-          
-               {showModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                      {/* Backdrop */}
-                      <div
-                        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
-                        onClick={handleClose}
-                      />
-          
-                      {/* Modal */}
-                      <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <StickyNote className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <h2 className="text-xl font-semibold text-gray-900">
-                              {isEditing ? "Edit Note" : "Add New Note"}
-                            </h2>
-                          </div>
-                          <button
-                            onClick={handleClose}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        </div>
-          
-                        {/* Form */}
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                          {/* Note */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              <Notebook className="w-4 h-4 inline mr-2" />
-                              Note
-                            </label>
-                      <textarea
-            name="note_name"
-            value={formData.note_name}
-            onChange={handleChange}
-            className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
-            placeholder="Enter note details"
-            rows={4} // number of visible lines
-            required
-          ></textarea>
-          </div>
-          
-                
-          
-                          {/* Buttons */}
-                          <div className="flex justify-end gap-3 pt-4">
-                            <button
-                              type="button"
-                              onClick={handleClose}
-                              className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={loading}
-                              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-                            >
-                              {loading
-                                ? isEditing
-                                  ? "Updating..."
-                                  : "Saving..."
-                                : isEditing
-                                ? "Update Note"
-                                : "Save Note"}
-                            </button>
-                            
-          
-                          </div>
-                        </form>
-                      </div>
+            );
+          })}
+        </div>
+
+        <button
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"
+          onClick={handleSave}
+          disabled={loading}
+        >
+          {loading ? "Save..." : "Calculate & Save"}
+        </button>
+        <button
+          className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"
+          onClick={resetForm}
+        >
+          Reset Form
+        </button>
+
+        <div className="text-xl font-semibold text-center text-green-300 mt-4">
+          Total Amount: ₹{grandTotal.toLocaleString()}
+        </div>
+
+        {/* Client Orders */}
+
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <Package className="w-5 h-5" />
+          Recent Client Orders
+        </h3>
+        <div className="space-y-4">
+          {getData.map((order) => (
+            <div
+              key={order.id}
+              className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
+                {/* Left Section: Info */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 font-semibold text-lg">
+                    <Megaphone className="w-5 h-5 text-yellow-400" />
+                    <span>
+                      {order.service_name} → {order.category_name}
+                    </span>
+                  </div>
+                  <div className="text-lg text-white/80">
+                    🎬 {order.editing_type_name} × {order.quantity}
+                  </div>
+                  {(Number(order.include_content_posting) > 0 ||
+                    Number(order.include_thumbnail_creation) > 0) && (
+                    <div className="text-base text-white/60 italic">
+                      {Number(order.include_content_posting) > 0 && (
+                        <>📢 Content Posting </>
+                      )}
+                      {Number(order.include_thumbnail_creation) > 0 && (
+                        <>🖼 Thumbnail Creation </>
+                      )}
                     </div>
                   )}
 
-          {/* <div className="space-y-3">
+                  {/* <div className="text-xs text-white/50">
+                      🕒 {new Date(order.created_at).toLocaleString("en-IN")}
+                    </div> */}
+                </div>
+
+                {/* Right Section: Amount + Delete */}
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="text-green-400 font-bold text-xl">
+                    ₹{parseFloat(order.total_amount).toLocaleString()}
+                  </div>
+                  <button
+                    onClick={() => handleEdit(order)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                    title="Edit"
+                  >
+                    ✎
+                  </button>
+                  <button
+                    onClick={() => handleDelete(order.id)}
+                    className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                    title="Delete"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+              onClick={handleClose}
+            />
+
+            {/* Modal */}
+            <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <StickyNote className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {isEditing ? "Edit Note" : "Add New Note"}
+                  </h2>
+                </div>
+                <button
+                  onClick={handleClose}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                {/* Note */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Notebook className="w-4 h-4 inline mr-2" />
+                    Note
+                  </label>
+                  <textarea
+                    name="note_name"
+                    value={formData.note_name}
+                    onChange={handleChange}
+                    className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                    placeholder="Enter note details"
+                    rows={4} // number of visible lines
+                    required
+                  ></textarea>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                  >
+                    {loading
+                      ? isEditing
+                        ? "Updating..."
+                        : "Saving..."
+                      : isEditing
+                      ? "Update Note"
+                      : "Save Note"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* <div className="space-y-3">
             {getData.map((order) => (
               <div
                 key={order.id}
@@ -689,8 +663,7 @@ setAddons(initialAddons);
               </div>
             ))}
           </div> */}
-        </div>
-     
+      </div>
     </>
   );
 };

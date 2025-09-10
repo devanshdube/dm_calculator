@@ -214,7 +214,6 @@ exports.deleteGraphicEntryById = async (req, res) => {
   }
 };
 
-
 exports.deleteClientById = async (req, res) => {
   const { id } = req.params;
 
@@ -277,8 +276,10 @@ exports.deleteQuoatationById = async (req, res) => {
     });
   }
 
-  const deleteCalculatorQuery = "DELETE FROM calculator_transactions WHERE txn_id = ?";
-  const deleteAdsCampaignQuery = "DELETE FROM ads_campaign_details WHERE txn_id = ?";
+  const deleteCalculatorQuery =
+    "DELETE FROM calculator_transactions WHERE txn_id = ?";
+  const deleteAdsCampaignQuery =
+    "DELETE FROM ads_campaign_details WHERE txn_id = ?";
   const deleteNotesClient = "DELETE FROM plan_client_notes WHERE txn_id = ?";
 
   db.query(deleteCalculatorQuery, [txn_id], (err1, result1) => {
@@ -333,8 +334,6 @@ exports.deleteQuoatationById = async (req, res) => {
     });
   });
 };
-
-
 
 exports.deletePlanNameDetail = async (req, res) => {
   const { id } = req.params;
@@ -424,13 +423,11 @@ exports.deletePlanNotesbyid = async (req, res) => {
         .status(500)
         .json({ status: "Failure", message: "Database error" });
     }
-
-});
+  });
 };
 
 exports.deletePlanDataByService = async (req, res) => {
   const { id } = req.params;
-  
 
   if (!id) {
     return res.status(400).json({
@@ -438,33 +435,27 @@ exports.deletePlanDataByService = async (req, res) => {
       message: "Missing id parameter",
     });
   }
-  
 
+  const deletePlanData = "DELETE FROM plan_data  WHERE id = ?";
 
-  const deletePlanData =
-    "DELETE FROM plan_data  WHERE id = ?";
-
-
-
-    db.query(deletePlanData, [id], (err2, result2) => {
-      if (err2) {
-        return res.status(500).json({
-          status: "Failure",
-          message: "Error delete plan data service",
-          error: err2,
-        });
-      }
-
-      res.status(200).json({
-        status: "Success",
-        message: ` delete of plan data service in successfully`,
+  db.query(deletePlanData, [id], (err2, result2) => {
+    if (err2) {
+      return res.status(500).json({
+        status: "Failure",
+        message: "Error delete plan data service",
+        error: err2,
       });
-    });
+    }
 
+    res.status(200).json({
+      status: "Success",
+      message: ` delete of plan data service in successfully`,
+    });
+  });
 };
+
 exports.deletePlanbyChangeNotes = async (req, res) => {
   const { txn_id } = req.params;
-  
 
   if (!txn_id) {
     return res.status(400).json({
@@ -472,31 +463,24 @@ exports.deletePlanbyChangeNotes = async (req, res) => {
       message: "Missing txn_id parameter",
     });
   }
-  
 
+  const deletePlanData = "DELETE FROM plan_client_notes  WHERE txn_id = ?";
 
-  const deletePlanData =
-    "DELETE FROM plan_client_notes  WHERE txn_id = ?";
-
-
-
-    db.query(deletePlanData, [txn_id], (err2, result2) => {
-      if (err2) {
-        return res.status(500).json({
-          status: "Failure",
-          message: "Error delete plan_client_notes ",
-          error: err2,
-        });
-      }
-
-      res.status(200).json({
-        status: "Success",
-        message: ` delete of plan_client_notes  in successfully`,
+  db.query(deletePlanData, [txn_id], (err2, result2) => {
+    if (err2) {
+      return res.status(500).json({
+        status: "Failure",
+        message: "Error delete plan_client_notes ",
+        error: err2,
       });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      message: ` delete of plan_client_notes  in successfully`,
     });
-
+  });
 };
-
 
 exports.deleteClientAllPlanData = async (req, res) => {
   const { txn_id } = req.params;
@@ -508,8 +492,10 @@ exports.deleteClientAllPlanData = async (req, res) => {
     });
   }
 
-  const deleteCalculatorQuery = "DELETE FROM calculator_transactions WHERE txn_id = ?";
-  const deleteAdsCampaignQuery = "DELETE FROM ads_campaign_details WHERE txn_id = ?";
+  const deleteCalculatorQuery =
+    "DELETE FROM calculator_transactions WHERE txn_id = ?";
+  const deleteAdsCampaignQuery =
+    "DELETE FROM ads_campaign_details WHERE txn_id = ?";
   const deleteNotesClient = "DELETE FROM plan_client_notes WHERE txn_id = ?";
   const deleteComplimenatry = "DELETE FROM complimentary WHERE txn_id = ?";
 
@@ -540,41 +526,44 @@ exports.deleteClientAllPlanData = async (req, res) => {
           });
         }
 
-      db.query(deleteComplimenatry, [txn_id], (err4, result4) => {
-        if (err4) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Error deleting from Complimentary",
-            error: err4,
-          });
-        }
+        db.query(deleteComplimenatry, [txn_id], (err4, result4) => {
+          if (err4) {
+            return res.status(500).json({
+              status: "Failure",
+              message: "Error deleting from Complimentary",
+              error: err4,
+            });
+          }
 
-        const deletedFromCalculator = result1.affectedRows > 0;
-        const deletedFromAds = result2.affectedRows > 0;
-        const deletedFromNotes = result3.affectedRows > 0;
-        const deletedFromComplimentary = result4.affectedRows > 0;
+          const deletedFromCalculator = result1.affectedRows > 0;
+          const deletedFromAds = result2.affectedRows > 0;
+          const deletedFromNotes = result3.affectedRows > 0;
+          const deletedFromComplimentary = result4.affectedRows > 0;
 
-        if (!deletedFromCalculator && !deletedFromAds && !deletedFromNotes  && !deletedFromComplimentary) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No transaction found with the given txn_id",
-          });
-        }
+          if (
+            !deletedFromCalculator &&
+            !deletedFromAds &&
+            !deletedFromNotes &&
+            !deletedFromComplimentary
+          ) {
+            return res.status(404).json({
+              status: "Failure",
+              message: "No transaction found with the given txn_id",
+            });
+          }
 
-        res.status(200).json({
-          status: "Success",
-          message: `Transaction deleted from ${
-            [
+          res.status(200).json({
+            status: "Success",
+            message: `Transaction deleted from ${[
               deletedFromCalculator ? "calculator_transactions" : null,
               deletedFromAds ? "ads_campaign_details" : null,
               deletedFromNotes ? "plan_client_notes" : null,
               deletedFromComplimentary ? "complimentary" : null,
             ]
               .filter(Boolean)
-              .join(", ")
-          } successfully`,
+              .join(", ")} successfully`,
+          });
         });
-      });
       });
     });
   });
@@ -592,11 +581,12 @@ exports.deletePlanClientNotes = async (req, res) => {
           .status(500)
           .json({ status: "Failure", message: "Database error" });
       }
-      res.json({ status: "Success", message: "Note Client deleted successfully" });
+      res.json({
+        status: "Success",
+        message: "Note Client deleted successfully",
+      });
     }
   );
-
-  
 };
 
 //  NEW WORK For Team work
@@ -674,35 +664,32 @@ exports.deleteTeam = async (req, res) => {
     });
   }
 };
+
 exports.deleteComplimenatryById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    db.query(
-      "DELETE FROM complimentary WHERE id = ?",
-      [id],
-      (err, result) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error while deleting entry",
-            error: err,
-          });
-        }
-
-        if (result.affectedRows === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No complimentary entry found to delete",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          message: "complimentary entry deleted successfully",
+    db.query("DELETE FROM complimentary WHERE id = ?", [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while deleting entry",
+          error: err,
         });
       }
-    );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No complimentary entry found to delete",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        message: "complimentary entry deleted successfully",
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",
@@ -747,4 +734,32 @@ exports.deleteNoteById = async (req, res) => {
       error,
     });
   }
+};
+
+exports.deleteRequirementsBundle = async (req, res) => {
+  const linkId = Number(req.params.linkId);
+  if (!Number.isInteger(linkId)) {
+    return res.status(400).json({ success: false, message: "Invalid linkId" });
+  }
+
+  const sql = `
+    DELETE i, s, l
+    FROM client_requirement_links l
+    LEFT JOIN requirement_submissions s ON s.link_id = l.id
+    LEFT JOIN requirement_submission_items i ON i.submission_id = s.id
+    WHERE l.id = ?;
+  `;
+
+  db.query(sql, [linkId], (err, result) => {
+    if (err) {
+      console.error("Delete bundle error:", err);
+      return res.status(500).json({ success: false, message: "DB error" });
+    }
+    // affectedRows = sum of all rows deleted across i, s, l
+    return res.json({
+      success: true,
+      message: "Link + submissions + items deleted successfully",
+      affectedRows: result.affectedRows || 0,
+    });
+  });
 };

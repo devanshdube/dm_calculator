@@ -24,9 +24,9 @@ export default function Login() {
         icon: "error",
         title: "Missing Fields",
         text: "Please fill in both email and password.",
-        showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
       return;
     }
@@ -48,9 +48,9 @@ export default function Login() {
           icon: "success",
           title: "Login Successful",
           text: "Welcome back!",
-          showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
         const user = response.data.user;
         const token = response.data.token;
@@ -62,9 +62,9 @@ export default function Login() {
           icon: "error",
           title: "Login Failed",
           text: response.data.message || "Invalid credentials.",
-          showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } catch (error) {
@@ -74,9 +74,9 @@ export default function Login() {
         icon: "error",
         title: "Login Failed",
         text: "Please check your credentials and try again.",
-        showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     } finally {
       setLoading(false);

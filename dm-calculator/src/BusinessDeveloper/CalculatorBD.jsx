@@ -24,10 +24,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import AdminComplimentaryData from "../Admin/AdminComplimentaryData";
 
-
-const CalculatorBD = () =>  {
-   const location = useLocation();
-    const [serviceType, setServiceType] = useState("paid");
+const CalculatorBD = () => {
+  const location = useLocation();
+  const [serviceType, setServiceType] = useState("paid");
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const dispatch = useDispatch();
   const { currentUser, token } = useSelector((state) => state.user);
@@ -56,10 +55,10 @@ const CalculatorBD = () =>  {
     note_name: "",
     plan: "Customise",
   });
-    const [selectedNotesId, setSelectedNotesId] = useState(null);
-       const [showModal, setShowModal] = useState(false);
- const [isEditing, setIsEditing] = useState(false);
- useEffect(() => {
+  const [selectedNotesId, setSelectedNotesId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  useEffect(() => {
     if (location.state?.servicetype) {
       setServiceType(location.state.servicetype);
     }
@@ -594,471 +593,501 @@ useEffect(() => {
 
   return (
     <>
-     
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white p-6">
-        
-        
         <div className="w-full max-w-2xl bg-white/10 backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
-            <div>
-                <h2 className="text-3xl font-bold text-white text-center mb-6">
-            🧮 Service Calculator
-          </h2>
+          <div>
+            <h2 className="text-3xl font-bold text-white text-center mb-6">
+              🧮 Service Calculator
+            </h2>
             <button
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
-          >
-            ← Go Back
-          </button>
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+            >
+              ← Go Back
+            </button>
 
-            <label className="block font-semibold mb-1">Select Service Type:</label>
-             <select
-          value={serviceType}
-          onChange={(e) => setServiceType(e.target.value)}
-          className="w-full p-2 border rounded bg-white text-black"
-        >
-            <option value="">-- Choose Service --</option>
-          <option value="paid">Paid Service</option>
-          <option value="complimentary">Complimentary Service</option>
-        </select>
-          </div>
- {serviceType === "paid" ? (
-  <div className="">
-          
-        
-          <div className="w-full max-w-2xl backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
-            <label className="block font-semibold mb-1">Select Service</label>
+            <label className="block font-semibold mb-1">
+              Select Service Type:
+            </label>
             <select
+              value={serviceType}
+              onChange={(e) => setServiceType(e.target.value)}
               className="w-full p-2 border rounded bg-white text-black"
-              value={selectedService}
-              onChange={(e) => {
-                setSelectedService(e.target.value);
-                setSelectedCategory("");
-                setSelectedEditingType(null);
-              }}
             >
               <option value="">-- Choose Service --</option>
-              {data.map((service) => (
-                <option key={service.service_id} value={service.service_name}>
-                  {service.service_name}
-                </option>
-              ))}
+              <option value="paid">Paid Service</option>
+              <option value="complimentary">Complimentary Service</option>
             </select>
-        
-
-          {getSelectedService && (
-            <div>
-              <label className="block font-semibold mb-1">
-                Select Category
-              </label>
-              <select
-                className="w-full p-2 border rounded bg-white text-black"
-                value={selectedCategory}
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value);
-                  setSelectedEditingType(null);
-                }}
-              >
-                <option value="">-- Choose Category --</option>
-                {getSelectedService.categories.map((category) => (
-                  <option
-                    key={category.category_id}
-                    value={category.category_name}
-                  >
-                    {category.category_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {getSelectedCategory && (
-            <div>
-              <label className="block font-semibold mb-1">
-                Select Editing Type
-              </label>
-              <select
-                className="w-full p-2 border rounded bg-white text-black"
-                value={selectedEditingType?.editing_type_id || ""}
-                onChange={(e) => {
-                  const edit = getSelectedCategory.editing_types.find(
-                    (et) => et.editing_type_id === parseInt(e.target.value)
-                  );
-                  setSelectedEditingType(edit);
-                }}
-              >
-                <option value="">-- Choose Editing Type --</option>
-                {getSelectedCategory.editing_types.map((edit) => (
-                  <option
-                    key={edit.editing_type_id}
-                    value={edit.editing_type_id}
-                  >
-                    {edit.editing_type_name} - ₹{edit.amount}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div>
-            <label className="block font-semibold mb-1">Quantity</label>
-            <input
-              type="number"
-              className="w-full p-2 border rounded bg-white text-black"
-              min={1}
-              value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value))}
-            />
           </div>
-
-{selectedService === "Video Services" && optionalServices?.length > 0 && (
-  <div className="space-y-4">
-    {optionalServices.map((opt) => {
-      const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-      return (
-        <div key={key}>
-          <label className="block font-semibold">{opt.editing_type_name}?</label>
-          <div className="flex gap-4 mt-2">
-            <button
-              type="button"
-              className={`px-4 py-2 rounded ${
-                addons[key] ? "bg-green-600 text-white" : "bg-gray-300 text-black"
-              }`}
-              onClick={() => setAddons((prev) => ({ ...prev, [key]: true }))}
-            >
-              YES
-            </button>
-            <button
-              type="button"
-              className={`px-4 py-2 rounded ${
-                !addons[key] ? "bg-red-600 text-white" : "bg-gray-300 text-black"
-              }`}
-              onClick={() => setAddons((prev) => ({ ...prev, [key]: false }))}
-            >
-              NO
-            </button>
-          </div>
-        </div>
-      );
-    })}
-  </div>
-)}
-
-{selectedService === "Graphics Design" && optionalServices?.length > 0 && (
-  <div className="space-y-4">
-    {optionalServices.map((opt) => {
-      const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-      return (
-        <div key={key}>
-          <label className="block font-semibold">{opt.editing_type_name}?</label>
-          <div className="flex gap-4 mt-2">
-            <button
-              type="button"
-              className={`px-4 py-2 rounded ${
-                addons[key] ? "bg-green-600 text-white" : "bg-gray-300 text-black"
-              }`}
-              onClick={() => setAddons((prev) => ({ ...prev, [key]: true }))}
-            >
-              YES
-            </button>
-            <button
-              type="button"
-              className={`px-4 py-2 rounded ${
-                !addons[key] ? "bg-red-600 text-white" : "bg-gray-300 text-black"
-              }`}
-              onClick={() => setAddons((prev) => ({ ...prev, [key]: false }))}
-            >
-              NO
-            </button>
-          </div>
-        </div>
-      );
-    })}
-  </div>
-)}
-
-          {selectedService === "Graphics Design" &&
-            optionalServices?.length > 0 && (
-              <div className="space-y-4">
-                {optionalServices.map((opt) => {
-                  const key = opt.editing_type_name
-                    .toLowerCase()
-                    .replace(/\s+/g, "_");
-                  return (
-                    <div key={key}>
-                      <label className="block font-semibold">
-                        {opt.editing_type_name}?
-                      </label>
-                      <div className="flex gap-4 mt-2">
-                        <button
-                          type="button"
-                          className={`px-4 py-2 rounded ${
-                            addons[key]
-                              ? "bg-green-600 text-white"
-                              : "bg-gray-300 text-black"
-                          }`}
-                          onClick={() =>
-                            setAddons((prev) => ({ ...prev, [key]: true }))
-                          }
-                        >
-                          YES
-                        </button>
-                        <button
-                          type="button"
-                          className={`px-4 py-2 rounded ${
-                            !addons[key]
-                              ? "bg-red-600 text-white"
-                              : "bg-gray-300 text-black"
-                          }`}
-                          onClick={() =>
-                            setAddons((prev) => ({ ...prev, [key]: false }))
-                          }
-                        >
-                          NO
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-          <button
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            {loading ? "Save..." : "Calculate & Save"}
-          </button>
-          <button
-            className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"
-            onClick={resetForm}
-          >
-            Reset Form
-          </button>
-
-
-       
-            <div className="text-xl font-semibold text-center text-green-300 mt-4">
-              Total Amount: ₹{grandTotal.toLocaleString()}
-            </div>
-        
-          {/* Client Orders */}
-
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Recent Client Orders
-          </h3>
-          <div className="space-y-4">
-            {getData.map((order) => (
-              <div
-                key={order.id}
-                className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
-                  {/* Left Section: Info */}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 font-semibold text-lg">
-                      <Megaphone className="w-5 h-5 text-yellow-400" />
-                      <span>
-                        {order.service_name} → {order.category_name}
-                      </span>
-                    </div>
-                    <div className="text-lg text-white/80">
-                      🎬 {order.editing_type_name} × {order.quantity}
-                    </div>
-                  {(Number(order.include_content_posting) > 0 || Number(order.include_thumbnail_creation) > 0) && (
-  <div className="text-base text-white/60 italic">
-    {Number(order.include_content_posting) > 0 && (
-      <>📢 Content Posting  </>
-    )}
-    {Number(order.include_thumbnail_creation) > 0 && (
-      <>🖼 Thumbnail Creation </>
-    )}
-  </div>
-)}
-                    {/* <div className="text-xs text-white/50">
-                      🕒 {new Date(order.created_at).toLocaleString("en-IN")}
-                    </div> */}
-                  </div>
-
-                  {/* Right Section: Amount + Delete */}
-                  <div className="flex items-center gap-2 sm:gap-4">
-                    <div className="text-green-400 font-bold text-xl">
-                      ₹{parseFloat(order.total_amount).toLocaleString()}
-                    </div>
-                    <button
-                      onClick={() => handleEdit(order)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                      title="Edit"
+          {serviceType === "paid" ? (
+            <div className="">
+              <div className="w-full max-w-2xl backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
+                <label className="block font-semibold mb-1">
+                  Select Service
+                </label>
+                <select
+                  className="w-full p-2 border rounded bg-white text-black"
+                  value={selectedService}
+                  onChange={(e) => {
+                    setSelectedService(e.target.value);
+                    setSelectedCategory("");
+                    setSelectedEditingType(null);
+                  }}
+                >
+                  <option value="">-- Choose Service --</option>
+                  {data.map((service) => (
+                    <option
+                      key={service.service_id}
+                      value={service.service_name}
                     >
-                      ✎
-                    </button>
-                    <button
-                      onClick={() => handleDelete(order.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                      title="Delete"
+                      {service.service_name}
+                    </option>
+                  ))}
+                </select>
+
+                {getSelectedService && (
+                  <div>
+                    <label className="block font-semibold mb-1">
+                      Select Category
+                    </label>
+                    <select
+                      className="w-full p-2 border rounded bg-white text-black"
+                      value={selectedCategory}
+                      onChange={(e) => {
+                        setSelectedCategory(e.target.value);
+                        setSelectedEditingType(null);
+                      }}
                     >
-                      ×
-                    </button>
+                      <option value="">-- Choose Category --</option>
+                      {getSelectedService.categories.map((category) => (
+                        <option
+                          key={category.category_id}
+                          value={category.category_name}
+                        >
+                          {category.category_name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                )}
+
+                {getSelectedCategory && (
+                  <div>
+                    <label className="block font-semibold mb-1">
+                      Select Editing Type
+                    </label>
+                    <select
+                      className="w-full p-2 border rounded bg-white text-black"
+                      value={selectedEditingType?.editing_type_id || ""}
+                      onChange={(e) => {
+                        const edit = getSelectedCategory.editing_types.find(
+                          (et) =>
+                            et.editing_type_id === parseInt(e.target.value)
+                        );
+                        setSelectedEditingType(edit);
+                      }}
+                    >
+                      <option value="">-- Choose Editing Type --</option>
+                      {getSelectedCategory.editing_types.map((edit) => (
+                        <option
+                          key={edit.editing_type_id}
+                          value={edit.editing_type_id}
+                        >
+                          {edit.editing_type_name} - ₹{edit.amount}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block font-semibold mb-1">Quantity</label>
+                  <input
+                    type="number"
+                    className="w-full p-2 border rounded bg-white text-black"
+                    min={1}
+                    value={quantity}
+                    onChange={(e) => setQuantity(parseInt(e.target.value))}
+                  />
                 </div>
-              </div>
-            ))}
-          </div>
-          
-          
-                    
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                      <Package className="w-5 h-5" />
-                     Notes Section 
-                    </h3>
-          
-                      <button
-                        onClick={handleShow}
-                      className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
-                    >
-                      + Add Notes
-                    </button>
-                      <button
-                        onClick={handleSaveNotes}
-                      className="px-4 py-2 float-end bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition"
-                    >
-                      💾 Save Notes
-                    </button>
-            <div className="space-y-4">
-                      {allPlanNote.map((notes) => (
-                        <div
-                          key={notes.id}
-                          className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
-                            {/* Left Section: Info */}
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2 font-semibold text-lg">
-                              
-                                <span>
-                                  → {notes.note_name}
-                                </span>
-                              </div>
-                             
-                            
-                           
-                            </div>
-          
-                            {/* Right Section: Amount + Delete */}
-                            <div className="flex items-center gap-2 sm:gap-4">
+
+                {selectedService === "Video Services" &&
+                  optionalServices?.length > 0 && (
+                    <div className="space-y-4">
+                      {optionalServices.map((opt) => {
+                        const key = opt.editing_type_name
+                          .toLowerCase()
+                          .replace(/\s+/g, "_");
+                        return (
+                          <div key={key}>
+                            <label className="block font-semibold">
+                              {opt.editing_type_name}?
+                            </label>
+                            <div className="flex gap-4 mt-2">
                               <button
-                                              onClick={(e) => {
-                                                e.stopPropagation(); // prevent card onClick
-                                             setSelectedNotesId(notes)
-                                                setFormData({
-                                                  note_name: notes.note_name,
-                                                  plan:notes.plan
-                                                 
-                                                });
-                                                setIsEditing(true);
-                                                setShowModal(true);
-                                              }}
-                                               className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                                title="Edit"  >
-                                               ✎
-                                            </button>
-                              <button
-                                onClick={() => handleDeleteNote(notes.id)}
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                                title="Delete"
+                                type="button"
+                                className={`px-4 py-2 rounded ${
+                                  addons[key]
+                                    ? "bg-green-600 text-white"
+                                    : "bg-gray-300 text-black"
+                                }`}
+                                onClick={() =>
+                                  setAddons((prev) => ({
+                                    ...prev,
+                                    [key]: true,
+                                  }))
+                                }
                               >
-                                ×
+                                YES
+                              </button>
+                              <button
+                                type="button"
+                                className={`px-4 py-2 rounded ${
+                                  !addons[key]
+                                    ? "bg-red-600 text-white"
+                                    : "bg-gray-300 text-black"
+                                }`}
+                                onClick={() =>
+                                  setAddons((prev) => ({
+                                    ...prev,
+                                    [key]: false,
+                                  }))
+                                }
+                              >
+                                NO
                               </button>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-          
-          
-          
-          
-               {showModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                      {/* Backdrop */}
-                      <div
-                        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
-                        onClick={handleClose}
-                      />
-          
-                      {/* Modal */}
-                      <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <StickyNote className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <h2 className="text-xl font-semibold text-gray-900">
-                              {isEditing ? "Edit Note" : "Add New Note"}
-                            </h2>
-                          </div>
-                          <button
-                            onClick={handleClose}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        </div>
-          
-                        {/* Form */}
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                          {/* Note */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              <Notebook className="w-4 h-4 inline mr-2" />
-                              Note
-                            </label>
-                      <textarea
-            name="note_name"
-            value={formData.note_name}
-            onChange={handleChange}
-            className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
-            placeholder="Enter note details"
-            rows={4} // number of visible lines
-            required
-          ></textarea>
-          </div>
-          
-                
-          
-                          {/* Buttons */}
-                          <div className="flex justify-end gap-3 pt-4">
-                            <button
-                              type="button"
-                              onClick={handleClose}
-                              className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={loading}
-                              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-                            >
-                              {loading
-                                ? isEditing
-                                  ? "Updating..."
-                                  : "Saving..."
-                                : isEditing
-                                ? "Update Note"
-                                : "Save Note"}
-                            </button>
-                            
-          
-                          </div>
-                        </form>
-                      </div>
+                        );
+                      })}
                     </div>
                   )}
 
-          {/* <div className="space-y-3">
+                {selectedService === "Graphics Design" &&
+                  optionalServices?.length > 0 && (
+                    <div className="space-y-4">
+                      {optionalServices.map((opt) => {
+                        const key = opt.editing_type_name
+                          .toLowerCase()
+                          .replace(/\s+/g, "_");
+                        return (
+                          <div key={key}>
+                            <label className="block font-semibold">
+                              {opt.editing_type_name}?
+                            </label>
+                            <div className="flex gap-4 mt-2">
+                              <button
+                                type="button"
+                                className={`px-4 py-2 rounded ${
+                                  addons[key]
+                                    ? "bg-green-600 text-white"
+                                    : "bg-gray-300 text-black"
+                                }`}
+                                onClick={() =>
+                                  setAddons((prev) => ({
+                                    ...prev,
+                                    [key]: true,
+                                  }))
+                                }
+                              >
+                                YES
+                              </button>
+                              <button
+                                type="button"
+                                className={`px-4 py-2 rounded ${
+                                  !addons[key]
+                                    ? "bg-red-600 text-white"
+                                    : "bg-gray-300 text-black"
+                                }`}
+                                onClick={() =>
+                                  setAddons((prev) => ({
+                                    ...prev,
+                                    [key]: false,
+                                  }))
+                                }
+                              >
+                                NO
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                {selectedService === "Graphics Design" &&
+                  optionalServices?.length > 0 && (
+                    <div className="space-y-4">
+                      {optionalServices.map((opt) => {
+                        const key = opt.editing_type_name
+                          .toLowerCase()
+                          .replace(/\s+/g, "_");
+                        return (
+                          <div key={key}>
+                            <label className="block font-semibold">
+                              {opt.editing_type_name}?
+                            </label>
+                            <div className="flex gap-4 mt-2">
+                              <button
+                                type="button"
+                                className={`px-4 py-2 rounded ${
+                                  addons[key]
+                                    ? "bg-green-600 text-white"
+                                    : "bg-gray-300 text-black"
+                                }`}
+                                onClick={() =>
+                                  setAddons((prev) => ({
+                                    ...prev,
+                                    [key]: true,
+                                  }))
+                                }
+                              >
+                                YES
+                              </button>
+                              <button
+                                type="button"
+                                className={`px-4 py-2 rounded ${
+                                  !addons[key]
+                                    ? "bg-red-600 text-white"
+                                    : "bg-gray-300 text-black"
+                                }`}
+                                onClick={() =>
+                                  setAddons((prev) => ({
+                                    ...prev,
+                                    [key]: false,
+                                  }))
+                                }
+                              >
+                                NO
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                <button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"
+                  onClick={handleSave}
+                  disabled={loading}
+                >
+                  {loading ? "Save..." : "Calculate & Save"}
+                </button>
+                <button
+                  className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"
+                  onClick={resetForm}
+                >
+                  Reset Form
+                </button>
+
+                <div className="text-xl font-semibold text-center text-green-300 mt-4">
+                  Total Amount: ₹{grandTotal.toLocaleString()}
+                </div>
+
+                {/* Client Orders */}
+
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Recent Client Orders
+                </h3>
+                <div className="space-y-4">
+                  {getData.map((order) => (
+                    <div
+                      key={order.id}
+                      className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
+                        {/* Left Section: Info */}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 font-semibold text-lg">
+                            <Megaphone className="w-5 h-5 text-yellow-400" />
+                            <span>
+                              {order.service_name} → {order.category_name}
+                            </span>
+                          </div>
+                          <div className="text-lg text-white/80">
+                            🎬 {order.editing_type_name} × {order.quantity}
+                          </div>
+                          {(Number(order.include_content_posting) > 0 ||
+                            Number(order.include_thumbnail_creation) > 0) && (
+                            <div className="text-base text-white/60 italic">
+                              {Number(order.include_content_posting) > 0 && (
+                                <>📢 Content Posting </>
+                              )}
+                              {Number(order.include_thumbnail_creation) > 0 && (
+                                <>🖼 Thumbnail Creation </>
+                              )}
+                            </div>
+                          )}
+                          {/* <div className="text-xs text-white/50">
+                      🕒 {new Date(order.created_at).toLocaleString("en-IN")}
+                    </div> */}
+                        </div>
+
+                        {/* Right Section: Amount + Delete */}
+                        <div className="flex items-center gap-2 sm:gap-4">
+                          <div className="text-green-400 font-bold text-xl">
+                            ₹{parseFloat(order.total_amount).toLocaleString()}
+                          </div>
+                          <button
+                            onClick={() => handleEdit(order)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                            title="Edit"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            onClick={() => handleDelete(order.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                            title="Delete"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Notes Section
+                </h3>
+
+                <button
+                  onClick={handleShow}
+                  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+                >
+                  + Add Notes
+                </button>
+                <button
+                  onClick={handleSaveNotes}
+                  className="px-4 py-2 float-end bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition"
+                >
+                  💾 Save Notes
+                </button>
+                <div className="space-y-4">
+                  {allPlanNote.map((notes) => (
+                    <div
+                      key={notes.id}
+                      className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
+                        {/* Left Section: Info */}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 font-semibold text-lg">
+                            <span>→ {notes.note_name}</span>
+                          </div>
+                        </div>
+
+                        {/* Right Section: Amount + Delete */}
+                        <div className="flex items-center gap-2 sm:gap-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // prevent card onClick
+                              setSelectedNotesId(notes);
+                              setFormData({
+                                note_name: notes.note_name,
+                                plan: notes.plan,
+                              });
+                              setIsEditing(true);
+                              setShowModal(true);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                            title="Edit"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            onClick={() => handleDeleteNote(notes.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                            title="Delete"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {showModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                      className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+                      onClick={handleClose}
+                    />
+
+                    {/* Modal */}
+                    <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                      {/* Header */}
+                      <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <StickyNote className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <h2 className="text-xl font-semibold text-gray-900">
+                            {isEditing ? "Edit Note" : "Add New Note"}
+                          </h2>
+                        </div>
+                        <button
+                          onClick={handleClose}
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      {/* Form */}
+                      <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        {/* Note */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <Notebook className="w-4 h-4 inline mr-2" />
+                            Note
+                          </label>
+                          <textarea
+                            name="note_name"
+                            value={formData.note_name}
+                            onChange={handleChange}
+                            className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                            placeholder="Enter note details"
+                            rows={4} // number of visible lines
+                            required
+                          ></textarea>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex justify-end gap-3 pt-4">
+                          <button
+                            type="button"
+                            onClick={handleClose}
+                            className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                          >
+                            {loading
+                              ? isEditing
+                                ? "Updating..."
+                                : "Saving..."
+                              : isEditing
+                              ? "Update Note"
+                              : "Save Note"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* <div className="space-y-3">
             {getData.map((order) => (
               <div
                 key={order.id}
@@ -1099,15 +1128,13 @@ useEffect(() => {
               </div>
             ))}
           </div> */}
+              </div>
             </div>
-</div>
-  )  :serviceType === "complimentary"  ? (
-  <AdminComplimentaryData />
-) : null}
+          ) : serviceType === "complimentary" ? (
+            <AdminComplimentaryData />
+          ) : null}
         </div>
-     
       </div>
-
     </>
   );
 };

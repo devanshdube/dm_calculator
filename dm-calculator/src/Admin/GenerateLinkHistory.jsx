@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Calendar, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import moment from "moment";
+// import moment from "moment";
 import styled from "styled-components";
 import ReactPaginate from "react-paginate";
+import Swal from "sweetalert2";
 
 const GenerateLinkHistory = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
@@ -45,6 +46,44 @@ const GenerateLinkHistory = () => {
     setCurrentPage(selected);
   };
 
+  const handleDelete = async (linkId) => {
+    console.log(linkId);
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this! All submissions and items will be deleted.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteRequirementsBundle/${linkId}`
+      );
+
+      setData((prev) => prev.filter((row) => row.link_id !== linkId));
+
+      Swal.fire({
+        title: "Deleted!",
+        text: "The link and its submissions have been deleted.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      console.error("Delete failed:", err);
+      Swal.fire({
+        title: "Error!",
+        text: "Delete failed. Please try again.",
+        icon: "error",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated Background */}
@@ -82,9 +121,9 @@ const GenerateLinkHistory = () => {
                   <th className="text-left py-4 px-6 text-gray-200 uppercase text-sm">
                     Index
                   </th>
-                  <th className="text-left py-4 px-6 text-gray-200 uppercase text-sm">
+                  {/* <th className="text-left py-4 px-6 text-gray-200 uppercase text-sm">
                     Date
-                  </th>
+                  </th> */}
                   <th className="text-left py-4 px-6 text-gray-200 uppercase text-sm">
                     Client
                   </th>
@@ -98,7 +137,7 @@ const GenerateLinkHistory = () => {
                     Total Amount
                   </th>
                   <th className="text-left py-4 px-6 text-gray-200 uppercase text-sm">
-                    Show
+                    Action
                   </th>
                 </tr>
               </thead>
@@ -112,10 +151,10 @@ const GenerateLinkHistory = () => {
                       <td className="py-5 px-6 text-white font-semibold">
                         {offset + index + 1}
                       </td>
-                      <td className="py-5 px-6 flex items-center gap-2 text-gray-300">
+                      {/* <td className="py-5 px-6 flex items-center gap-2 text-gray-300">
                         <Calendar className="w-4 h-4 text-purple-400" />
                         {moment(item.created_at).format("DD/MM/YYYY")}
-                      </td>
+                      </td> */}
                       <td className="py-5 px-6 text-white font-medium">
                         {item.client_name}
                       </td>
@@ -128,7 +167,7 @@ const GenerateLinkHistory = () => {
                       <td className="py-5 px-6 text-cyan-400 font-semibold">
                         ₹{item.total_amount}
                       </td>
-                      <td className="py-5 px-6">
+                      {/* <td className="py-5 px-6">
                         <button
                           onClick={() =>
                             navigate(`/admin/review/${item.link_id}`)
@@ -136,6 +175,22 @@ const GenerateLinkHistory = () => {
                           className="px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg hover:scale-105 transition"
                         >
                           Show
+                        </button>
+                      </td> */}
+                      <td className="py-5 px-6 flex gap-2">
+                        <button
+                          onClick={() =>
+                            navigate(`/admin/review/${item.link_id}`)
+                          }
+                          className="px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg hover:scale-105 transition"
+                        >
+                          Show
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.link_id)}
+                          className="px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg hover:scale-105 transition"
+                        >
+                          Delete
                         </button>
                       </td>
                     </tr>

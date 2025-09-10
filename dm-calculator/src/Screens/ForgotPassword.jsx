@@ -22,38 +22,37 @@ const ForgotPassword = () => {
       );
       if (response.data.status === "Success") {
         Swal.fire("Success", response.data.message, "success");
-         Swal.fire({
-      icon: "success",
-      title: "Success",
-      text: `Sent OTP successfully!`,
-      showConfirmButton: false,  
-          timer: 2000,              
-            timerProgressBar: true   
-    });
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: `Sent OTP successfully!`,
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
         setOtpSent(true);
         setShowOtpModal(true);
       } else {
-      
-            Swal.fire({
-  icon: "error",
-  title: "Failed!",
-   text: response.data.message || "error",
-  showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
-});
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: response.data.message || "error",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("Error sending OTP:", error);
-    
-       Swal.fire({
-  icon: "error",
-     title: "Error",
-     text: "Error sending OTP",
-  showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
-});
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error sending OTP",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
     } finally {
       setLoading(false);
     }
@@ -71,37 +70,37 @@ const ForgotPassword = () => {
       );
       if (response.data.status === "Success") {
         Swal.fire("Success", response.data.message, "success");
-         Swal.fire({
-      icon: "success",
-      title: "Success",
-      text: response.data.message,
-      showConfirmButton: false,  
-          timer: 2000,              
-            timerProgressBar: true   
-    });
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: response.data.message,
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
         setShowOtpModal(false);
         navigate("/");
       } else {
-           Swal.fire({
-  icon: "error",
-  title: "Failed!",
-   text: response.data.message || "error",
-  showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
-});
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: response.data.message || "error",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("Error resetting password:", error);
-     
-       Swal.fire({
-  icon: "error",
-     title: "Error",
-     text: "Error resetting password",
-  showConfirmButton: false,  
-  timer: 2000,              
-  timerProgressBar: true    
-});
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error resetting password",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
     }
   };
 
