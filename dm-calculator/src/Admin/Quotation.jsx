@@ -24,6 +24,7 @@ export default function Quotation() {
   const [graphicData, setGraphicData] = useState([]);
   const [adsData, setAdsData] = useState([]);
   const [complimentaryData, setComplimentaryData] = useState([]);
+  const [selecteddiscount, setSelecteddiscount] = useState("");
   const [notesData, setNotesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clientData, setClientData] = useState([]);
@@ -146,6 +147,24 @@ export default function Quotation() {
       }
     }
   };
+const fetchDiscount = async () => {
+  try {
+    const { data } = await axios.get(
+      `${baseURL}/auth/api/calculator/getByIDDiscountData/${id}/${txn_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  
+    setSelecteddiscount(data.data[0].discount_per)
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
   const clientName = clientData?.client_name;
   const clientAddress = clientData?.address;
   const clientPhone = clientData?.phone;
@@ -155,6 +174,7 @@ export default function Quotation() {
     fetchClient();
     fetchClientNotes();
     fetchComplimentaryData();
+    fetchDiscount();
   }, [id, txn_id]);
 
   useEffect(() => {
@@ -224,6 +244,17 @@ export default function Quotation() {
   }, 0);
   const grandTotal = graphicTotal + adsTotal;
 
+  // Apply discount percentage only for display
+const discountAmount = selecteddiscount
+  ? (grandTotal * Number(selecteddiscount)) / 100
+  : 0;
+
+const totalAfterDiscount = grandTotal - discountAmount;
+
+// If GST applies on discounted total
+const gstAmount = isGST ? totalAfterDiscount * 0.18 : 0;
+const finalTotal = totalAfterDiscount + gstAmount;
+
   if (loading) {
     return (
       <div className="text-center p-10 font-semibold text-gray-700">
@@ -233,7 +264,7 @@ export default function Quotation() {
   }
 
   const handlePrintPage = () => {
-    document.title = `Quotation of ${clientName}`;
+    document.title = `${clientName} Quotation`;
     window.print();
   };
   return (
@@ -667,26 +698,33 @@ export default function Quotation() {
                     )}
 
                     {/* Grand Total Section */}
-                    <section className="text-right border-t pt-3 mb-6">
-                      <p className="text-xl text-gray-700">
-                        Subtotal: ₹{grandTotal.toLocaleString()}
-                      </p>
-                      {isGST ? (
-                        <>
-                          <p className="text-lg text-gray-600 mt-1">
-                            GST (18%): ₹{(grandTotal * 0.18).toLocaleString()}
-                          </p>
-                          <p className="text-2xl font-bold text-indigo-700 mt-2">
-                            Total with GST: ₹
-                            {(grandTotal * 1.18).toLocaleString()}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-2xl font-bold text-indigo-700 mt-2">
-                          Grand Total: ₹{grandTotal.toLocaleString()}
-                        </p>
-                      )}
-                    </section>
+                 <section className="text-right border-t pt-3 mb-6">
+  <p className="text-xl text-gray-700">
+    Subtotal: ₹{grandTotal.toLocaleString()}
+  </p>
+
+  {selecteddiscount > 0 && (
+    <p className="text-lg text-red-600 mt-1">
+      Discount ({selecteddiscount}%): -₹{discountAmount.toFixed(2).toLocaleString()}
+    </p>
+  )}
+
+  {isGST ? (
+    <>
+      <p className="text-lg text-gray-600 mt-1">
+        GST (18%): ₹{gstAmount.toLocaleString()}
+      </p>
+      <p className="text-2xl font-bold text-indigo-700 mt-2">
+        Total with GST: ₹{finalTotal.toLocaleString()}
+      </p>
+    </>
+  ) : (
+    <p className="text-2xl font-bold text-indigo-700 mt-2">
+      Grand Total: ₹{totalAfterDiscount.toFixed(2).toLocaleString()}
+    </p>
+  )}
+</section>
+
                     <h2 className="text-lg font-bold">Notes</h2>
                     {notesData.length > 0 ? (
                       <ul className="list-disc pl-5">

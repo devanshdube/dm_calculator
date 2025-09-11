@@ -20,6 +20,8 @@ import {
   X,
   StickyNote,
   Notebook,
+  Percent,
+  PercentDiamond,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
@@ -37,6 +39,7 @@ const AdminCalculator = () => {
   const { id, proposalId } = useParams();
   const [data, setData] = useState([]);
   const [selectedService, setSelectedService] = useState("");
+  const [selecteddiscount, setSelecteddiscount] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedEditingType, setSelectedEditingType] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -55,14 +58,24 @@ const AdminCalculator = () => {
   console.log(id, proposalId);
   const [editId, setEditId] = useState(null);
      const [allClientNote, setAllClientNote] = useState([]);
+     const [discountData, setDiscountData] = useState([]);
      const [formData, setFormData] = useState({
     note_name: "",
     plan: "Customise",
 
   });
+     const [formDataDis, setFormDataDis] = useState({
+   discount_per:"",
+  client_id:id,
+   txn_id:proposalId,   
+
+  });
     const [selectedNotesId, setSelectedNotesId] = useState(null);
+    const [selectedDiscountId, setSelectedDiscountId] = useState(null);
        const [showModal, setShowModal] = useState(false);
+       const [showModalDis, setShowModalDis] = useState(false);
  const [isEditing, setIsEditing] = useState(false);
+ const [isEditingDis, setIsEditingDis] = useState(false);
  const [predefinedNotes, setPredefinedNotes] = useState([]); // fetched from API
 const [selectedNotes, setSelectedNotes] = useState([]); // selected + manual
 const [manualNote, setManualNote] = useState("");
@@ -143,9 +156,26 @@ const fetchPredefinedNotes = async () => {
     console.error(error);
   }
 };
+const fetchDiscount = async () => {
+  try {
+    const { data } = await axios.get(
+      `${baseURL}/auth/api/calculator/getByIDDiscountData/${id}/${proposalId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    setDiscountData(data.data || []);
+    setSelecteddiscount(data.data[0].discount_per)
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 useEffect(() => {
   fetchPredefinedNotes();
+  fetchDiscount();
 }, []);
 
 
@@ -316,20 +346,28 @@ setAddons(initialAddons);
     
     });
   };
+  const handleCloseDis = () => {
+    setShowModalDis(false);
+    setFormDataDis({
+      discount_per: "",
+        client_id:id,
+   txn_id:proposalId,
+    });
+  };
 
 
   
 
     const handleShow = () => {
   
-    setFormData({
-      note_name: "",
-      plan:"Customise",
-     
+    setFormDataDis({
+      discount_per: "",
+        client_id:id,
+   txn_id:proposalId,
       
     });
-    setIsEditing(false);
-    setShowModal(true);
+    setIsEditingDis(false);
+    setShowModalDis(true);
   };
 
 
@@ -343,9 +381,113 @@ setAddons(initialAddons);
       [name]: value,
     }));
   };
+   const handleChangeDis = (e) => {
+    const { name, value } = e.target;
 
+    
+
+    setFormDataDis((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+    const handleSubmitDis = async (e) => {
+    e.preventDefault();
+    
+    setLoading(true);
+
+    try {
+      console.log("Submitting form data:", formDataDis);
+      let response;
+
+      if (isEditingDis && selectedDiscountId) {
+        response = await axios.put(
+          `${baseURL}/auth/api/calculator/updateDiscountDataById/${selectedDiscountId.id}`,
+          formDataDis,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data);
+      } else {
+        response = await axios.post(
+          `${baseURL}/auth/api/calculator/saveDiscountData`,
+          formDataDis,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data);
+      }
+
+      console.log("API response:", response.data);
+
+      if (response.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: isEditingDis
+            ? "Discount updated successfully!"
+            : "Discount added successfully!",
+              showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
+        }).then(() => {
+          setShowModalDis(false);
+           fetchDiscount();
+           
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text:
+            response.data.message || "Failed to save Discount. Please try again.",
+            showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
+        });
+      }
+    } catch (error) {
+      console.error("Error saving Discount:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Status:", error.response.status);
+        Swal.fire({
+          icon: "error",
+          title: `Error ${error.response.status}`,
+          text:
+            error.response.data.message ||
+            "Failed to save Discount. Please try again.",
+            showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to save Discount. Please try again.",
+          showConfirmButton: false,  
+            timer: 2000,              
+            timerProgressBar: true   
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+    
+  };
     const handleSubmit = async (e) => {
     e.preventDefault();
+    
     setLoading(true);
 
     try {
@@ -393,6 +535,7 @@ setAddons(initialAddons);
         }).then(() => {
           setShowModal(false);
            getAllPlanNotes();
+           
         });
       } else {
         Swal.fire({
@@ -454,6 +597,18 @@ const handleRemoveNote = (id) => {
   setSelectedNotes(selectedNotes.filter((note) => note.id !== id));
 };
 const handleSaveNotes = async () => {
+   if (selectedNotes.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "No Notes",
+        text: "Please add at least one note before saving.",
+  showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      });
+      return;
+    }
+
   try {
     const planNotes = selectedNotes.map((item) => ({
       note_name: item.note_name,
@@ -483,7 +638,13 @@ const handleSaveNotes = async () => {
       timerProgressBar: true,
     });
 
-    fetchData(); // refresh table
+  
+    getAllPlanNotes();
+    setManualNote('');
+           setPredefinedNotes([]);
+           setSelectedNotes([]);
+           fetchPredefinedNotes();
+    
   } catch (err) {
     console.error("Save error:", err);
     Swal.fire({
@@ -519,7 +680,7 @@ const handleSaveNotes = async () => {
       const result = res.data;
 
       if (result.status === "Success") {
-      
+      setAllClientNote((prev) => prev.filter((item) => item.id !== noteId));
 
         Swal.fire({
           icon: "success",
@@ -529,19 +690,58 @@ const handleSaveNotes = async () => {
           showConfirmButton: false,
         });
 
-        fetchClientNotes();
-      } else {
-            Swal.fire({
+       getAllPlanNotes();
+        
+      } 
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      Swal.fire({
   icon: "error",
-  title: "Failed!",
-   text: result.message || "Failed to delete entry.",
+     title: "Error",
+     text: "An error occurred while deleting entry.",
   showConfirmButton: false,  
   timer: 2000,              
   timerProgressBar: true    
 });
-      }
+    }
+  };
+   const handleDeleteDiscount = async (disId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this discount ?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteDiscountById/${disId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+      setDiscountData((prev) => prev.filter((item) => item.id !== disId));
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Discount has been deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+       fetchDiscount();
+       setSelecteddiscount('')
+        
+      } 
     } catch (error) {
-      console.error("Error deleting note:", error);
+      console.error("Error deleting discount:", error);
       Swal.fire({
   icon: "error",
      title: "Error",
@@ -607,15 +807,7 @@ const handleSaveNotes = async () => {
    
 
   } catch (error) {
-    console.error("Error fetching No plan found:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Failed to fetch No plan found. Please try again.",
-      showConfirmButton: false,  
-            timer: 2000,              
-            timerProgressBar: true   
-    });
+   
 
     if (error.response && error.response.status === 401) {
       Swal.fire({
@@ -697,10 +889,17 @@ const handleSaveNotes = async () => {
       });
     }
   };
-  const grandTotal = getData.reduce(
-    (acc, order) => acc + parseFloat(order.total_amount),
-    0
-  );
+// Original total (no discount applied)
+const grandTotal = getData.reduce(
+  (acc, order) => acc + parseFloat(order.total_amount || 0),
+  0
+);
+
+// Discounted total (if discount exists)
+const discountedTotal =
+  selecteddiscount && !isNaN(selecteddiscount)
+    ? grandTotal - (grandTotal * parseFloat(selecteddiscount)) / 100
+    : grandTotal;
 
   return (
     <>
@@ -893,17 +1092,80 @@ const handleSaveNotes = async () => {
           >
            {loading ? 'Save...':'Calculate & Save'} 
           </button>
-          <button
-            className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"
+           <button
+            onClick={handleShow}
+            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+          >
+            + Discount
+          </button>
+             <button
+            className=" px-4 py-2 float-end bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
             onClick={resetForm}
           >
             Reset Form
           </button>
+             <div className="space-y-4">
+                      {discountData.map((dis) => (
+                        <div
+                          key={dis.id}
+                          className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
+                            {/* Left Section: Info */}
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 font-semibold text-lg">
+                              
+                                <span>
+                                {dis.discount_per} %
+                                </span>
+                              </div>
+                             
+                            
+                           
+                            </div>
+          
+                            {/* Right Section: Amount + Delete */}
+                            <div className="flex items-center gap-2 sm:gap-4">
+                              <button
+                                              onClick={(e) => {
+                                                e.stopPropagation(); // prevent card onClick
+                                             setSelectedDiscountId(dis)
+                                                setFormDataDis({
+                                                  discount_per: dis.discount_per,
+                                                
+                                                 
+                                                });
+                                                setIsEditingDis(true);
+                                                setShowModalDis(true);
+                                              }}
+                                               className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                                title="Edit"  >
+                                               ✎
+                                            </button>
+                              <button
+                                onClick={() => handleDeleteDiscount(dis.id)}
+                                className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                                title="Delete"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+       
 
 
        
             <div className="text-xl font-semibold text-center text-green-300 mt-4">
               Total Amount: ₹{grandTotal.toLocaleString()}
+{selecteddiscount ? (
+  <p>
+    After {selecteddiscount}% Discount: ₹{discountedTotal.toFixed(2)}
+  </p>
+) : null}
+
             </div>
         
           {/* Client Orders */}
@@ -1165,6 +1427,85 @@ const handleSaveNotes = async () => {
                                 : isEditing
                                 ? "Update Note"
                                 : "Save Note"}
+                            </button>
+                            
+          
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+    {showModalDis && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                      {/* Backdrop */}
+                      <div
+                        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+                        onClick={handleCloseDis}
+                      />
+          
+                      {/* Modal */}
+                      <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <PercentDiamond className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-gray-900">
+                              {isEditingDis ? "Edit Discount" : "Add New Discount"}
+                            </h2>
+                          </div>
+                          <button
+                            onClick={handleCloseDis}
+                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+          
+                        {/* Form */}
+                        <form onSubmit={handleSubmitDis} className="p-6 space-y-4">
+                          {/* Note */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <Percent className="w-4 h-4 inline mr-2" />
+                         Discount
+                            </label>
+                      <input
+            name="discount_per"
+            type="number"
+            value={formDataDis.discount_per}
+            onChange={handleChangeDis}
+            className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+            placeholder="Enter discount percent"
+          
+            required
+          ></input>
+          </div>
+          
+                
+          
+                          {/* Buttons */}
+                          <div className="flex justify-end gap-3 pt-4">
+                            <button
+                              type="button"
+                              onClick={handleCloseDis}
+                              className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={loading}
+                              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                            >
+                              {loading
+                                ? isEditing
+                                  ? "Updating..."
+                                  : "Saving..."
+                                : isEditing
+                                ? "Update Discount"
+                                : "Save Discount"}
                             </button>
                             
           

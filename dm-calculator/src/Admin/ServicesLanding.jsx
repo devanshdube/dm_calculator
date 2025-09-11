@@ -1373,6 +1373,14 @@ export default function ServicesLanding() {
 
                     <td className="p-3">
                       <button
+                        className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
+                        onClick={() =>
+                          navigate(`/admin/calculator/${id}/${proposalId}`)
+                        }
+                      >
+                        Edit
+                      </button>
+                      <button
                         onClick={() => handleDeleteClientNote(note.id)}
                         className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
                         title="Delete"

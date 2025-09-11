@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 // import { useSelector } from "react-redux";
 import styled from "styled-components";
+import BDNoteSection from "../BusinessDeveloper/BDNoteSection";
 const QuotationBD = lazy(() => import("../BusinessDeveloper/QuotationBD"));
 const AdsCampaignCalciBD = lazy(() =>
   import("../BusinessDeveloper/AdsCampaignCalciBD")
@@ -42,6 +43,10 @@ const BDRouter = () => {
               element={<AdsCampaignCalciBD />}
             />
             <Route path="quotation/:id/:txn_id" element={<QuotationBD />} />
+              <Route
+              path="note-section/:id/:txn_id"
+              element={<BDNoteSection/>}
+            />
             <Route path="/review/:linkId" element={<ReviewRequirements />} />
           </Routes>
         </Suspense>

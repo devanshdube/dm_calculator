@@ -681,6 +681,39 @@ exports.updateClientNoteDataById = (req, res) => {
       .json({ status: "Success", message: "Entry updated of Client Note successfully" });
   });
 };
+exports.updateDiscountDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+    discount_per
+  } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE discount
+    SET
+      discount_per = ?,
+      created_at = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+  discount_per,
+    updatedAt,
+    id,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry updated of Discount successfully" });
+  });
+};
 
 // working code
 

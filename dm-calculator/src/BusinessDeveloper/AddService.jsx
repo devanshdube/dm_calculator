@@ -14,6 +14,7 @@ import {
   User,
   StickyNote,
   Notebook,
+  FileText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -79,6 +80,23 @@ export default function AddService() {
         "Analytics & ROI",
       ],
     },
+    {
+      id: 3,
+      title: "Notes",
+      subtitle: "Key Highlights",
+      description:
+        "Attach important remarks, reminders, and special conditions to your quotation.",
+      icon: FileText, // you can import from lucide-react
+      gradient: "from-purple-600 to-indigo-700",
+      bgPattern: "bg-gradient-to-br from-purple-50 to-indigo-50",
+      navigation: "/BD/note-section",
+      features: [
+        "Custom remarks",
+        "Special conditions",
+        "Internal reminders",
+        "Client-specific highlights",
+      ],
+    }
   ];
 
   const fetchClient = async () => {
@@ -1351,6 +1369,14 @@ export default function AddService() {
                     <td className="p-3">{note.note_name}</td>
 
                     <td className="p-3">
+                        <button
+                        className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
+                        onClick={() =>
+                          navigate(`/BD/calculator/${id}/${proposalId}`)
+                        }
+                      >
+                        Edit
+                      </button>
                       <button
                         onClick={() => handleDeleteClientNote(note.id)}
                         className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
