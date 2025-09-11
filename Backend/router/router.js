@@ -106,11 +106,12 @@ const {
   updateClientDetails,
   updatePlandata,
   updatePlanNameDetail,
-  updatePlanNotes,updateServiceData,
+  updatePlanNotes,
+  updateServiceData,
   updateComplimenatryDataById,
   updateNoteDataById,
   updateClientNoteDataById,
-  updateDiscountDataById
+  updateDiscountDataById,
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -275,7 +276,6 @@ router.delete("/deleteTeam/:id", deleteTeam);
 router.delete("/deleteComplimenatryById/:id", deleteComplimenatryById);
 router.delete("/deleteNoteById/:id", deleteNoteById);
 router.delete("/deleteDiscountById/:id", deleteDiscountById);
-
 
 router.delete("/deleteRequirementsBundle/:linkId", deleteRequirementsBundle);
 

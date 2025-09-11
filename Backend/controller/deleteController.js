@@ -281,6 +281,7 @@ exports.deleteQuoatationById = async (req, res) => {
   const deleteAdsCampaignQuery =
     "DELETE FROM ads_campaign_details WHERE txn_id = ?";
   const deleteNotesClient = "DELETE FROM plan_client_notes WHERE txn_id = ?";
+  const deleteAssign = `DELETE FROM assign_quotation WHERE txn_id = ?`;
 
   db.query(deleteCalculatorQuery, [txn_id], (err1, result1) => {
     if (err1) {
@@ -309,26 +310,43 @@ exports.deleteQuoatationById = async (req, res) => {
           });
         }
 
-        const deletedFromCalculator = result1.affectedRows > 0;
-        const deletedFromAds = result2.affectedRows > 0;
-        const deletedFromNotes = result3.affectedRows > 0;
+        db.query(deleteAssign, [txn_id], (err4, result4) => {
+          if (err4) {
+            return res.status(500).json({
+              status: "Failure",
+              message: "Error deleting from assign_quotation",
+              error: err4,
+            });
+          }
 
-        if (!deletedFromCalculator && !deletedFromAds && !deletedFromNotes) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No transaction found with the given txn_id",
+          const deletedFromCalculator = result1.affectedRows > 0;
+          const deletedFromAds = result2.affectedRows > 0;
+          const deletedFromNotes = result3.affectedRows > 0;
+          const deletedFromAssign = result4.affectedRows > 0;
+
+          if (
+            !deletedFromCalculator &&
+            !deletedFromAds &&
+            !deletedFromNotes &&
+            !deletedFromAssign
+          ) {
+            return res.status(404).json({
+              status: "Failure",
+              message: "No transaction found with the given txn_id",
+            });
+          }
+
+          res.status(200).json({
+            status: "Success",
+            message: `Transaction deleted from ${[
+              deletedFromCalculator ? "calculator_transactions" : null,
+              deletedFromAds ? "ads_campaign_details" : null,
+              deletedFromNotes ? "plan_client_notes" : null,
+              deletedFromAssign ? "assign_quotation" : null,
+            ]
+              .filter(Boolean)
+              .join(", ")} successfully`,
           });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          message: `Transaction deleted from ${[
-            deletedFromCalculator ? "calculator_transactions" : null,
-            deletedFromAds ? "ads_campaign_details" : null,
-            deletedFromNotes ? "plan_client_notes" : null,
-          ]
-            .filter(Boolean)
-            .join(", ")} successfully`,
         });
       });
     });
@@ -702,31 +720,27 @@ exports.deleteNoteById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    db.query(
-      "DELETE FROM notes_data WHERE id = ?",
-      [id],
-      (err, result) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error while deleting entry",
-            error: err,
-          });
-        }
-
-        if (result.affectedRows === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No Note entry found to delete",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          message: "Note entry deleted successfully",
+    db.query("DELETE FROM notes_data WHERE id = ?", [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while deleting entry",
+          error: err,
         });
       }
-    );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No Note entry found to delete",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        message: "Note entry deleted successfully",
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",
@@ -739,31 +753,27 @@ exports.deleteDiscountById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    db.query(
-      "DELETE FROM discount WHERE id = ?",
-      [id],
-      (err, result) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error while deleting entry",
-            error: err,
-          });
-        }
-
-        if (result.affectedRows === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No Note entry found to delete",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          message: "Note entry deleted successfully",
+    db.query("DELETE FROM discount WHERE id = ?", [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while deleting entry",
+          error: err,
         });
       }
-    );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No Note entry found to delete",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        message: "Note entry deleted successfully",
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",

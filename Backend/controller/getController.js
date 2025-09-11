@@ -503,6 +503,8 @@ exports.getClientServiceHistory = async (req, res) => {
   NULL AS charge
 FROM calculator_transactions ct
 WHERE ct.txn_id = ? AND ct.client_id = ?
+  AND NOT (ct.service_name = 'GMB' AND ct.category_name = 'LOCAL SEO')
+  AND NOT (ct.service_name = 'SEO' AND ct.category_name = 'Intended for Lead Generation')
 
 UNION
 
@@ -524,7 +526,8 @@ SELECT
   ad.charge
 FROM ads_campaign_details ad
 WHERE ad.txn_id = ? AND ad.client_id = ?
-
+  AND NOT (ad.category = 'Google Ad')
+  AND NOT (ad.category = 'Meta Ad');
   `;
 
   db.query(query, [txn_id, client_id, txn_id, client_id], (err, result) => {
@@ -985,11 +988,12 @@ exports.getPlanNotes = async (req, res) => {
   }
 };
 exports.getClientNotesbyId = async (req, res) => {
-   const { client_id, txn_id } = req.params;
+  const { client_id, txn_id } = req.params;
   try {
     db.query(
       "SELECT * FROM plan_client_notes WHERE client_id = ? AND txn_id = ?",
-      [client_id,txn_id],(err, results) => {
+      [client_id, txn_id],
+      (err, results) => {
         if (err) {
           return res.status(500).json({
             status: "Failure",
@@ -1019,7 +1023,6 @@ exports.getClientNotesbyId = async (req, res) => {
     });
   }
 };
-
 
 //NEW Work
 exports.retrieveUser = async (req, res) => {
@@ -1652,32 +1655,28 @@ exports.getRequirementsDetail = async (req, res) => {
 };
 
 exports.getNoteData = async (req, res) => {
-
-
   try {
-    db.query(
-      "SELECT * FROM notes_data",(err, results) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error",
-            error: err,
-          });
-        }
-
-        if (results.length === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No Data Found",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          data: results,
+    db.query("SELECT * FROM notes_data", (err, results) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
         });
       }
-    );
+
+      if (results.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No Data Found",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        data: results,
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",
