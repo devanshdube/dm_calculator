@@ -36,9 +36,7 @@ function AdminExplorePlans() {
   });
   const userName = currentUser?.name;
   const baseURL = `https://dmcalculator.dentalguru.software`;
-  const navigate = useNavigate(); 
-
-
+  const navigate = useNavigate();
 
   const getAllPlanNotes = async () => {
     try {
