@@ -109,7 +109,8 @@ const {
   updateClientDetails,
   updatePlandata,
   updatePlanNameDetail,
-  updatePlanNotes,updateServiceData,
+  updatePlanNotes,
+  updateServiceData,
   updateComplimenatryDataById,
   updateNoteDataById,
   updateClientNoteDataById,
@@ -286,7 +287,6 @@ router.delete("/deleteComplimenatryById/:id", deleteComplimenatryById);
 router.delete("/deleteNoteById/:id", deleteNoteById);
 router.delete("/deleteDiscountById/:id", deleteDiscountById);
 router.delete("/deleteInvoiceById/:id", deleteInvoiceById);
-
 
 router.delete("/deleteRequirementsBundle/:linkId", deleteRequirementsBundle);
 
