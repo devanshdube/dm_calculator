@@ -3272,3 +3272,65 @@ exports.saveDiscountData = (req, res) => {
     res.status(200).json({ status: "Success", message: "Saved Discount successfully" });
   });
 };
+
+exports.saveInvoiceData = (req, res) => {
+  const {
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+   
+  } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    INSERT INTO inovice (
+    	txn_id,
+      client_id,
+      service_name,
+      category_name,
+      editing_type_name,
+      editing_type_amount,
+      quantity,
+      include_content_posting,
+      include_thumbnail_creation,
+      total_amount,
+      employee,
+      created_at
+    ) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+   
+    createdAt,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Insert Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res.status(200).json({ status: "Success", message: "Saved successfully" });
+  });
+};
+

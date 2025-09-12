@@ -44,6 +44,8 @@ export default function Quotation() {
         }
       );
       setServiceData(res.data.data);
+      console.log(serviceData);
+      
     } catch (error) {
       if (error.response?.status === 401) {
         Swal.fire({
@@ -255,13 +257,13 @@ const totalAfterDiscount = grandTotal - discountAmount;
 const gstAmount = isGST ? totalAfterDiscount * 0.18 : 0;
 const finalTotal = totalAfterDiscount + gstAmount;
 
-  if (loading) {
-    return (
-      <div className="text-center p-10 font-semibold text-gray-700">
-        Loading...
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="text-center p-10 font-semibold text-gray-700">
+  //       Loading...
+  //     </div>
+  //   );
+  // }
 
   const handlePrintPage = () => {
     document.title = `${clientName} Quotation`;
@@ -346,7 +348,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
                       </div>
                       <div className="text-end">
                         <h2 className="text-2xl font-bold">
-                          {serviceData[0].plan_name} Plan
+                          {/* {serviceData[0].plan_name} Plan */}
                         </h2>
                         <p>{moment().format("DD/MM/YYYY")}</p>
                         <p>Quote #: {txn_id}</p>

@@ -7,6 +7,7 @@ import AdminAddPlan from "../Admin/AdminAddPlan";
 import AdminPlanHistory from "../Admin/AdminPlanHistory";
 import AdminComplimentaryData from "../Admin/AdminComplimentaryData";
 import NoteSection from "../Admin/NoteSection";
+import AdminInvoice from "../Admin/AdminInvoice";
 
 const AdminDashboard = lazy(() => import("../Admin/AdminDashboard"));
 const AdminCalculator = lazy(() => import("../Admin/AdminCalculator"));
@@ -59,6 +60,8 @@ const AdminRouter = () => {
               path="note-section/:id/:txn_id"
               element={<NoteSection />}
             />
+            <Route path="invoice/:id/:txn_id" element={<AdminInvoice />} />
+
             <Route path="/review/:linkId" element={<ReviewRequirements />} />
           </Routes>
         </Suspense>

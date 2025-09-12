@@ -714,7 +714,69 @@ exports.updateDiscountDataById = (req, res) => {
       .json({ status: "Success", message: "Entry updated of Discount successfully" });
   });
 };
+exports.updateInvoiceDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+  } = req.body;
 
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE inovice
+    SET
+      txn_id = ?,
+      client_id = ?,
+      service_name = ?,
+      category_name = ?,
+      editing_type_name = ?,
+      editing_type_amount = ?,
+      quantity = ?,
+      include_content_posting = ?,
+      include_thumbnail_creation = ?,
+      total_amount = ?,
+      employee = ?,
+      created_at = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+    updatedAt,
+    id,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry updated successfully" });
+  });
+};
 // working code
 
 // ------------------
