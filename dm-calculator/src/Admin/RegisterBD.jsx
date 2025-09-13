@@ -2,9 +2,18 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 // import { Mail, Lock, User } from "lucide-react";
-import { User, Mail, Lock, UserPlus, Eye, Calendar, Users } from "lucide-react";
+import {
+  User,
+  Mail,
+  Lock,
+  UserPlus,
+  Eye,
+  Calendar,
+  Users,
+  Phone,
+} from "lucide-react";
 import { useSelector } from "react-redux";
-import moment from "moment";
+// import moment from "moment";
 // import { useNavigate } from "react-router-dom";
 // import { clearUser } from "../redux/user/userSlice";
 
@@ -12,12 +21,11 @@ export default function RegisterBD() {
   // const baseURL = `https://dmcalculator.dentalguru.software`;
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const { token } = useSelector((state) => state.user);
-  //   const dispatch = useDispatch();
-  //   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     employee_name: "",
     employee_email: "",
     employee_password: "",
+    employee_phone: "",
   });
   const [registeredBDs, setRegisteredBDs] = useState([]);
 
@@ -57,56 +65,6 @@ export default function RegisterBD() {
     }
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   const token = localStorage.getItem("token");
-
-  //   try {
-  //     const response = await axios.post(
-  //       `${baseURL}/auth/api/calculator/registerBD`,
-  //       formData,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     Swal.fire({
-  //       icon: "success",
-  //       title: "Registered",
-  //       text: response.data.message,
-  //     });
-
-  //     setFormData({
-  //       employee_name: "",
-  //       employee_email: "",
-  //       employee_password: "",
-  //     });
-  //   } catch (error) {
-  //     if (error.response && error.response.status === 401) {
-  //       // Token expired or invalid
-  //       Swal.fire({
-  //         icon: "warning",
-  //         title: "Session Expired",
-  //         text: "Please login again.",
-  //         confirmButtonText: "Go to Login",
-  //       }).then(() => {
-  //         localStorage.removeItem("token");
-  //         navigate("/"); // Replace with your login route
-  //       });
-  //     } else {
-  //       Swal.fire({
-  //         icon: "error",
-  //         title: "Error",
-  //         text:
-  //           error.response?.data?.message || "Something went wrong. Try again.",
-  //       });
-  //     }
-  //   }
-  // };
-
   const fetchRegisteredBDs = async () => {
     try {
       const response = await axios.get(
@@ -129,122 +87,6 @@ export default function RegisterBD() {
   }, []);
 
   console.log(registeredBDs);
-
-  //   return (
-  //   <div className="min-h-screen bg-transparent py-10 px-4">
-  //     <div className="max-w-xl mx-auto bg-white shadow-md rounded-lg p-6">
-  //       <div className="flex justify-between items-center mb-6">
-  //         <h2 className="text-2xl font-bold text-gray-800">Register BD</h2>
-  //         {/* <button
-  //           onClick={fetchRegisteredBDs}
-  //           className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded shadow text-sm"
-  //         >
-  //           Show All
-  //         </button> */}
-  //       </div>
-
-  //       <form onSubmit={handleSubmit} className="space-y-5">
-  //         {/* Name */}
-  //         <div>
-  //           <label className="block text-sm font-medium text-gray-700 mb-1">
-  //             Employee Name
-  //           </label>
-  //           <div className="flex items-center border border-gray-300 rounded px-3 py-2 bg-white">
-  //             <User className="h-5 w-5 text-gray-400 mr-2" />
-  //             <input
-  //               type="text"
-  //               name="employee_name"
-  //               value={formData.employee_name}
-  //               onChange={handleChange}
-  //               className="w-full outline-none"
-  //               placeholder="Enter full name"
-  //               required
-  //             />
-  //           </div>
-  //         </div>
-
-  //         {/* Email */}
-  //         <div>
-  //           <label className="block text-sm font-medium text-gray-700 mb-1">
-  //             Email
-  //           </label>
-  //           <div className="flex items-center border border-gray-300 rounded px-3 py-2 bg-white">
-  //             <Mail className="h-5 w-5 text-gray-400 mr-2" />
-  //             <input
-  //               type="email"
-  //               name="employee_email"
-  //               value={formData.employee_email}
-  //               onChange={handleChange}
-  //               className="w-full outline-none"
-  //               placeholder="you@example.com"
-  //               required
-  //             />
-  //           </div>
-  //         </div>
-
-  //         {/* Password */}
-  //         <div>
-  //           <label className="block text-sm font-medium text-gray-700 mb-1">
-  //             Password
-  //           </label>
-  //           <div className="flex items-center border border-gray-300 rounded px-3 py-2 bg-white">
-  //             <Lock className="h-5 w-5 text-gray-400 mr-2" />
-  //             <input
-  //               type="password"
-  //               name="employee_password"
-  //               value={formData.employee_password}
-  //               onChange={handleChange}
-  //               className="w-full outline-none"
-  //               placeholder="••••••••"
-  //               required
-  //             />
-  //           </div>
-  //         </div>
-
-  //         {/* Submit */}
-  //         <button
-  //           type="submit"
-  //           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded"
-  //         >
-  //           Register
-  //         </button>
-  //       </form>
-  //     </div>
-
-  //     {/* History Below */}
-  //     {registeredBDs.length > 0 && (
-  //       <div className="max-w-5xl mx-auto mt-10 bg-white shadow-md rounded-lg p-4 overflow-x-auto">
-  //         <h3 className="text-xl font-semibold mb-4 text-gray-800">
-  //           Registered BDs
-  //         </h3>
-  //         <table className="min-w-full text-sm text-left text-gray-700">
-  //           <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-  //             <tr>
-  //               <th className="px-4 py-2">#</th>
-  //               <th className="px-4 py-2">Date</th>
-  //               <th className="px-4 py-2">Name</th>
-  //               <th className="px-4 py-2">Role</th>
-  //               <th className="px-4 py-2">Email</th>
-  //             </tr>
-  //           </thead>
-  //           <tbody>
-  //             {registeredBDs.map((bd, index) => (
-  //               <tr key={index} className="border-b hover:bg-gray-50">
-  //                 <td className="px-4 py-2">{index + 1}</td>
-  //                 <td className="px-4 py-2">
-  //                   {moment(bd.created_at).format("DD MMM YYYY")}
-  //                 </td>
-  //                 <td className="px-4 py-2">{bd.employee_name}</td>
-  //                 <td className="px-4 py-2">{bd.employee_role}</td>
-  //                 <td className="px-4 py-2">{bd.employee_email}</td>
-  //               </tr>
-  //             ))}
-  //           </tbody>
-  //         </table>
-  //       </div>
-  //     )}
-  //   </div>
-  // );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 py-12 px-4">
@@ -281,7 +123,7 @@ export default function RegisterBD() {
           <div className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Employee Name */}
-              <div className="md:col-span-2">
+              <div className="">
                 <label className="block text-sm font-semibold text-slate-200 mb-2">
                   Employee Name
                 </label>
@@ -317,6 +159,28 @@ export default function RegisterBD() {
                     onChange={handleChange}
                     className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="you@company.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Phone Number */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-200 mb-2">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    {/* Phone icon (lucide-react se import karein) */}
+                    <Phone className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    type="tel"
+                    name="employee_phone"
+                    value={formData.employee_phone}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter phone number"
                     required
                   />
                 </div>
@@ -375,8 +239,8 @@ export default function RegisterBD() {
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                         <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Date Registered
+                          <Phone className="h-4 w-4 mr-2" />
+                          Phone No.
                         </div>
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
@@ -402,7 +266,8 @@ export default function RegisterBD() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                          {moment(bd.created_at).format("DD MMM YYYY")}
+                          {/* {moment(bd.created_at).format("DD MMM YYYY")} */}
+                          {bd.employee_phone}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">

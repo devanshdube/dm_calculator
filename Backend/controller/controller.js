@@ -96,12 +96,18 @@ exports.register = async (req, res) => {
 };
 
 exports.registerBD = async (req, res) => {
-  const { employee_name, employee_email, employee_password } = req.body;
+  const { employee_name, employee_phone, employee_email, employee_password } =
+    req.body;
 
-  const employee_role = "BD"; // 🔐 Forcefully assign role as BD
+  const employee_role = "BD";
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  if (!employee_name || !employee_email || !employee_password) {
+  if (
+    !employee_name ||
+    !employee_phone ||
+    !employee_email ||
+    !employee_password
+  ) {
     return res.status(400).json({
       status: "Failure",
       message: "All fields are required.",
@@ -111,7 +117,7 @@ exports.registerBD = async (req, res) => {
   try {
     db.query(
       "SELECT * FROM dm_calculator_employees WHERE employee_email = ? OR employee_name = ?",
-      [employee_email, employee_name],
+      [employee_email, employee_name, employee_phone],
       async (err, results) => {
         if (err) {
           return res
@@ -129,10 +135,11 @@ exports.registerBD = async (req, res) => {
         const hashedPassword = await bcrypt.hash(employee_password, 10);
 
         db.query(
-          "INSERT INTO dm_calculator_employees (employee_name, employee_role, employee_email, employee_password, created_at) VALUES (?, ?, ?, ?, ?)",
+          "INSERT INTO dm_calculator_employees (employee_name, employee_phone, employee_role, employee_email, employee_password, created_at) VALUES (?, ?, ?, ?, ?, ?)",
           [
             employee_name,
-            employee_role, // 👈 This will always be 'BD'
+            employee_phone,
+            employee_role,
             employee_email,
             hashedPassword,
             createdAt,
