@@ -117,6 +117,7 @@ export default function Quotation() {
       }
     }
   };
+  
   const fetchComplimentaryData = async () => {
     try {
       const { data } = await axios.get(
@@ -581,123 +582,86 @@ const finalTotal = totalAfterDiscount + gstAmount;
                         </p>
                       </section>
                     )}
-                    {complimentaryData.length > 0 && (
-                      <section className="mb-2">
-                        <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
-                          Complimentary Services
-                        </h3>
+                 {complimentaryData.length > 0 && (
+  <section className="mb-2">
+    <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
+      Complimentary Services
+    </h3>
 
-                        {complimentaryData.map((service, idx) => (
-                          <div key={idx} className="mb-6">
-                            <table className="w-full border text-sm">
-                              <thead className="bg-indigo-100">
-                                <tr>
-                                  <th className="border px-3 py-2 text-left">
-                                    Category
-                                  </th>
-                                  <th className="border px-3 py-2 text-left">
-                                    Creative Type
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Quantity
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Price (₹)
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Total (₹)
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {complimentaryData.map((edit, eidx) => {
-                                  const qty = edit.quantity;
-                                  const base = edit.editing_type_amount;
-                                  const thumb = edit.include_thumbnail_creation;
-                                  const posting = edit.include_content_posting;
+    <table className="w-full border text-sm">
+      <thead className="bg-indigo-100">
+        <tr>
+          <th className="border px-3 py-2 text-left">Category</th>
+          <th className="border px-3 py-2 text-left">Creative Type</th>
+          <th className="border px-3 py-2 text-right">Quantity</th>
+          <th className="border px-3 py-2 text-right">Price (₹)</th>
+          <th className="border px-3 py-2 text-right">Total (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {complimentaryData.map((edit, eidx) => {
+          const qty = Number(edit.quantity);
+          const base = Number(edit.editing_type_amount);
+          const thumb = Number(edit.include_thumbnail_creation);
+          const posting = Number(edit.include_content_posting);
 
-                                  const totalBase = base * qty;
-                                  const totalThumb = thumb * qty;
-                                  const totalPost = posting * qty;
+          const totalBase = base * qty;
+          const totalThumb = thumb * qty;
+          const totalPost = posting * qty;
 
-                                  return (
-                                    <React.Fragment key={eidx}>
-                                      {/* Base Editing */}
-                                      <tr className="bg-white">
-                                        <td className="border px-3 py-2">
-                                          {edit.category_name}
-                                        </td>
-                                        <td className="border px-3 py-2">
-                                          {edit.editing_type_name}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right">
-                                          {qty}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right">
-                                          ₹{base}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right font-semibold">
-                                          ₹{totalBase}
-                                        </td>
-                                      </tr>
+          return (
+            <React.Fragment key={eidx}>
+              {/* Base Editing */}
+              <tr className="bg-white">
+                <td className="border px-3 py-2">{edit.category_name}</td>
+                <td className="border px-3 py-2">{edit.editing_type_name}</td>
+                <td className="border px-3 py-2 text-right">{qty}</td>
+                <td className="border px-3 py-2 text-right">₹{base}</td>
+                <td className="border px-3 py-2 text-right font-semibold">
+                  ₹{totalBase}
+                </td>
+              </tr>
 
-                                      {/* Thumbnail */}
-                                      {thumb > 0 && (
-                                        <tr className="bg-gray-50">
-                                          <td className="border px-3 py-2">
-                                            {edit.category_name}
-                                          </td>
-                                          <td className="border px-3 py-2">
-                                            Thumbnail Creation
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            {qty}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            ₹{thumb}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right font-semibold">
-                                            ₹{totalThumb}
-                                          </td>
-                                        </tr>
-                                      )}
+              {/* Thumbnail */}
+              {thumb > 0 && (
+                <tr className="bg-gray-50">
+                  <td className="border px-3 py-2">{edit.category_name}</td>
+                  <td className="border px-3 py-2">Thumbnail Creation</td>
+                  <td className="border px-3 py-2 text-right">{qty}</td>
+                  <td className="border px-3 py-2 text-right">₹{thumb}</td>
+                  <td className="border px-3 py-2 text-right font-semibold">
+                    ₹{totalThumb}
+                  </td>
+                </tr>
+              )}
 
-                                      {/* Content Posting */}
-                                      {posting > 0 && (
-                                        <tr className="bg-gray-50">
-                                          <td className="border px-3 py-2">
-                                            {edit.category_name}
-                                          </td>
-                                          <td className="border px-3 py-2">
-                                            Content Posting
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            {qty}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            ₹{posting}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right font-semibold">
-                                            ₹{totalPost}
-                                          </td>
-                                        </tr>
-                                      )}
-                                    </React.Fragment>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        ))}
+              {/* Content Posting */}
+              {posting > 0 && (
+                <tr className="bg-gray-50">
+                  <td className="border px-3 py-2">{edit.category_name}</td>
+                  <td className="border px-3 py-2">Content Posting</td>
+                  <td className="border px-3 py-2 text-right">{qty}</td>
+                  <td className="border px-3 py-2 text-right">₹{posting}</td>
+                  <td className="border px-3 py-2 text-right font-semibold">
+                    ₹{totalPost}
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </tbody>
+    </table>
 
-                        <p className="text-right text-lg font-semibold">
-                          Total: ₹{complimentaryTotal.toLocaleString()}
-                        </p>
-                        <p className="text-right text-lg font-semibold">
-                          Complimentary Total: ₹0
-                        </p>
-                      </section>
-                    )}
+    <p className="text-right text-lg font-semibold">
+      Total: ₹{complimentaryTotal.toLocaleString()}
+    </p>
+    <p className="text-right text-lg font-semibold">
+      Complimentary Total: ₹0
+    </p>
+  </section>
+)}
+
 
                     {/* Grand Total Section */}
                  <section className="text-right border-t pt-3 mb-6">

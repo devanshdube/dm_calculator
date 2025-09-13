@@ -3292,7 +3292,7 @@ exports.saveInvoiceData = (req, res) => {
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
   const query = `
-    INSERT INTO inovice (
+    INSERT INTO invoice_graphic (
     	txn_id,
       client_id,
       service_name,
@@ -3334,3 +3334,157 @@ exports.saveInvoiceData = (req, res) => {
   });
 };
 
+exports.saveInvoiceGD = (req, res) => {
+  const { txn_id, client_id, invoices } = req.body;
+
+  if (!txn_id || !client_id || !invoices) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "Missing required data" });
+  }
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  // Step 1: Insert invoices (invoice_graphic)
+  const invoiceQuery = `
+    INSERT INTO invoice_graphic 
+    (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at) 
+    VALUES ?
+  `;
+
+  const InvoiceValues = invoices.map((p) => [
+    txn_id,
+    client_id,
+    p.service_name,
+    p.category_name,
+    p.editing_type_name,
+    p.editing_type_amount,
+    p.quantity,
+    p.include_content_posting,
+    p.include_thumbnail_creation,
+    p.total_amount,
+    p.employee,
+    p.plan_name && p.plan_name.trim() !== "" ? p.plan_name : "Customise",
+    createdAt,
+  ]);
+
+  db.query(invoiceQuery, [InvoiceValues], (err) => {
+    if (err) {
+      console.error("Error saving invoices:", err);
+      return res.status(500).json({
+        status: "Failure",
+        message: "Error saving invoices",
+        error: err,
+      });
+    }
+
+     else {
+      return res.status(200).json({
+        status: "Success",
+        message: "invoices saved successfully",
+      });
+    }
+  });
+};
+
+exports.saveInvoiceAdsCampaign = async (req, res) => {
+  const adsItems = req.body.adsItems;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  if (!Array.isArray(adsItems) || adsItems.length === 0) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "No data provided." });
+  }
+
+  const insertValues = adsItems.map((item) => [
+    item.txn_id,
+    item.client_id,
+    item.id,
+    item.category,
+    item.amount,
+    item.percent,
+    item.charge,
+    item.total,
+    item.employee,
+    createdAt,
+  ]);
+
+  const sql = `
+    INSERT INTO ads_campaign_details_invoice 
+    (	txn_id, client_id, unique_id, category, amount, percent, charge, total, employee, created_at) 
+    VALUES ?
+  `;
+
+  db.query(sql, [insertValues], (err, result) => {
+    if (err) {
+      console.error("DB Error:", err);
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Database error." });
+    }
+    res.status(200).json({ status: "Success", message: "Invoice Ads campaign saved." });
+  });
+};
+
+exports.saveInvoiceComplimentaryData = (req, res) => {
+  const {
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+   
+  } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    INSERT INTO complimentary_invoice (
+    	txn_id,
+      client_id,
+      service_name,
+      category_name,
+      editing_type_name,
+      editing_type_amount,
+      quantity,
+      include_content_posting,
+      include_thumbnail_creation,
+      total_amount,
+      employee,
+      created_at
+    ) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+   
+    createdAt,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Insert Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res.status(200).json({ status: "Success", message: "Invoice Saved successfully" });
+  });
+};

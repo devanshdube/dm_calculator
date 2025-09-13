@@ -414,6 +414,9 @@ export default function ServicesLanding() {
           icon: "info",
           title: "No Notes",
           text: "No notes found for this plan.",
+           showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
         });
         return;
       }
@@ -540,6 +543,9 @@ export default function ServicesLanding() {
         icon: "error",
         title: "Error",
         text: "Something went wrong while saving the quotation.",
+         showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
       });
     }
   };

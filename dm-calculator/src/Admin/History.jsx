@@ -15,9 +15,14 @@ const History = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
+    
+
+      const [createdInvoices, setCreatedInvoices] = useState({});
+
   const [clientData, setClientData] = useState([]);
   const { id } = useParams();
-  const { token } = useSelector((state) => state.user);
+  const { currentUser, token } = useSelector((state) => state.user);
+
   const dispatch = useDispatch();
   const [keyword, setKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
@@ -27,7 +32,8 @@ const History = () => {
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [assignModal, setAssignModal] = useState(false);
-
+  
+  const userName = currentUser?.name;
   const fetchAllClientServices = async () => {
     try {
       const res = await axios.get(
@@ -42,6 +48,8 @@ const History = () => {
       if (res.data.status === "Success") {
         console.log(res.data);
         setFetchServices(res.data.data);
+        console.log(fetchServices);
+        
       }
     } catch (error) {
       console.log(error);
@@ -62,7 +70,115 @@ const History = () => {
       }
     }
   };
+const fetchAllInvoiceServices = async (txnID) => {
+  try {
+    const res = await axios.get(
+      `${baseURL}/auth/api/calculator/getAllInvoiceServiceHistory/${id}/${txnID}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (res.data.status === "Success") {
+      const hasInvoices = res.data.data && res.data.data.length > 0;
+
+      setCreatedInvoices((prev) => ({
+        ...prev,
+        [txnID]: hasInvoices, // true if invoice exists
+      }));
+    }
+  } catch (error) {
+    console.log(error);
+    if (error.response && error.response.status === 401) {
+      Swal.fire({
+        title: "Session Expired",
+        text: "Please login again.",
+        icon: "warning",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      }).then(() => {
+        dispatch(clearUser());
+        localStorage.removeItem("token");
+        navigate("/");
+      });
+    }
+  }
+};
+
   console.log(fetchServices);
+   
+ // ✅ Return fetched data instead of just setting state
+const fetchServicesById = async (txnID) => {
+  try {
+    const res = await axios.get(
+      `${baseURL}/auth/api/calculator/getClientServiceHistory/${id}/${txnID}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = res.data.data || [];
+    console.log(data);
+    
+
+    return data; // ✅ return fetched data directly
+  } catch (error) {
+    if (error.response?.status === 401) {
+      Swal.fire({
+        title: "Session Expired",
+        text: "Please login again.",
+        icon: "warning",
+      }).then(() => {
+        dispatch(clearUser());
+        localStorage.removeItem("token");
+        navigate("/");
+      });
+    }
+    return []; // fallback
+  }
+};
+const fetchComplimentaryData = async (txnID) => {
+  try {
+    const { data } = await axios.get(
+      `${baseURL}/auth/api/calculator/getByIDComplimentaryData/${txnID}/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const complimentary = data.data || [];
+  
+    return complimentary; // ✅ return so we can use it
+  } catch (error) {
+    console.error(error);
+    if (error.response && error.response.status === 401) {
+      Swal.fire({
+        title: "Session Expired",
+        text: "Please login again.",
+        icon: "warning",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      }).then(() => {
+        dispatch(clearUser());
+        localStorage.removeItem("token");
+        navigate("/");
+      });
+    }
+    return [];
+  }
+};
+
 
   const fetchClient = async () => {
     try {
@@ -156,6 +272,113 @@ const History = () => {
       });
     }
   };
+    const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+const handleCreateInvoice = async (txnID) => {
+  try {
+    // ✅ Get fresh services
+    const data = await fetchServicesById(txnID);
+console.log(data);
+
+    // ✅ Get complimentary separately
+    const complimentaryItems = await fetchComplimentaryData(txnID);
+
+    if (!data || data.length === 0) {
+      Swal.fire({
+        icon: "info",
+        title: "No Data",
+        text: "No Data found for this Service.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+      return;
+    }
+
+    // ✅ Step 1: Normal Invoices
+    const invoices = data
+      .filter(
+        (item) =>
+          item.service_type !== "Ads Campaign" &&
+          item.service_type !== "Complimentary"
+      )
+      .map((item) => ({
+        service_name: item.service_name,
+        category_name: item.category_name,
+        editing_type_name: item.editing_type_name,
+        editing_type_amount: item.editing_type_amount,
+        quantity: item.quantity,
+        include_content_posting: item.include_content_posting,
+        include_thumbnail_creation: item.include_thumbnail_creation,
+        total_amount: item.total_amount,
+        plan_name: item.plan_name,
+        employee: userName,
+      }));
+
+    // ✅ Step 2: Ads Campaign
+    const adsItems = data
+      .filter((item) => item.service_type === "Ads Campaign")
+      .map((item) => ({
+        txn_id: txnID,
+        client_id: id,
+        id: generateUniqueId(),
+        category: item.category_name,
+        amount: item.amount,
+        percent: item.percent,
+        charge: item.charge,
+        total: item.total_amount,
+        employee: userName,
+      }));
+
+    // ✅ Step 3: Save invoices
+    const payload = { txn_id: txnID, client_id: id, invoices };
+    await axios.post(`${baseURL}/auth/api/calculator/saveInvoiceGD`, payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // ✅ Step 4: Save Ads
+    if (adsItems.length > 0) {
+      await axios.post(
+        `${baseURL}/auth/api/calculator/saveInvoiceAdsCampaign`,
+        { adsItems },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    }
+
+    // ✅ Step 5: Save Complimentary (from separate API)
+    if (complimentaryItems.length > 0) {
+      for (const item of complimentaryItems) {
+        await axios.post(
+          `${baseURL}/auth/api/calculator/saveInvoiceComplimentaryData`,
+          item,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "Invoice Created",
+      text: "Invoice saved successfully!",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+  } catch (err) {
+    console.error("Save error:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Something went wrong while saving the invoice.",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+  }
+};
+
+
 
   console.log(clientData);
   const clientName = clientData.client_name;
@@ -164,6 +387,7 @@ const History = () => {
   useEffect(() => {
     fetchClient();
     fetchAllClientServices();
+    fetchAllInvoiceServices();
   }, []);
 
   const filteredItems = fetchServices.filter((row) => {
@@ -208,6 +432,14 @@ const History = () => {
     setSelectedTxn(txn);
     setAssignModal(true);
   };
+  useEffect(() => {
+  showApiData.forEach((item) => {
+    if (!createdInvoices[item.txn_id]) {
+      fetchAllInvoiceServices(item.txn_id);
+    }
+  });
+}, [showApiData]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -296,6 +528,9 @@ const History = () => {
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       Action
                     </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
+                      Invoice
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -329,6 +564,7 @@ const History = () => {
                             {item.txn_id ? item.txn_id : "N/A"}
                           </div>
                         </td>
+                      
                         <td className="py-5 px-6">
                           <button
                             onClick={() => {
@@ -352,7 +588,26 @@ const History = () => {
                           >
                             Delete
                           </button>
+                          
                         </td>
+                          <td className="py-5 px-6">
+  {createdInvoices[item.txn_id] ? (
+    <button
+      disabled
+      className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 cursor-not-allowed"
+    >
+      Invoice Created
+    </button>
+  ) : (
+    <button
+      onClick={() => handleCreateInvoice(item.txn_id)}
+      className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg shadow-red-500/25"
+    >
+      Create Invoice
+    </button>
+  )}
+</td>
+
                       </tr>
                     ))
                   ) : (
