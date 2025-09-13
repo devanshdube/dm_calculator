@@ -35,7 +35,7 @@ export default function AdminInvoice() {
   const fetchServices = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientServiceHistory/${id}/${txn_id}`,
+        `${baseURL}/auth/api/calculator/getinInvoiceServiceHistory/${id}/${txn_id}`,
         {
           headers: {
             "Content-Type": "application/json",

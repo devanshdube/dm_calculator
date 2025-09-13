@@ -37,6 +37,9 @@ const {
   saveNotesData,
   saveDiscountData,
   saveInvoiceData,
+  saveInvoiceGD,
+  saveInvoiceAdsCampaign,
+  saveInvoiceComplimentaryData,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -76,6 +79,8 @@ const {
   getNoteData,
   getByIDDiscountData,
   getInvoiceByIdData,
+  getinInvoiceServiceHistory,
+  getAllInvoiceServiceHistory,
   getClientServiceHistoryAssign,
 } = require("../controller/getController");
 const {
@@ -159,6 +164,9 @@ router.post("/submitRequirement", submitRequirement);
 router.post("/saveNotesData", saveNotesData);
 router.post("/saveDiscountData", saveDiscountData);
 router.post("/saveInvoiceData", saveInvoiceData);
+router.post("/saveInvoiceGD", saveInvoiceGD);
+router.post("/saveInvoiceAdsCampaign", saveInvoiceAdsCampaign);
+router.post("/saveInvoiceComplimentaryData", saveInvoiceComplimentaryData);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -220,6 +228,16 @@ router.get(
   getByIDComplimentaryData
 );
 
+router.get(
+  "/getinInvoiceServiceHistory/:client_id/:txn_id",
+  authenticateToken,
+  getinInvoiceServiceHistory
+);
+router.get(
+  "/getAllInvoiceServiceHistory/:client_id/:txn_id",
+  authenticateToken,
+  getAllInvoiceServiceHistory
+);
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);
 
@@ -253,6 +271,7 @@ router.get(
   authenticateToken,
   getInvoiceByIdData
 );
+
 // ---->  Get all routes END <----
 
 // ---->  DELETE all routes START <----

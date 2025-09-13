@@ -733,7 +733,7 @@ exports.updateInvoiceDataById = (req, res) => {
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
   const query = `
-    UPDATE inovice
+    UPDATE invoice_graphic
     SET
       txn_id = ?,
       client_id = ?,

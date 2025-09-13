@@ -787,7 +787,7 @@ exports.deleteInvoiceById = async (req, res) => {
 
   try {
     db.query(
-      "DELETE FROM inovice WHERE id = ?",
+      "DELETE FROM invoice_graphic WHERE id = ?",
       [id],
       (err, result) => {
         if (err) {
