@@ -96,7 +96,7 @@ export default function AddService() {
         "Internal reminders",
         "Client-specific highlights",
       ],
-    }
+    },
   ];
 
   const fetchClient = async () => {
@@ -1369,7 +1369,7 @@ export default function AddService() {
                     <td className="p-3">{note.note_name}</td>
 
                     <td className="p-3">
-                        <button
+                      <button
                         className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
                         onClick={() =>
                           navigate(`/BD/calculator/${id}/${proposalId}`)

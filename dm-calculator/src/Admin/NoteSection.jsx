@@ -159,10 +159,7 @@ const NoteSection = () => {
           `${baseURL}/auth/api/calculator/updateNoteDataById/${editId}`,
           payload
         )
-      : axios.post(
-          `${baseURL}/auth/api/calculator/saveNotesData`,
-          payload
-        );
+      : axios.post(`${baseURL}/auth/api/calculator/saveNotesData`, payload);
 
     request
       .then((res) => {
@@ -176,12 +173,10 @@ const NoteSection = () => {
             timer: 2000,
             timerProgressBar: true,
           });
-            setEditId('')
+          setEditId("");
           fetchData();
           setLoading(false);
           setSelectedNote("");
-
-    
         }
       })
       .catch((err) => {
@@ -298,7 +293,7 @@ const NoteSection = () => {
           <h2 className="text-3xl font-bold text-white text-center mb-6">
             🧮 Note Section
           </h2>
-         <button
+          <button
             onClick={() => navigate(-1)}
             className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
           >
@@ -321,7 +316,7 @@ const NoteSection = () => {
             onClick={handleSave}
             disabled={loading}
           >
-            {loading ? "Save..." :  editId ? "Update Note" : "Create Note"}
+            {loading ? "Save..." : editId ? "Update Note" : "Create Note"}
           </button>
           <button
             className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"
@@ -346,10 +341,7 @@ const NoteSection = () => {
                   {/* Left Section: Info */}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 font-semibold text-lg">
-                
-                      <span>
-                        →  {order.note_text}
-                      </span>
+                      <span>→ {order.note_text}</span>
                     </div>
                   </div>
 
@@ -369,7 +361,6 @@ const NoteSection = () => {
                     >
                       ×
                     </button>
-                   
                   </div>
                 </div>
               </div>

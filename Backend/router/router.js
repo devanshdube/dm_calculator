@@ -81,6 +81,7 @@ const {
   getInvoiceByIdData,
   getinInvoiceServiceHistory,
   getAllInvoiceServiceHistory,
+  getClientServiceHistoryAssign,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -120,7 +121,7 @@ const {
   updateNoteDataById,
   updateClientNoteDataById,
   updateDiscountDataById,
-  updateInvoiceDataById
+  updateInvoiceDataById,
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -200,6 +201,12 @@ router.get(
   "/getClientServiceHistory/:client_id/:txn_id",
   authenticateToken,
   getClientServiceHistory
+);
+
+router.get(
+  "/getClientServiceHistoryAssign/:client_id/:txn_id",
+  authenticateToken,
+  getClientServiceHistoryAssign
 );
 
 router.get(
