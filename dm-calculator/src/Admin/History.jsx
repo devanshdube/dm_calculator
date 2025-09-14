@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
 import QuotationTypeModal from "./QuotationTypeModal";
+import Header from "../Components/Header";
 
 const History = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
@@ -582,7 +583,9 @@ setCreatedInvoices((prev) => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
-      <div className="relative z-10 p-6 space-y-8">
+      <Header />
+
+      <div className="relative z-10 p-6 space-y-8 mt-10">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 lg:gap-0">
           <div>

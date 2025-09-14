@@ -496,7 +496,7 @@ const AdminClientDetails = () => {
 
   return (
     <>
-      <div className="p-4 md:p-6  space-y-6 bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg">
+      <div className="p-4 md:p-6  space-y-6 bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <h2 className="text-3xl font-semibold text-gray-800">
             Client Details

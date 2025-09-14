@@ -100,9 +100,12 @@ const AdminDashboard = () => {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 bg-gray-800/30 backdrop-blur-xl border-b border-gray-700/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
+      {/* <header className="relative z-10 bg-gray-800/30 backdrop-blur-xl border-b border-gray-700/50"> */}
+      <header className="fixed top-0 left-0 right-0 z-30 h-16 bg-gray-800/30 backdrop-blur-xl border-b border-gray-700/50">
+        {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4"> */}
+        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* <div className="flex justify-between items-center"> */}
+          <div className="h-full flex justify-between items-center">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                 Control Panel
@@ -151,27 +154,42 @@ const AdminDashboard = () => {
       </header>
 
       {/* Navigation Tabs - Desktop */}
-      <nav className="hidden lg:block relative z-10 bg-gray-800/20 backdrop-blur-xl border-b border-gray-700/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-6 xl:space-x-8">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? "border-purple-500 text-purple-400 bg-purple-500/10"
-                      : "border-transparent text-gray-400 hover:text-white hover:border-gray-600"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden xl:inline">{tab.label}</span>
-                  <span className="xl:hidden">{tab.label.split(" ")[0]}</span>
-                </button>
-              );
-            })}
+      {/* Navigation Tabs - Desktop (fixed under header, pill style) */}
+      {/* Navigation Tabs - Desktop (fixed, full-width, no truncate) */}
+      <nav className="hidden lg:block fixed top-16 left-0 right-0 z-20 h-12 bg-gray-900/40 backdrop-blur-xl border-b border-gray-800/50">
+        {/* ❌ max-w-7xl mx-auto ko hatao, full width lo */}
+        <div className="h-full w-full px-3 lg:px-4">
+          {/* Horizontal scroll (agar zaroorat pade) */}
+          <div className="h-full overflow-x-auto no-scrollbar">
+            <div className="h-full flex items-center gap-2">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={[
+                      // height & padding
+                      "flex items-center gap-2 h-9 px-4 rounded-full text-sm font-medium",
+                      // text wrap: full dikhna chahiye
+                      "whitespace-nowrap min-w-max",
+                      // transitions
+                      "transition-all duration-200",
+                      // states
+                      isActive
+                        ? "bg-purple-500/20 text-purple-100 ring-1 ring-purple-400/40"
+                        : "text-gray-200 hover:text-white hover:bg-white/10",
+                    ].join(" ")}
+                    title={tab.label}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    {/* ❌ truncate hata diya */}
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </nav>
@@ -215,25 +233,33 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        <div className="transition-all duration-300 ease-in-out">
-          {activeTab === "clients" && <AdminClientDetails />}
-          {activeTab === "registerbd" && <RegisterBD />}
-          {activeTab === "AddADSCamp" && <AdminAdsCampign />}
-          {activeTab === "AddServices" && <AdminAddServices />}
-          {activeTab === "servicehistory" && <AdminServicesHistory />}
-          {activeTab === "addplan" && <AdminAddPlan />}
-          {activeTab === "exploreplan" && <AdminExplorePlans />}
-          {activeTab === "history" && <AllHistory />}
-          {activeTab === "assign" && <AssignQuotation />}
-          {activeTab === "createteam" && <CreateTeam />}
-          {activeTab === "generatelink" && <GenerateLinkHistory />}
+      {/* <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8"> */}
+      <main className="fixed inset-x-0 top-16 lg:top-28 bottom-14 lg:bottom-0 z-10">
+        {/* <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 lg:pt-[112px] pb-16 lg:pb-8"> */}
+        {/* <div className="transition-all duration-300 ease-in-out"> */}
+        {/* <div className="transition-all duration-300 ease-in-out h-[calc(100vh-64px-56px)] lg:h-[calc(100vh-64px-48px)] overflow-y-auto"> */}
+        <div className="h-full overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+            {activeTab === "clients" && <AdminClientDetails />}
+            {activeTab === "registerbd" && <RegisterBD />}
+            {activeTab === "AddADSCamp" && <AdminAdsCampign />}
+            {activeTab === "AddServices" && <AdminAddServices />}
+            {activeTab === "servicehistory" && <AdminServicesHistory />}
+            {activeTab === "addplan" && <AdminAddPlan />}
+            {activeTab === "exploreplan" && <AdminExplorePlans />}
+            {activeTab === "history" && <AllHistory />}
+            {activeTab === "assign" && <AssignQuotation />}
+            {activeTab === "createteam" && <CreateTeam />}
+            {activeTab === "generatelink" && <GenerateLinkHistory />}
+          </div>
         </div>
       </main>
 
       {/* Mobile Bottom Navigation (Alternative) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-gray-800/95 backdrop-blur-xl border-t border-gray-700/50">
-        <div className="flex justify-around py-2">
+      {/* <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-gray-800/95 backdrop-blur-xl border-t border-gray-700/50">
+        <div className="flex justify-around py-2"> */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-gray-800/95 backdrop-blur-xl border-t border-gray-700/50 h-14">
+        <div className="h-full flex justify-around items-center">
           {tabs.slice(0, 4).map((tab) => {
             const Icon = tab.icon;
             return (
