@@ -118,7 +118,7 @@ export default function AdminInvoice() {
   const fetchComplimentaryData = async () => {
     try {
       const { data } = await axios.get(
-        `${baseURL}/auth/api/calculator/getByIDComplimentaryData/${txn_id}/${id}`,
+        `${baseURL}/auth/api/calculator/getComplimentaryInvoiceData/${txn_id}/${id}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -128,6 +128,8 @@ export default function AdminInvoice() {
       );
       console.log(data.data);
       setComplimentaryData(data.data);
+      console.log(complimentaryData);
+      
     } catch (error) {
       console.log(error);
       if (error.response && error.response.status === 401) {

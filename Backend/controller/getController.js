@@ -2050,3 +2050,40 @@ exports.getAllInvoiceServiceHistory = async (req, res) => {
   }
 };
 
+exports.getComplimentaryInvoiceData = async (req, res) => {
+  const { txn_id, client_id } = req.params;
+
+  try {
+    db.query(
+      "SELECT * FROM complimentary_invoice WHERE txn_id = ? AND client_id = ?",
+      [txn_id, client_id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No calculator transactions found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};

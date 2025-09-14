@@ -3136,7 +3136,22 @@ exports.saveInvoiceData = (req, res) => {
 };
 
 exports.saveInvoiceGD = (req, res) => {
-  const { txn_id, client_id, invoices } = req.body;
+  const {
+    txn_id,
+    client_id,
+    client_name,
+    client_organization,
+    email,
+    phone,
+    address,
+    dg_employee,
+    duration_start_date,
+    duration_end_date,
+    payment_mode,
+    client_gst_no,
+    client_pan_no,
+    invoices,
+  } = req.body;
 
   if (!txn_id || !client_id || !invoices) {
     return res
@@ -3146,45 +3161,80 @@ exports.saveInvoiceGD = (req, res) => {
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  // Step 1: Insert invoices (invoice_graphic)
-  const invoiceQuery = `
-    INSERT INTO invoice_graphic 
-    (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at) 
-    VALUES ?
+  // ✅ Step 1: Save client info in `invoice` table
+  const clientQuery = `
+    INSERT INTO invoice 
+    (txn_id,client_id,client_name, client_organization, email, phone, address, dg_employee,duration_start_date,duration_end_date,payment_mode,client_gst_no,client_pan_no,created_at) 
+    VALUES (?)
   `;
 
-  const InvoiceValues = invoices.map((p) => [
+  const clientValues = [
     txn_id,
     client_id,
-    p.service_name,
-    p.category_name,
-    p.editing_type_name,
-    p.editing_type_amount,
-    p.quantity,
-    p.include_content_posting,
-    p.include_thumbnail_creation,
-    p.total_amount,
-    p.employee,
-    p.plan_name && p.plan_name.trim() !== "" ? p.plan_name : "Customise",
+    client_name,
+    client_organization || null,
+    email || null,
+    phone,
+    address || null,
+    dg_employee,
+    duration_start_date,
+    duration_end_date,
+    payment_mode,
+    client_gst_no || null,
+    client_pan_no || null,
     createdAt,
-  ]);
+  ];
+  console.log(clientValues);
+  
 
-  db.query(invoiceQuery, [InvoiceValues], (err) => {
+  db.query(clientQuery, [clientValues], (err) => {
     if (err) {
-      console.error("Error saving invoices:", err);
       return res.status(500).json({
         status: "Failure",
-        message: "Error saving invoices",
+        message: "Error saving client info",
         error: err,
       });
     }
 
-     else {
+    // ✅ Step 2: Insert invoices in `invoice_graphic`
+    const invoiceQuery = `
+      INSERT INTO invoice_graphic 
+      (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at) 
+      VALUES ?
+    `;
+
+    const invoiceValues = invoices.map((p) => [
+      txn_id,
+      client_id,
+      p.service_name,
+      p.category_name,
+      p.editing_type_name,
+      p.editing_type_amount,
+      p.quantity,
+      p.include_content_posting,
+      p.include_thumbnail_creation,
+      p.total_amount,
+      p.employee,
+      p.plan_name && p.plan_name.trim() !== "" ? p.plan_name : "Customise",
+      createdAt,
+    ]);
+
+    db.query(invoiceQuery, [invoiceValues], (err2) => {
+      if (err2) {
+        console.error("Error saving invoices:", err2);
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error saving invoices",
+          error: err2,
+        });
+      }
+
+      // ✅ Final response
       return res.status(200).json({
         status: "Success",
-        message: "invoices saved successfully",
+        message: "Invoices saved successfully",
       });
-    }
+    });
   });
 };
 
@@ -3225,7 +3275,9 @@ exports.saveInvoiceAdsCampaign = async (req, res) => {
         .status(500)
         .json({ status: "Failure", message: "Database error." });
     }
-    res.status(200).json({ status: "Success", message: "Invoice Ads campaign saved." });
+    res
+      .status(200)
+      .json({ status: "Success", message: "Invoice Ads campaign saved." });
   });
 };
 
@@ -3242,7 +3294,6 @@ exports.saveInvoiceComplimentaryData = (req, res) => {
     include_thumbnail_creation,
     total_amount,
     employee,
-   
   } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
@@ -3276,7 +3327,7 @@ exports.saveInvoiceComplimentaryData = (req, res) => {
     include_thumbnail_creation,
     total_amount,
     employee,
-   
+
     createdAt,
   ];
 
@@ -3286,6 +3337,8 @@ exports.saveInvoiceComplimentaryData = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res.status(200).json({ status: "Success", message: "Invoice Saved successfully" });
+    res
+      .status(200)
+      .json({ status: "Success", message: "Invoice Saved successfully" });
   });
 };

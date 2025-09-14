@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, Search, ArrowLeft } from "lucide-react";
+import { Calendar, Search, ArrowLeft, X, User, Building, Mail, Phone, MapPin, Timer, Calendar1 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -16,6 +16,7 @@ const History = () => {
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
     
+  const [loading, setLoading] = useState(false);
 
       const [createdInvoices, setCreatedInvoices] = useState({});
 
@@ -29,11 +30,27 @@ const History = () => {
   const clientPerPage = 5;
   console.log(id);
   const [showModal, setShowModal] = useState(false);
+  const [showModalInvoice, setShowModalInvoice] = useState(false);
+  const [showModalInvoiceClient, setShowModalInvoiceClient] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [assignModal, setAssignModal] = useState(false);
-  
-  const userName = currentUser?.name;
+    const userName = currentUser?.name;
+  const [formData, setFormData] = useState({
+      client_name: "",
+      client_organization: "",
+      email: "",
+      phone: "",
+      address: "",
+      dg_employee: userName,
+      duration_start_date: "",
+      duration_end_date:"",
+      payment_mode:"",
+      client_gst_no:"",
+      client_pan_no:"",
+    });
+
+
   const fetchAllClientServices = async () => {
     try {
       const res = await axios.get(
@@ -272,17 +289,34 @@ const fetchComplimentaryData = async (txnID) => {
       });
     }
   };
+
+ const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+  const handleCreateClientInvoice =  () => {
+    
+    setShowModalInvoiceClient(true);
+  };
+
+
+  
     const generateUniqueId = () => {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   };
-const handleCreateInvoice = async (txnID) => {
+const handleCreateInvoice = async (e) => {
+    e.preventDefault();
   try {
     // ✅ Get fresh services
-    const data = await fetchServicesById(txnID);
+    const data = await fetchServicesById(selectedTxn);
 console.log(data);
 
     // ✅ Get complimentary separately
-    const complimentaryItems = await fetchComplimentaryData(txnID);
+    const complimentaryItems = await fetchComplimentaryData(selectedTxn);
 
     if (!data || data.length === 0) {
       Swal.fire({
@@ -295,6 +329,20 @@ console.log(data);
       });
       return;
     }
+   
+      const clientDetail = {
+        client_name: clientData?.client_name ,
+        client_organization: clientData?.client_organization ,
+        email: clientData?.email ,
+        phone: clientData?.phone ,
+        address: clientData?.address ,
+        dg_employee: userName,
+         duration_start_date: formData?.duration_start_date ,
+      duration_end_date:formData?.duration_end_date ,
+      payment_mode:formData?.payment_mode ,
+      client_gst_no:formData?.client_gst_no ,
+      client_pan_no:formData?.client_name ,
+      };
 
     // ✅ Step 1: Normal Invoices
     const invoices = data
@@ -320,7 +368,7 @@ console.log(data);
     const adsItems = data
       .filter((item) => item.service_type === "Ads Campaign")
       .map((item) => ({
-        txn_id: txnID,
+        txn_id: selectedTxn,
         client_id: id,
         id: generateUniqueId(),
         category: item.category_name,
@@ -332,7 +380,7 @@ console.log(data);
       }));
 
     // ✅ Step 3: Save invoices
-    const payload = { txn_id: txnID, client_id: id, invoices };
+    const payload = { txn_id: selectedTxn,...clientDetail, client_id: id, invoices };
     await axios.post(`${baseURL}/auth/api/calculator/saveInvoiceGD`, payload, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -365,6 +413,12 @@ console.log(data);
       timer: 2000,
       timerProgressBar: true,
     });
+    setCreatedInvoices((prev) => ({
+  ...prev,
+  [selectedTxn]: true,
+}));
+    setShowModalInvoiceClient(false);
+
   } catch (err) {
     console.error("Save error:", err);
     Swal.fire({
@@ -440,7 +494,85 @@ console.log(data);
   });
 }, [showApiData]);
 
+  const handleDeleteInvoice = async (txnId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this invoice permanently?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
 
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const response = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteAllInvoiceServiceHistory/${id}/${txnId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Invoice deleted successfully.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+setCreatedInvoices((prev) => {
+  const updated = { ...prev };
+  delete updated[txnId];   // remove from created list
+  return updated;
+});
+        
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: response.data.message || "Unable to delete invoice.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong while deleting invoice.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+    }
+  };
+  
+  const handleCloseInvoiceClient = () => {
+    setShowModalInvoiceClient(false);
+    setFormData({
+      client_name: "",
+      client_organization: "",
+      email: "",
+      phone: "",
+      address: "",
+      dg_employee: userName,
+      duration_start_date: "",
+      duration_end_date:"",
+      payment_mode:"",
+      client_gst_no:"",
+      client_pan_no:"",
+    })
+
+    
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -592,21 +724,36 @@ console.log(data);
                         </td>
                           <td className="py-5 px-6">
   {createdInvoices[item.txn_id] ? (
-    <button
-      disabled
-      className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 cursor-not-allowed"
+    <>
+    
+      <button
+      onClick={() => {
+                    setShowModalInvoice(true);
+                     setSelectedTxn(item.txn_id);
+                   
+                  }}
+      className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 "
     >
       Invoice Created
     </button>
+      {/* <button
+      onClick={() => handleDeleteInvoice(item.txn_id)}
+      className="inline-block mx-2 px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200  text-white shadow-lg bg-red-600"
+    >
+      <X size={12}/>
+    </button> */}
+    </>
+  
   ) : (
     <button
-      onClick={() => handleCreateInvoice(item.txn_id)}
+      onClick={() => {handleCreateClientInvoice();  setSelectedTxn(item.txn_id);}}
       className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg shadow-red-500/25"
     >
       Create Invoice
     </button>
   )}
 </td>
+
 
                       </tr>
                     ))
@@ -675,6 +822,186 @@ console.log(data);
                   Without GST
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+        {showModalInvoice && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+              <button
+                onClick={() => setShowModalInvoice(false)}
+                className="absolute top-2 right-3 text-red-600 hover:text-gray-500 text-xl font-bold"
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <h2 className="text-lg font-semibold mb-4 text-center">
+                Select Quotation Type
+              </h2>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/admin/invoice/${id}/${selectedTxn}?gst=1`
+                    );
+                    setShowModalInvoice(false);
+                  }}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  With GST (18%)
+                </button>
+                <button
+                  onClick={() => {
+                    navigate(
+                      `/admin/invoice/${id}/${selectedTxn}?gst=0`
+                    );
+                    setShowModalInvoice(false);
+                  }}
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  Without GST
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+           {showModalInvoiceClient && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+              onClick={handleCloseInvoiceClient}
+            />
+
+            {/* Modal */}
+            <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <User className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {"Add Invoice Detail"}
+                  </h2>
+                </div>
+                <button
+                  onClick={handleCloseInvoiceClient}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleCreateInvoice} className="p-6 space-y-4">
+              
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Calendar1 className="w-4 h-4 inline mr-2" />
+                    Duration start date
+                  </label>
+                  <input
+                    type="date"
+                    name="duration_start_date"
+                    value={formData.duration_start_date}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter Duration start date"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Calendar1 className="w-4 h-4 inline mr-2" />
+                    Duration end date
+                  </label>
+                  <input
+                    type="date"
+                    name="duration_end_date"
+                    value={formData.duration_end_date}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter Duration end date"
+                    required
+                  />
+                </div>
+
+              
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Building className="w-4 h-4 inline mr-2" />
+                    Payment Mode
+                  </label>
+               <select
+  name="payment_mode"
+  value={formData.payment_mode}
+  onChange={handleChange}
+  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+  required
+>
+  <option  value="" className="text-gray-500">
+   Select Payment Mode
+  </option>
+  <option value="Payment Cheque">Payment Cheque</option>
+  <option value="Net Banking">Net Banking</option>
+  <option value="UPI">UPI</option>
+  <option value="Cash">Cash</option>
+</select>
+
+                </div>
+              
+               
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Mail className="w-4 h-4 inline mr-2" />
+                   GST Number (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="client_gst_no"
+                    value={formData.client_gst_no}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter GST Number"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Mail className="w-4 h-4 inline mr-2" />
+                   Pan Card Number (Optional)
+                  </label>
+                  <input
+                    type="number"
+                    name="client_pan_no"
+                    value={formData.client_pan_no}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter Pan Card Number"
+                  />
+                </div>
+
+         
+
+                {/* Buttons */}
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleCloseInvoiceClient}
+                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                  >
+                    {loading ? "Saving..." : "Save Client"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

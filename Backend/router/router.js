@@ -82,6 +82,7 @@ const {
   getinInvoiceServiceHistory,
   getAllInvoiceServiceHistory,
   getClientServiceHistoryAssign,
+  getComplimentaryInvoiceData,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -106,6 +107,7 @@ const {
   deleteRequirementsBundle,
   deleteDiscountById,
   deleteInvoiceById,
+  deleteAllInvoiceServiceHistory ,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -238,6 +240,11 @@ router.get(
   authenticateToken,
   getAllInvoiceServiceHistory
 );
+router.get(
+  "/getComplimentaryInvoiceData/:txn_id/:client_id",
+  authenticateToken,
+  getComplimentaryInvoiceData
+);
 // >>>>>>>>>> BD GET API's <<<<<<<<<<<
 router.get("/getClientDetailsEmp/:dg_employee", getClientDetailsEmp);
 
@@ -313,6 +320,10 @@ router.delete("/deleteComplimenatryById/:id", deleteComplimenatryById);
 router.delete("/deleteNoteById/:id", deleteNoteById);
 router.delete("/deleteDiscountById/:id", deleteDiscountById);
 router.delete("/deleteInvoiceById/:id", deleteInvoiceById);
+router.delete(
+  "/deleteAllInvoiceServiceHistory/:client_id/:txn_id",
+  deleteAllInvoiceServiceHistory
+);
 
 router.delete("/deleteRequirementsBundle/:linkId", deleteRequirementsBundle);
 
