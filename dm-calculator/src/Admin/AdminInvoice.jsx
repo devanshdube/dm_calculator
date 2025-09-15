@@ -8,7 +8,8 @@ import Swal from "sweetalert2";
 import { clearUser } from "../redux/user/userSlice";
 import img1 from "../assets/Dg 1copy.png";
 import img2 from "../assets/Dg 2copy.png";
-import img3 from "../assets/dghead.jpeg";
+import img3 from "../assets/DOAGURU IT Solution.png";
+import img4 from "../assets/DOAGURU Infosystyem.png";
 
 export default function AdminInvoice() {
   const baseURL = `https://dmcalculator.dentalguru.software`;
@@ -62,7 +63,7 @@ export default function AdminInvoice() {
   const fetchClient = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientDetailsById/${id}`,
+        `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -90,7 +91,7 @@ export default function AdminInvoice() {
   const fetchClientNotes = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${txn_id}`,
+        `${baseURL}/auth/api/calculator/getInvoiceClientNotesbyId/${id}/${txn_id}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -281,7 +282,7 @@ export default function AdminInvoice() {
             🖨️ Print
           </button>
           <button
-            onClick={() => navigate(`/admin/ServicesLanding/${id}/${txn_id}`)}
+            onClick={() => navigate(`/admin/invoice-edit/${id}/${txn_id}`)}
             className="bg-orange-600 text-white rounded-full px-4 py-2"
           >
             ✏️ Edit
@@ -326,39 +327,44 @@ export default function AdminInvoice() {
                 <div className="flex flex-col justify-between h-full px-6 py-4 print:px-4 ">
                   <div className="flex-grow">
                     {/* Client Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3 print:grid-cols-2">
-                      <div className="break-words">
-                        <h3 className="text-lg font-semibold mb-2">
-                          Client Details
-                        </h3>
-                        <p className="break-words">
-                          <strong>Name:</strong> {clientData?.client_name}
-                        </p>
-                        <p className="break-words">
-                          <strong>Organization Name:</strong>{" "}
-                          {clientData?.client_organization}
-                        </p>
-                        <p className="break-words">
-                          <strong>Contact:</strong> {clientData?.phone}
-                        </p>
-                        <p className="break-words">
-                          <strong>Address:</strong> {clientData?.address}
-                        </p>
-                      </div>
-                      <div className="text-end">
-                        <h2 className="text-2xl font-bold">
-                          {serviceData[0].plan_name} Plan
-                        </h2>
-                        <p>{moment().format("DD/MM/YYYY")}</p>
-                        <p>Quote #: {txn_id}</p>
-                      </div>
-                      {/* <div className="text-right text-gray-600 break-words">
-                    <p>1815, Wright Town, Jabalpur,</p>
-                    <p>Madhya Pradesh 482002</p>
-                    <p>Phone: 074409 92424</p>
-                  </div> */}
-                    </div>
+                    
+  <div className="grid grid-cols-2 gap-6 mb-6">
+    {/* Client Info */}
+    <div className="border p-4 rounded-lg">
+      <h3 className="text-sm font-bold mb-2">BILL TO</h3>
+      <p><strong>Name:</strong> {clientData?.client_name}</p>
+      {clientData.client_organization ? (
+                                           <>
+                                         
+                                            <p><strong>Organization:</strong> {clientData?.client_organization}</p>
+                                           </>
+                                         ) : null}
+      {clientData.address ? (
+                                           <>
+                                         
+                                           <p><strong>Address:</strong> {clientData?.address}</p>
+                                           </>
+                                         ) : null}
+     
+      <p><strong>Contact:</strong> {clientData?.phone}</p>
 
+      <p><strong>Service Start:</strong> {moment(clientData?.duration_start_date).format("DD/MM/YYYY")}</p>
+      <p><strong>Service End:</strong> {moment(clientData?.duration_end_date).format("DD/MM/YYYY")}</p>
+      <p><strong>Payment Mode:</strong> {clientData?.payment_mode}</p>
+   
+    </div>
+
+    {/* Company Info */}
+    <div className="border p-4 rounded-lg">
+      <h3 className="text-sm font-bold mb-2">FROM</h3>
+      <p><strong>Company:</strong> DOAGuru Infosystems</p>
+      <p><strong>Email:</strong> info@doaguru.com</p>
+      <p><strong>Phone:</strong> +91 74409 92424</p>
+      <p><strong>Address:</strong> 1815, Wright Town, Jabalpur</p>
+      <p className="mt-3 font-semibold">Invoice #: {clientData.id}</p>
+      <p className=" font-semibold">Date: {moment(clientData.created_at).format("DD/MM/YYYY")}</p>
+    </div>
+  </div>
                     {/* Graphic Services */}
                     {graphicData.length > 0 && (
                       <section className="mb-2">
@@ -586,108 +592,70 @@ export default function AdminInvoice() {
                           Complimentary Services
                         </h3>
 
-                        {complimentaryData.map((service, idx) => (
-                          <div key={idx} className="mb-6">
-                            <table className="w-full border text-sm">
-                              <thead className="bg-indigo-100">
-                                <tr>
-                                  <th className="border px-3 py-2 text-left">
-                                    Category
-                                  </th>
-                                  <th className="border px-3 py-2 text-left">
-                                    Creative Type
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Quantity
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Price (₹)
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Total (₹)
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {complimentaryData.map((edit, eidx) => {
-                                  const qty = edit.quantity;
-                                  const base = edit.editing_type_amount;
-                                  const thumb = edit.include_thumbnail_creation;
-                                  const posting = edit.include_content_posting;
-
-                                  const totalBase = base * qty;
-                                  const totalThumb = thumb * qty;
-                                  const totalPost = posting * qty;
-
-                                  return (
-                                    <React.Fragment key={eidx}>
-                                      {/* Base Editing */}
-                                      <tr className="bg-white">
-                                        <td className="border px-3 py-2">
-                                          {edit.category_name}
-                                        </td>
-                                        <td className="border px-3 py-2">
-                                          {edit.editing_type_name}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right">
-                                          {qty}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right">
-                                          ₹{base}
-                                        </td>
+                          <table className="w-full border text-sm">
+                            <thead className="bg-indigo-100">
+                              <tr>
+                                <th className="border px-3 py-2 text-left">Category</th>
+                                <th className="border px-3 py-2 text-left">Creative Type</th>
+                                <th className="border px-3 py-2 text-right">Quantity</th>
+                                <th className="border px-3 py-2 text-right">Price (₹)</th>
+                                <th className="border px-3 py-2 text-right">Total (₹)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {complimentaryData.map((edit, eidx) => {
+                                const qty = Number(edit.quantity);
+                                const base = Number(edit.editing_type_amount);
+                                const thumb = Number(edit.include_thumbnail_creation);
+                                const posting = Number(edit.include_content_posting);
+                      
+                                const totalBase = base * qty;
+                                const totalThumb = thumb * qty;
+                                const totalPost = posting * qty;
+                      
+                                return (
+                                  <React.Fragment key={eidx}>
+                                    {/* Base Editing */}
+                                    <tr className="bg-white">
+                                      <td className="border px-3 py-2">{edit.category_name}</td>
+                                      <td className="border px-3 py-2">{edit.editing_type_name}</td>
+                                      <td className="border px-3 py-2 text-right">{qty}</td>
+                                      <td className="border px-3 py-2 text-right">₹{base}</td>
+                                      <td className="border px-3 py-2 text-right font-semibold">
+                                        ₹{totalBase}
+                                      </td>
+                                    </tr>
+                      
+                                    {/* Thumbnail */}
+                                    {thumb > 0 && (
+                                      <tr className="bg-gray-50">
+                                        <td className="border px-3 py-2">{edit.category_name}</td>
+                                        <td className="border px-3 py-2">Thumbnail Creation</td>
+                                        <td className="border px-3 py-2 text-right">{qty}</td>
+                                        <td className="border px-3 py-2 text-right">₹{thumb}</td>
                                         <td className="border px-3 py-2 text-right font-semibold">
-                                          ₹{totalBase}
+                                          ₹{totalThumb}
                                         </td>
                                       </tr>
-
-                                      {/* Thumbnail */}
-                                      {thumb > 0 && (
-                                        <tr className="bg-gray-50">
-                                          <td className="border px-3 py-2">
-                                            {edit.category_name}
-                                          </td>
-                                          <td className="border px-3 py-2">
-                                            Thumbnail Creation
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            {qty}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            ₹{thumb}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right font-semibold">
-                                            ₹{totalThumb}
-                                          </td>
-                                        </tr>
-                                      )}
-
-                                      {/* Content Posting */}
-                                      {posting > 0 && (
-                                        <tr className="bg-gray-50">
-                                          <td className="border px-3 py-2">
-                                            {edit.category_name}
-                                          </td>
-                                          <td className="border px-3 py-2">
-                                            Content Posting
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            {qty}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            ₹{posting}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right font-semibold">
-                                            ₹{totalPost}
-                                          </td>
-                                        </tr>
-                                      )}
-                                    </React.Fragment>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        ))}
+                                    )}
+                      
+                                    {/* Content Posting */}
+                                    {posting > 0 && (
+                                      <tr className="bg-gray-50">
+                                        <td className="border px-3 py-2">{edit.category_name}</td>
+                                        <td className="border px-3 py-2">Content Posting</td>
+                                        <td className="border px-3 py-2 text-right">{qty}</td>
+                                        <td className="border px-3 py-2 text-right">₹{posting}</td>
+                                        <td className="border px-3 py-2 text-right font-semibold">
+                                          ₹{totalPost}
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </React.Fragment>
+                                );
+                              })}
+                            </tbody>
+                          </table>
 
                         <p className="text-right text-lg font-semibold">
                           Total: ₹{complimentaryTotal.toLocaleString()}
@@ -728,9 +696,10 @@ export default function AdminInvoice() {
                       )}
                     </section>
 
-                    <h2 className="text-lg font-bold">Notes</h2>
                     {notesData.length > 0 ? (
-                      <ul className="list-disc pl-5">
+                      <>
+                      <h2 className="text-lg font-bold">Notes</h2>
+                         <ul className="list-disc pl-5">
                         {notesData.map((note) => (
                           <li
                             key={note.id}
@@ -740,14 +709,55 @@ export default function AdminInvoice() {
                           </li>
                         ))}
                       </ul>
+                      </>
+                   
                     ) : (
-                      <p className="text-gray-500 italic">No notes added.</p>
+                      <p className="text-gray-500 italic"></p>
                     )}
                   </div>
                 </div>
+                {isGST ? (
+                        <>
+                      <div className="grid grid-cols-2 gap-6 mt-6 items-end">
+  {/* Bank Details */}
+  <div className="text-sm text-gray-700">
+    <h6 className="font-semibold text-base mb-2">Bank Details:</h6>
+    <ul className="space-y-1">
+      <li><span className="font-medium">Name:</span> DOAGuru InfoSystems</li>
+      <li><span className="font-medium">IFSC Code:</span> SBIN0004677</li>
+      <li><span className="font-medium">Account No:</span> 38666325192</li>
+      <li><span className="font-medium">Bank:</span> SBI Bank, Jabalpur</li>
+    </ul>
+  </div>
+
+  {/* Signature */}
+  <div className="text-end">
+    <img
+      src={img4}
+      alt="Authorized Signature"
+      className="h-24 w-48 object-contain mx-auto md:ml-auto"
+    />
+  
+  </div>
+</div>
+
+                        </>
+                      ) : (
+                        
+                         <div className="font-bold  mt-2"><h6>Bank Details: -</h6>
+                         <ul >
+                          <li>Name : For TDS Payment : DOAGuru IT Solutions</li>
+                          <li>IFSC Code : HDFC0000224 </li><li>Account No : 50200074931981</li>
+                          <li>Bank : HDFC Bank , Jabalpur</li>
+                          </ul>
+                          </div>
+                      
+                        
+                      )}
                 <div className="h-[50rem]"></div>
               </td>
             </tr>
+            
           </tbody>
 
           <tfoot className="print:table-footer-group">

@@ -2087,3 +2087,215 @@ exports.getComplimentaryInvoiceData = async (req, res) => {
     });
   }
 };
+
+exports.getInvoiceClientDetailsById = async (req, res) => {
+  const clientId = req.params.id;
+
+  try {
+    db.query(
+      "SELECT * FROM invoice WHERE client_id = ?",
+      [clientId],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "Client not found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results[0],
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+exports.getInvoiceGraphic = async (req, res) => {
+  const { txn_id, client_id } = req.params;
+
+  try {
+    db.query(
+      "SELECT * FROM  invoice_graphic WHERE txn_id = ? AND client_id = ?",
+      [txn_id, client_id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No invoice calculator transactions found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+exports.getInvoiceAdsCampaign = async (req, res) => {
+  const { txn_id, client_id } = req.params;
+
+  try {
+    db.query(
+      "SELECT * FROM ads_campaign_details_invoice WHERE txn_id = ? AND client_id = ?",
+      [txn_id, client_id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No Invoice calculator transactions found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+exports.getInvoiceNoteData = async (req, res) => {
+  try {
+    db.query("SELECT * FROM invoice_notes_data", (err, results) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
+        });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No Data Found",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        data: results,
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+exports.getInvoiceClientNotesbyId = async (req, res) => {
+  const { client_id, txn_id } = req.params;
+  try {
+    db.query(
+      "SELECT * FROM invoice_client_notes WHERE client_id = ? AND txn_id = ?",
+      [client_id, txn_id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No invoice notes of client found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+exports.getAllInvoice = async (req, res) => {
+  try {
+    db.query("SELECT * FROM Invoice", (err, results) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
+        });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No services found",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        data: results,
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};

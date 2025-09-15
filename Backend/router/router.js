@@ -40,6 +40,9 @@ const {
   saveInvoiceGD,
   saveInvoiceAdsCampaign,
   saveInvoiceComplimentaryData,
+  saveInvoiceCalculatorData,
+  saveInvoiceNotesData,
+  saveInvoiceClientIdwiseNotes,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -83,6 +86,12 @@ const {
   getAllInvoiceServiceHistory,
   getClientServiceHistoryAssign,
   getComplimentaryInvoiceData,
+  getInvoiceClientDetailsById,
+  getInvoiceGraphic,
+  getInvoiceAdsCampaign,
+  getInvoiceNoteData,
+  getInvoiceClientNotesbyId,
+  getAllInvoice,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -107,7 +116,11 @@ const {
   deleteRequirementsBundle,
   deleteDiscountById,
   deleteInvoiceById,
-  deleteAllInvoiceServiceHistory ,
+  deleteAllInvoiceServiceHistory, 
+  deleteInvoiceAdsCampaignEntryById,
+  deleteInvoiceNoteById,
+  deleteInvoiceClientNotes,
+  deleteInvoiceComplimenatryById,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -124,6 +137,9 @@ const {
   updateClientNoteDataById,
   updateDiscountDataById,
   updateInvoiceDataById,
+  updateInvoiceNoteDataById,
+  updateInvoiceClientNoteDataById,
+  updateInvoiceComplimenatryDataById,
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -169,6 +185,10 @@ router.post("/saveInvoiceData", saveInvoiceData);
 router.post("/saveInvoiceGD", saveInvoiceGD);
 router.post("/saveInvoiceAdsCampaign", saveInvoiceAdsCampaign);
 router.post("/saveInvoiceComplimentaryData", saveInvoiceComplimentaryData);
+router.post("/saveInvoiceCalculatorData", saveInvoiceCalculatorData);
+router.post("/saveInvoiceNotesData", saveInvoiceNotesData);
+router.post("/saveInvoiceClientIdwiseNotes", saveInvoiceClientIdwiseNotes);
+
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -278,6 +298,21 @@ router.get(
   authenticateToken,
   getInvoiceByIdData
 );
+router.get(
+  "/getInvoiceClientDetailsById/:id",
+  authenticateToken,
+  getInvoiceClientDetailsById
+);
+router.get(
+  "/getInvoiceGraphic/:txn_id/:client_id",
+  authenticateToken,
+  getInvoiceGraphic
+);
+router.get(
+  "/getInvoiceAdsCampaign/:txn_id/:client_id",authenticateToken,getInvoiceAdsCampaign);
+router.get("/getInvoiceNoteData", getInvoiceNoteData);
+router.get("/getInvoiceClientNotesbyId/:client_id/:txn_id", getInvoiceClientNotesbyId);
+router.get("/getAllInvoice", getAllInvoice);
 
 // ---->  Get all routes END <----
 
@@ -324,6 +359,11 @@ router.delete(
   "/deleteAllInvoiceServiceHistory/:client_id/:txn_id",
   deleteAllInvoiceServiceHistory
 );
+router.delete("/deleteInvoiceAdsCampaignEntryById/:id", deleteInvoiceAdsCampaignEntryById);
+router.delete("/deleteInvoiceNoteById/:id", deleteInvoiceNoteById);
+router.delete("/deleteInvoiceClientNotes/:id", deleteInvoiceClientNotes);
+router.delete("/deleteInvoiceComplimenatryById/:id", deleteInvoiceComplimenatryById);
+
 
 router.delete("/deleteRequirementsBundle/:linkId", deleteRequirementsBundle);
 
@@ -345,6 +385,9 @@ router.put("/updateNoteDataById/:id", updateNoteDataById);
 router.put("/updateClientNoteDataById/:id", updateClientNoteDataById);
 router.put("/updateDiscountDataById/:id", updateDiscountDataById);
 router.put("/updateInvoiceDataById/:id", updateInvoiceDataById);
+router.put("/updateInvoiceNoteDataById/:id", updateInvoiceNoteDataById);
+router.put("/updateInvoiceClientNoteDataById/:id", updateInvoiceClientNoteDataById);
+router.put("/updateInvoiceComplimenatryDataById/:id", updateInvoiceComplimenatryDataById);
 // router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----
 

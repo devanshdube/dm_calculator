@@ -3349,3 +3349,166 @@ exports.saveInvoiceComplimentaryData = (req, res) => {
       .json({ status: "Success", message: "Invoice Saved successfully" });
   });
 };
+
+exports.saveInvoiceCalculatorData = (req, res) => {
+  const {
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+    plan_name,
+  } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    INSERT INTO invoice_graphic (
+    	txn_id,
+      client_id,
+      service_name,
+      category_name,
+      editing_type_name,
+      editing_type_amount,
+      quantity,
+      include_content_posting,
+      include_thumbnail_creation,
+      total_amount,
+      employee,plan_name,
+      created_at
+    ) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+    plan_name || "Customise",
+    createdAt,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Insert Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res.status(200).json({ status: "Success", message: "Invoice Calculation Saved successfully" });
+  });
+};
+
+exports.saveInvoiceNotesData = (req, res) => {
+  const { note_text } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    INSERT INTO invoice_notes_data (
+    note_text,
+      created_at
+    ) VALUES (?, ?)
+  `;
+
+  const values = [note_text, createdAt];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Insert Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Saved Notes successfully" });
+  });
+};
+
+exports.saveInvoiceClientIdwiseNotes = (req, res) => {
+  const { txn_id, client_id, planNotes } = req.body;
+
+  if (!txn_id || !client_id) {
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "Missing required data" });
+  }
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  // Step 1: Check duplicates before inserting
+  const checkQuery = `
+    SELECT note_name 
+    FROM invoice_client_notes 
+    WHERE txn_id = ? AND client_id = ?
+  `;
+
+  db.query(checkQuery, [txn_id, client_id], (checkErr, existingRows) => {
+    if (checkErr) {
+      return res.status(500).json({
+        status: "Failure",
+        message: "Error checking existing notes",
+        error: checkErr,
+      });
+    }
+
+    // Extract existing note names
+    const existingNotes = existingRows.map((row) =>
+      row.note_name.toLowerCase()
+    );
+
+    // Filter out duplicates
+    const filteredNotes = planNotes.filter(
+      (n) => !existingNotes.includes(n.note_name.toLowerCase())
+    );
+
+    if (filteredNotes.length === 0) {
+      return res.status(200).json({
+        status: "Success",
+        message: "No new notes to save (all duplicates skipped)",
+      });
+    }
+
+    // Step 2: Insert only new notes
+    const NotesQuery = `
+      INSERT INTO invoice_client_notes 
+          (txn_id, client_id, note_name, created_at) 
+          VALUES ?
+    `;
+
+    const NotesValues = filteredNotes.map((n) => [
+      txn_id,
+      client_id,
+      n.note_name,
+      createdAt,
+    ]);
+
+    db.query(NotesQuery, [NotesValues], (insertErr) => {
+      if (insertErr) {
+        console.error("Error saving Client Notes:", insertErr);
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error saving Client Notes",
+          error: insertErr,
+        });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: `${filteredNotes.length} Client Notes saved successfully (duplicates skipped)`,
+      });
+    });
+  });
+};

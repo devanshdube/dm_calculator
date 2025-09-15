@@ -8,6 +8,11 @@ import AdminPlanHistory from "../Admin/AdminPlanHistory";
 import AdminComplimentaryData from "../Admin/AdminComplimentaryData";
 import NoteSection from "../Admin/NoteSection";
 import AdminInvoice from "../Admin/AdminInvoice";
+import InvoiceCustomise from "../Admin/InvoiceCustomise";
+import InvoiceCalculation from "../Admin/InvoiceCalculation";
+import InvoiceAds from "../Admin/InvoiceAds";
+import InvoiceNoteSection from "../Admin/InvoiceNoteSection";
+import InvoiceHistory from "../Admin/InvoiceHistory";
 
 const AdminDashboard = lazy(() => import("../Admin/AdminDashboard"));
 const AdminCalculator = lazy(() => import("../Admin/AdminCalculator"));
@@ -61,7 +66,25 @@ const AdminRouter = () => {
               element={<NoteSection />}
             />
             <Route path="invoice/:id/:txn_id" element={<AdminInvoice />} />
-
+            <Route path="invoice-edit/:id/:txn_id" element={<InvoiceCustomise />} />
+             <Route path="invoice-calculator/:id/:proposalId" element={<InvoiceCalculation />}
+            />
+             <Route
+              path="invoice-Adscalculator/:id/:proposalId"
+              element={<InvoiceAds />}
+            />
+             <Route
+              path="invoice-Adscalculator/:id/:proposalId"
+              element={<InvoiceAds />}
+            />
+            <Route
+              path="invoice-note-section/:id/:txn_id"
+              element={<InvoiceNoteSection />}
+            />
+            <Route
+              path="Invoice-history"
+              element={<InvoiceHistory />}
+            />
             <Route path="/review/:linkId" element={<ReviewRequirements />} />
           </Routes>
         </Suspense>

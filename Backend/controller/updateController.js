@@ -774,9 +774,139 @@ exports.updateInvoiceDataById = (req, res) => {
 
     res
       .status(200)
-      .json({ status: "Success", message: "Entry updated successfully" });
+      .json({ status: "Success", message: "Entry Invoice updated successfully" });
   });
 };
+exports.updateInvoiceNoteDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+    note_text
+  } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE invoice_notes_data
+    SET
+      note_text = ?,
+      created_at = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+  note_text,
+    updatedAt,
+    id,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry updated of Note successfully" });
+  });
+};
+exports.updateInvoiceClientNoteDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+    note_name
+  } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE invoice_client_notes
+    SET
+      note_name = ?,
+      created_at = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+  note_name,
+    updatedAt,
+    id,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry updated of Client Note successfully" });
+  });
+};
+exports.updateInvoiceComplimenatryDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+  } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE complimentary_invoice
+    SET
+      txn_id = ?,
+      client_id = ?,
+      service_name = ?,
+      category_name = ?,
+      editing_type_name = ?,
+      editing_type_amount = ?,
+      quantity = ?,
+      include_content_posting = ?,
+      include_thumbnail_creation = ?,
+      total_amount = ?,
+      employee = ?,
+      created_at = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+    updatedAt,
+    id,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry Invoice updated successfully" });
+  });
+};
+
 // working code
 
 // ------------------

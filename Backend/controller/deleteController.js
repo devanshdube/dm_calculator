@@ -922,3 +922,128 @@ exports.deleteAllInvoiceServiceHistory = async (req, res) => {
   }
 };
 
+exports.deleteInvoiceAdsCampaignEntryById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    db.query(
+      "DELETE FROM ads_campaign_details_invoice WHERE id = ?",
+      [id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error while deleting entry",
+            error: err,
+          });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No invoice campaign entry found to delete",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          message: "Invoice Campaign entry deleted successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+exports.deleteInvoiceNoteById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    db.query("DELETE FROM invoice_notes_data WHERE id = ?", [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while deleting entry",
+          error: err,
+        });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No Note entry found to delete",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        message: "Note entry deleted successfully",
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+exports.deleteInvoiceClientNotes = async (req, res) => {
+  const { id } = req.params;
+
+  db.query(
+    "DELETE FROM invoice_client_notes WHERE id = ?",
+    [id],
+    (err, result) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Database error" });
+      }
+      res.json({
+        status: "Success",
+        message: "Invoice Note Client deleted successfully",
+      });
+    }
+  );
+};
+
+exports.deleteInvoiceComplimenatryById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    db.query("DELETE FROM complimentary_invoice WHERE id = ?", [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while deleting entry",
+          error: err,
+        });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No complimentary entry found to delete",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        message: "complimentary entry deleted successfully",
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
