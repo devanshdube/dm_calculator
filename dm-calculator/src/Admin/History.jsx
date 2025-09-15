@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, Search, ArrowLeft, X, User, Building, Mail, Phone, MapPin, Timer, Calendar1 } from "lucide-react";
+import {
+  Calendar,
+  Search,
+  ArrowLeft,
+  X,
+  User,
+  Building,
+  Mail,
+  Calendar1,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -16,10 +25,10 @@ const History = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
-    
+
   const [loading, setLoading] = useState(false);
 
-      const [createdInvoices, setCreatedInvoices] = useState({});
+  const [createdInvoices, setCreatedInvoices] = useState({});
 
   const [clientData, setClientData] = useState([]);
   const { id } = useParams();
@@ -36,21 +45,20 @@ const History = () => {
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [assignModal, setAssignModal] = useState(false);
-    const userName = currentUser?.name;
+  const userName = currentUser?.name;
   const [formData, setFormData] = useState({
-      client_name: "",
-      client_organization: "",
-      email: "",
-      phone: "",
-      address: "",
-      dg_employee: userName,
-      duration_start_date: "",
-      duration_end_date:"",
-      payment_mode:"",
-      client_gst_no:"",
-      client_pan_no:"",
-    });
-
+    client_name: "",
+    client_organization: "",
+    email: "",
+    phone: "",
+    address: "",
+    dg_employee: userName,
+    duration_start_date: "",
+    duration_end_date: "",
+    payment_mode: "",
+    client_gst_no: "",
+    client_pan_no: "",
+  });
 
   const fetchAllClientServices = async () => {
     try {
@@ -67,7 +75,6 @@ const History = () => {
         console.log(res.data);
         setFetchServices(res.data.data);
         console.log(fetchServices);
-        
       }
     } catch (error) {
       console.log(error);
@@ -88,115 +95,113 @@ const History = () => {
       }
     }
   };
-const fetchAllInvoiceServices = async (txnID) => {
-  try {
-    const res = await axios.get(
-      `${baseURL}/auth/api/calculator/getAllInvoiceServiceHistory/${id}/${txnID}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+  const fetchAllInvoiceServices = async (txnID) => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getAllInvoiceServiceHistory/${id}/${txnID}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.data.status === "Success") {
+        const hasInvoices = res.data.data && res.data.data.length > 0;
+
+        setCreatedInvoices((prev) => ({
+          ...prev,
+          [txnID]: hasInvoices, // true if invoice exists
+        }));
       }
-    );
-
-    if (res.data.status === "Success") {
-      const hasInvoices = res.data.data && res.data.data.length > 0;
-
-      setCreatedInvoices((prev) => ({
-        ...prev,
-        [txnID]: hasInvoices, // true if invoice exists
-      }));
+    } catch (error) {
+      console.log(error);
+      if (error.response && error.response.status === 401) {
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
-  } catch (error) {
-    console.log(error);
-    if (error.response && error.response.status === 401) {
-      Swal.fire({
-        title: "Session Expired",
-        text: "Please login again.",
-        icon: "warning",
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
-      }).then(() => {
-        dispatch(clearUser());
-        localStorage.removeItem("token");
-        navigate("/");
-      });
-    }
-  }
-};
+  };
 
   console.log(fetchServices);
-   
- // ✅ Return fetched data instead of just setting state
-const fetchServicesById = async (txnID) => {
-  try {
-    const res = await axios.get(
-      `${baseURL}/auth/api/calculator/getClientServiceHistory/${id}/${txnID}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+
+  // ✅ Return fetched data instead of just setting state
+  const fetchServicesById = async (txnID) => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getClientServiceHistory/${id}/${txnID}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = res.data.data || [];
+      console.log(data);
+
+      return data; // ✅ return fetched data directly
+    } catch (error) {
+      if (error.response?.status === 401) {
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
       }
-    );
-
-    const data = res.data.data || [];
-    console.log(data);
-    
-
-    return data; // ✅ return fetched data directly
-  } catch (error) {
-    if (error.response?.status === 401) {
-      Swal.fire({
-        title: "Session Expired",
-        text: "Please login again.",
-        icon: "warning",
-      }).then(() => {
-        dispatch(clearUser());
-        localStorage.removeItem("token");
-        navigate("/");
-      });
+      return []; // fallback
     }
-    return []; // fallback
-  }
-};
-const fetchComplimentaryData = async (txnID) => {
-  try {
-    const { data } = await axios.get(
-      `${baseURL}/auth/api/calculator/getByIDComplimentaryData/${txnID}/${id}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+  };
+  const fetchComplimentaryData = async (txnID) => {
+    try {
+      const { data } = await axios.get(
+        `${baseURL}/auth/api/calculator/getByIDComplimentaryData/${txnID}/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const complimentary = data.data || [];
+
+      return complimentary; // ✅ return so we can use it
+    } catch (error) {
+      console.error(error);
+      if (error.response && error.response.status === 401) {
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
       }
-    );
-
-    const complimentary = data.data || [];
-  
-    return complimentary; // ✅ return so we can use it
-  } catch (error) {
-    console.error(error);
-    if (error.response && error.response.status === 401) {
-      Swal.fire({
-        title: "Session Expired",
-        text: "Please login again.",
-        icon: "warning",
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
-      }).then(() => {
-        dispatch(clearUser());
-        localStorage.removeItem("token");
-        navigate("/");
-      });
+      return [];
     }
-    return [];
-  }
-};
-
+  };
 
   const fetchClient = async () => {
     try {
@@ -291,7 +296,7 @@ const fetchComplimentaryData = async (txnID) => {
     }
   };
 
- const handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
 
     setFormData((prev) => ({
@@ -299,141 +304,144 @@ const fetchComplimentaryData = async (txnID) => {
       [name]: value,
     }));
   };
-  const handleCreateClientInvoice =  () => {
-    
+  const handleCreateClientInvoice = () => {
     setShowModalInvoiceClient(true);
   };
 
-
-  
-    const generateUniqueId = () => {
+  const generateUniqueId = () => {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   };
-const handleCreateInvoice = async (e) => {
+  const handleCreateInvoice = async (e) => {
     e.preventDefault();
-  try {
-    // ✅ Get fresh services
-    const data = await fetchServicesById(selectedTxn);
-console.log(data);
+    try {
+      // ✅ Get fresh services
+      const data = await fetchServicesById(selectedTxn);
+      console.log(data);
 
-    // ✅ Get complimentary separately
-    const complimentaryItems = await fetchComplimentaryData(selectedTxn);
+      // ✅ Get complimentary separately
+      const complimentaryItems = await fetchComplimentaryData(selectedTxn);
 
-    if (!data || data.length === 0) {
+      if (!data || data.length === 0) {
+        Swal.fire({
+          icon: "info",
+          title: "No Data",
+          text: "No Data found for this Service.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+        return;
+      }
+
+      const clientDetail = {
+        client_name: clientData?.client_name,
+        client_organization: clientData?.client_organization,
+        email: clientData?.email,
+        phone: clientData?.phone,
+        address: clientData?.address,
+        dg_employee: userName,
+        duration_start_date: formData?.duration_start_date,
+        duration_end_date: formData?.duration_end_date,
+        payment_mode: formData?.payment_mode,
+        client_gst_no: formData?.client_gst_no,
+        client_pan_no: formData?.client_name,
+      };
+
+      // ✅ Step 1: Normal Invoices
+      const invoices = data
+        .filter(
+          (item) =>
+            item.service_type !== "Ads Campaign" &&
+            item.service_type !== "Complimentary"
+        )
+        .map((item) => ({
+          service_name: item.service_name,
+          category_name: item.category_name,
+          editing_type_name: item.editing_type_name,
+          editing_type_amount: item.editing_type_amount,
+          quantity: item.quantity,
+          include_content_posting: item.include_content_posting,
+          include_thumbnail_creation: item.include_thumbnail_creation,
+          total_amount: item.total_amount,
+          plan_name: item.plan_name,
+          employee: userName,
+        }));
+
+      // ✅ Step 2: Ads Campaign
+      const adsItems = data
+        .filter((item) => item.service_type === "Ads Campaign")
+        .map((item) => ({
+          txn_id: selectedTxn,
+          client_id: id,
+          id: generateUniqueId(),
+          category: item.category_name,
+          amount: item.amount,
+          percent: item.percent,
+          charge: item.charge,
+          total: item.total_amount,
+          employee: userName,
+        }));
+
+      // ✅ Step 3: Save invoices
+      const payload = {
+        txn_id: selectedTxn,
+        ...clientDetail,
+        client_id: id,
+        invoices,
+      };
+      await axios.post(
+        `${baseURL}/auth/api/calculator/saveInvoiceGD`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // ✅ Step 4: Save Ads
+      if (adsItems.length > 0) {
+        await axios.post(
+          `${baseURL}/auth/api/calculator/saveInvoiceAdsCampaign`,
+          { adsItems },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      // ✅ Step 5: Save Complimentary (from separate API)
+      if (complimentaryItems.length > 0) {
+        for (const item of complimentaryItems) {
+          await axios.post(
+            `${baseURL}/auth/api/calculator/saveInvoiceComplimentaryData`,
+            item,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        }
+      }
+
       Swal.fire({
-        icon: "info",
-        title: "No Data",
-        text: "No Data found for this Service.",
+        icon: "success",
+        title: "Invoice Created",
+        text: "Invoice saved successfully!",
         showConfirmButton: false,
         timer: 2000,
         timerProgressBar: true,
       });
-      return;
-    }
-   
-      const clientDetail = {
-        client_name: clientData?.client_name ,
-        client_organization: clientData?.client_organization ,
-        email: clientData?.email ,
-        phone: clientData?.phone ,
-        address: clientData?.address ,
-        dg_employee: userName,
-         duration_start_date: formData?.duration_start_date ,
-      duration_end_date:formData?.duration_end_date ,
-      payment_mode:formData?.payment_mode ,
-      client_gst_no:formData?.client_gst_no ,
-      client_pan_no:formData?.client_name ,
-      };
-
-    // ✅ Step 1: Normal Invoices
-    const invoices = data
-      .filter(
-        (item) =>
-          item.service_type !== "Ads Campaign" &&
-          item.service_type !== "Complimentary"
-      )
-      .map((item) => ({
-        service_name: item.service_name,
-        category_name: item.category_name,
-        editing_type_name: item.editing_type_name,
-        editing_type_amount: item.editing_type_amount,
-        quantity: item.quantity,
-        include_content_posting: item.include_content_posting,
-        include_thumbnail_creation: item.include_thumbnail_creation,
-        total_amount: item.total_amount,
-        plan_name: item.plan_name,
-        employee: userName,
+      setCreatedInvoices((prev) => ({
+        ...prev,
+        [selectedTxn]: true,
       }));
-
-    // ✅ Step 2: Ads Campaign
-    const adsItems = data
-      .filter((item) => item.service_type === "Ads Campaign")
-      .map((item) => ({
-        txn_id: selectedTxn,
-        client_id: id,
-        id: generateUniqueId(),
-        category: item.category_name,
-        amount: item.amount,
-        percent: item.percent,
-        charge: item.charge,
-        total: item.total_amount,
-        employee: userName,
-      }));
-
-    // ✅ Step 3: Save invoices
-    const payload = { txn_id: selectedTxn,...clientDetail, client_id: id, invoices };
-    await axios.post(`${baseURL}/auth/api/calculator/saveInvoiceGD`, payload, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    // ✅ Step 4: Save Ads
-    if (adsItems.length > 0) {
-      await axios.post(
-        `${baseURL}/auth/api/calculator/saveInvoiceAdsCampaign`,
-        { adsItems },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      setShowModalInvoiceClient(false);
+    } catch (err) {
+      console.error("Save error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong while saving the invoice.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
     }
-
-    // ✅ Step 5: Save Complimentary (from separate API)
-    if (complimentaryItems.length > 0) {
-      for (const item of complimentaryItems) {
-        await axios.post(
-          `${baseURL}/auth/api/calculator/saveInvoiceComplimentaryData`,
-          item,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      }
-    }
-
-    Swal.fire({
-      icon: "success",
-      title: "Invoice Created",
-      text: "Invoice saved successfully!",
-      showConfirmButton: false,
-      timer: 2000,
-      timerProgressBar: true,
-    });
-    setCreatedInvoices((prev) => ({
-  ...prev,
-  [selectedTxn]: true,
-}));
-    setShowModalInvoiceClient(false);
-
-  } catch (err) {
-    console.error("Save error:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Something went wrong while saving the invoice.",
-      showConfirmButton: false,
-      timer: 2000,
-      timerProgressBar: true,
-    });
-  }
-};
-
-
+  };
 
   console.log(clientData);
   const clientName = clientData.client_name;
@@ -488,12 +496,12 @@ console.log(data);
     setAssignModal(true);
   };
   useEffect(() => {
-  showApiData.forEach((item) => {
-    if (!createdInvoices[item.txn_id]) {
-      fetchAllInvoiceServices(item.txn_id);
-    }
-  });
-}, [showApiData]);
+    showApiData.forEach((item) => {
+      if (!createdInvoices[item.txn_id]) {
+        fetchAllInvoiceServices(item.txn_id);
+      }
+    });
+  }, [showApiData]);
 
   const handleDeleteInvoice = async (txnId) => {
     const confirm = await Swal.fire({
@@ -527,12 +535,11 @@ console.log(data);
           timer: 2000,
           timerProgressBar: true,
         });
-setCreatedInvoices((prev) => {
-  const updated = { ...prev };
-  delete updated[txnId];   // remove from created list
-  return updated;
-});
-        
+        setCreatedInvoices((prev) => {
+          const updated = { ...prev };
+          delete updated[txnId]; // remove from created list
+          return updated;
+        });
       } else {
         Swal.fire({
           icon: "error",
@@ -555,7 +562,7 @@ setCreatedInvoices((prev) => {
       });
     }
   };
-  
+
   const handleCloseInvoiceClient = () => {
     setShowModalInvoiceClient(false);
     setFormData({
@@ -566,13 +573,11 @@ setCreatedInvoices((prev) => {
       address: "",
       dg_employee: userName,
       duration_start_date: "",
-      duration_end_date:"",
-      payment_mode:"",
-      client_gst_no:"",
-      client_pan_no:"",
-    })
-
-    
+      duration_end_date: "",
+      payment_mode: "",
+      client_gst_no: "",
+      client_pan_no: "",
+    });
   };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -699,7 +704,7 @@ setCreatedInvoices((prev) => {
                             {item.txn_id ? item.txn_id : "N/A"}
                           </div>
                         </td>
-                      
+
                         <td className="py-5 px-6">
                           <button
                             onClick={() => {
@@ -723,41 +728,38 @@ setCreatedInvoices((prev) => {
                           >
                             Delete
                           </button>
-                          
                         </td>
-                          <td className="py-5 px-6">
-  {createdInvoices[item.txn_id] ? (
-    <>
-    
-      <button
-      onClick={() => {
-                    setShowModalInvoice(true);
-                     setSelectedTxn(item.txn_id);
-                   
-                  }}
-      className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 "
-    >
-      Invoice Created
-    </button>
-      {/* <button
+                        <td className="py-5 px-6">
+                          {createdInvoices[item.txn_id] ? (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setShowModalInvoice(true);
+                                  setSelectedTxn(item.txn_id);
+                                }}
+                                className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 "
+                              >
+                                Invoice Created
+                              </button>
+                              {/* <button
       onClick={() => handleDeleteInvoice(item.txn_id)}
       className="inline-block mx-2 px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200  text-white shadow-lg bg-red-600"
     >
       <X size={12}/>
     </button> */}
-    </>
-  
-  ) : (
-    <button
-      onClick={() => {handleCreateClientInvoice();  setSelectedTxn(item.txn_id);}}
-      className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg shadow-red-500/25"
-    >
-      Create Invoice
-    </button>
-  )}
-</td>
-
-
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                handleCreateClientInvoice();
+                                setSelectedTxn(item.txn_id);
+                              }}
+                              className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg shadow-red-500/25"
+                            >
+                              Create Invoice
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))
                   ) : (
@@ -844,9 +846,7 @@ setCreatedInvoices((prev) => {
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => {
-                    navigate(
-                      `/admin/invoice/${id}/${selectedTxn}?gst=1`
-                    );
+                    navigate(`/admin/invoice/${id}/${selectedTxn}?gst=1`);
                     setShowModalInvoice(false);
                   }}
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
@@ -855,9 +855,7 @@ setCreatedInvoices((prev) => {
                 </button>
                 <button
                   onClick={() => {
-                    navigate(
-                      `/admin/invoice/${id}/${selectedTxn}?gst=0`
-                    );
+                    navigate(`/admin/invoice/${id}/${selectedTxn}?gst=0`);
                     setShowModalInvoice(false);
                   }}
                   className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
@@ -868,7 +866,7 @@ setCreatedInvoices((prev) => {
             </div>
           </div>
         )}
-           {showModalInvoiceClient && (
+        {showModalInvoiceClient && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
@@ -898,7 +896,6 @@ setCreatedInvoices((prev) => {
 
               {/* Form */}
               <form onSubmit={handleCreateInvoice} className="p-6 space-y-4">
-              
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Calendar1 className="w-4 h-4 inline mr-2" />
@@ -930,35 +927,32 @@ setCreatedInvoices((prev) => {
                   />
                 </div>
 
-              
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Building className="w-4 h-4 inline mr-2" />
                     Payment Mode
                   </label>
-               <select
-  name="payment_mode"
-  value={formData.payment_mode}
-  onChange={handleChange}
-  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-  required
->
-  <option  value="" className="text-gray-500">
-   Select Payment Mode
-  </option>
-  <option value="Payment Cheque">Payment Cheque</option>
-  <option value="Net Banking">Net Banking</option>
-  <option value="UPI">UPI</option>
-  <option value="Cash">Cash</option>
-</select>
-
+                  <select
+                    name="payment_mode"
+                    value={formData.payment_mode}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    required
+                  >
+                    <option value="" className="text-gray-500">
+                      Select Payment Mode
+                    </option>
+                    <option value="Payment Cheque">Payment Cheque</option>
+                    <option value="Net Banking">Net Banking</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Cash">Cash</option>
+                  </select>
                 </div>
-              
-               
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Mail className="w-4 h-4 inline mr-2" />
-                   GST Number (Optional)
+                    GST Number (Optional)
                   </label>
                   <input
                     type="text"
@@ -972,7 +966,7 @@ setCreatedInvoices((prev) => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Mail className="w-4 h-4 inline mr-2" />
-                   Pan Card Number (Optional)
+                    Pan Card Number (Optional)
                   </label>
                   <input
                     type="number"
@@ -983,8 +977,6 @@ setCreatedInvoices((prev) => {
                     placeholder="Enter Pan Card Number"
                   />
                 </div>
-
-         
 
                 {/* Buttons */}
                 <div className="flex justify-end gap-3 pt-4">
