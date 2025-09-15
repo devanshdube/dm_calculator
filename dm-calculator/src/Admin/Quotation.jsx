@@ -350,7 +350,7 @@ export default function Quotation() {
                           {/* {serviceData[0].plan_name} Plan */}
                         </h2>
                         <p>{moment().format("DD/MM/YYYY")}</p>
-                        <p>Quote #: {txn_id}</p>
+                        <p>Quote : {txn_id}</p>
                       </div>
                       {/* <div className="text-right text-gray-600 break-words">
                     <p>1815, Wright Town, Jabalpur,</p>

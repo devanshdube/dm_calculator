@@ -25,8 +25,9 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
-import AdminComplimentaryData from "./AdminComplimentaryData";
+
 import InoviceComplmentary from "./InoviceComplmentary";
+import AdminComplimentaryData from './../Admin/AdminComplimentaryData';
 
 const InvoiceCalculation = () => {
   const location = useLocation();

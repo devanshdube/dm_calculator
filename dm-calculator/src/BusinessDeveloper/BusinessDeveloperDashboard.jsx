@@ -27,6 +27,7 @@ import GenerateLinkHistoryBD from "./GenerateLinkHistoryBD";
 // const AdminServicesHistory = lazy(() => import("./AdminServicesHistory"));
 // const AdminAdsCampign = lazy(() => import("./AdminAdsCampign"));
 // // const AdminCalculator = lazy(() => import("./AdminCalculator"));
+import InvoiceHistory from './InvoiceHistory';
 
 const BusinessDeveloperDashboard = () => {
   const dispatch = useDispatch();
@@ -51,6 +52,7 @@ const BusinessDeveloperDashboard = () => {
   const tabs = [
     { id: "clients", label: "Client Details", icon: User },
     { id: "servicehistory", label: "History", icon: Clock },
+    { id: "invoicehistory", label: "Invoice History", icon: Clock },
     { id: "exploreplan", label: "Explore Plans", icon: List },
     { id: "assign", label: "Assign", icon: UserPlus },
     { id: "generatelink", label: "Generate Link", icon: Link },
@@ -212,6 +214,7 @@ const BusinessDeveloperDashboard = () => {
         <div className="transition-all duration-300 ease-in-out">
           {activeTab === "clients" && <ClientDetails />}
           {activeTab === "servicehistory" && <AllHistory />}
+          {activeTab === "invoicehistory" && <InvoiceHistory />}
           {activeTab === "exploreplan" && <BdExplorePlans />}
           {activeTab === "assign" && <AssignQuotationBD />}
           {activeTab === "generatelink" && <GenerateLinkHistoryBD />}

@@ -851,43 +851,7 @@ exports.deleteAllInvoiceServiceHistory = async (req, res) => {
   const { client_id, txn_id } = req.params;
 
   const queries = [
-    { table: "invoice_graphic", field: "txn_id" },
-    { table: "ads_campaign_details_invoice", field: "txn_id" },
-    { table: "complimentary_invoice", field: "txn_id" },
-  ];
-
-  try {
-    // Run delete queries one by one
-    for (const q of queries) {
-      await new Promise((resolve, reject) => {
-        db.query(
-          `DELETE FROM ${q.table} WHERE ${q.field} = ? AND client_id = ?`,
-          [txn_id, client_id],
-          (err, result) => {
-            if (err) return reject(err);
-            resolve(result);
-          }
-        );
-      });
-    }
-
-    res.status(200).json({
-      status: "Success",
-      message: "Invoice data deleted successfully for all tables",
-    });
-  } catch (error) {
-    console.error("Delete error:", error);
-    res.status(500).json({
-      status: "Failure",
-      message: "Error deleting invoice data",
-      error,
-    });
-  }
-};
-exports.deleteAllInvoiceServiceHistory = async (req, res) => {
-  const { client_id, txn_id } = req.params;
-
-  const queries = [
+    { table: "invoice", field: "txn_id" },
     { table: "invoice_graphic", field: "txn_id" },
     { table: "ads_campaign_details_invoice", field: "txn_id" },
     { table: "complimentary_invoice", field: "txn_id" },

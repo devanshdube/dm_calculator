@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, Search, ArrowLeft, X, User, Building, Mail, Phone, MapPin, Timer, Calendar1 } from "lucide-react";
+import { Calendar, Search, ArrowLeft, X, User, Building, Mail, Phone, MapPin, Timer, Calendar1, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -300,7 +300,19 @@ const fetchComplimentaryData = async (txnID) => {
     }));
   };
   const handleCreateClientInvoice =  () => {
-    
+        setFormData({
+      client_name: "",
+      client_organization: "",
+      email: "",
+      phone: "",
+      address: "",
+      dg_employee: userName,
+      duration_start_date: "",
+      duration_end_date:"",
+      payment_mode:"",
+      client_gst_no:"",
+      client_pan_no:"",
+    })
     setShowModalInvoiceClient(true);
   };
 
@@ -342,7 +354,7 @@ console.log(data);
       duration_end_date:formData?.duration_end_date ,
       payment_mode:formData?.payment_mode ,
       client_gst_no:formData?.client_gst_no ,
-      client_pan_no:formData?.client_name ,
+      client_pan_no:formData?.client_pan_no,
       };
 
     // ✅ Step 1: Normal Invoices
@@ -709,7 +721,7 @@ setCreatedInvoices((prev) => {
                             }}
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25 mx-2"
                           >
-                            Review
+                            Preview
                           </button>
                           <button
                             onClick={() => handleAssignClick(item)}
@@ -739,12 +751,12 @@ setCreatedInvoices((prev) => {
     >
       Invoice Created
     </button>
-      {/* <button
+      <button
       onClick={() => handleDeleteInvoice(item.txn_id)}
       className="inline-block mx-2 px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200  text-white shadow-lg bg-red-600"
     >
-      <X size={12}/>
-    </button> */}
+      <Trash size={12}/>
+    </button>
     </>
   
   ) : (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, Search, ArrowLeft } from "lucide-react";
+import { Calendar, Search, ArrowLeft, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
 import Swal from "sweetalert2";
 
-const AllHistory = () => {
+const InvoiceHistory = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
@@ -30,7 +30,7 @@ const AllHistory = () => {
   const fetchAllClientServices = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getAllClientsTxnHistory`,
+        `${baseURL}/auth/api/calculator/getAllInvoice`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -40,18 +40,10 @@ const AllHistory = () => {
       );
 
       if (res.data.status === "Success") {
-        const uniqueTxnData = [];
-        const seenTxnIds = new Set();
-
-        for (const item of res.data.data) {
-          // ✅ Skip items with missing/null/empty txn_id
-          if (item.txn_id && !seenTxnIds.has(item.txn_id)) {
-            seenTxnIds.add(item.txn_id);
-            uniqueTxnData.push(item);
-          }
-        }
-
-        setFetchServices(uniqueTxnData);
+    
+        setFetchServices(res.data.data);
+        console.log(fetchServices);
+        
       }
     } catch (error) {
       console.log(error);
@@ -103,6 +95,64 @@ const AllHistory = () => {
   };
 
   const showApiData = filterPagination();
+    const handleDeleteInvoice = async (txnId,id) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this invoice permanently?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const response = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteAllInvoiceServiceHistory/${id}/${txnId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status === "Success") {
+          setFetchServices((prev) => prev.filter((item) => item.txn_id !== txnId));
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Invoice deleted successfully.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+
+        
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: response.data.message || "Unable to delete invoice.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong while deleting invoice.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+    }
+  };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -180,7 +230,7 @@ const AllHistory = () => {
                       Status
                     </th> */}
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      Quotation Preview
+                      Invoice Preview
                     </th>
                   </tr>
                 </thead>
@@ -201,7 +251,7 @@ const AllHistory = () => {
                           <div className="flex items-center gap-3 text-gray-300 group-hover:text-white transition-colors">
                             <Calendar className="w-4 h-4 text-purple-400" />
                             <span className="font-medium">
-                              {moment(item.txn_date).format("DD MMMM YYYY")}
+                              {moment(item.created_at).format("DD MMMM YYYY")}
                             </span>
                           </div>
                         </td>
@@ -224,13 +274,19 @@ const AllHistory = () => {
                             }}
                             // onClick={() =>
                             //   navigate(
-                            //     `/admin/quotation/${item.client_id}/${item.txn_id}`
+                            //     `/BD/quotation/${item.client_id}/${item.txn_id}`
                             //   )
                             // }
                             className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
                           >
-                          Preview
+                            Preview
                           </button>
+                               {/* <button
+      onClick={() => handleDeleteInvoice(item.txn_id,item.client_id)}
+      className="inline-block mx-2 px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200  text-white shadow-lg bg-red-600"
+    >
+      <Trash size={12}/>
+    </button> */}
                         </td>
                       </tr>
                     ))
@@ -260,13 +316,13 @@ const AllHistory = () => {
                 ×
               </button>
               <h2 className="text-lg font-semibold mb-4 text-center">
-                Select Quotation Type
+                Select Invoice Type
               </h2>
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => {
                     navigate(
-                      `/admin/quotation/${selectedClient}/${selectedTxn}?gst=1`
+                      `/BD/invoice/${selectedClient}/${selectedTxn}?gst=1`
                     );
                     setShowModal(false);
                   }}
@@ -277,7 +333,7 @@ const AllHistory = () => {
                 <button
                   onClick={() => {
                     navigate(
-                      `/admin/quotation/${selectedClient}/${selectedTxn}?gst=0`
+                      `/BD/invoice/${selectedClient}/${selectedTxn}?gst=0`
                     );
                     setShowModal(false);
                   }}
@@ -309,7 +365,7 @@ const AllHistory = () => {
   );
 };
 
-export default AllHistory;
+export default InvoiceHistory;
 const PaginationContainer = styled.div`
   .pagination {
     display: flex;

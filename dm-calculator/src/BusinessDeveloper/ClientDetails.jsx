@@ -570,14 +570,14 @@ const ClientDetails = () => {
                                   >
                                     Edit
                                   </button>
-                                  <button
+                                  {/* <button
                                     className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25"
                                     onClick={() =>
                                       handleDeleteClient(client.id)
                                     }
                                   >
                                     Delete
-                                  </button>
+                                  </button> */}
                                 </div>
                               </div>
                             </div>

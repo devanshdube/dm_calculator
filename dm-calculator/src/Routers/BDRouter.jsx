@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 // import { useSelector } from "react-redux";
 import styled from "styled-components";
 import BDNoteSection from "../BusinessDeveloper/BDNoteSection";
+import BDInvoice from "../BusinessDeveloper/BDInvoice";
 const QuotationBD = lazy(() => import("../BusinessDeveloper/QuotationBD"));
 const AdsCampaignCalciBD = lazy(() =>
   import("../BusinessDeveloper/AdsCampaignCalciBD")
@@ -14,6 +15,11 @@ const BusinessDeveloperDashboard = lazy(() =>
   import("../BusinessDeveloper/BusinessDeveloperDashboard")
 );
 const ReviewRequirements = lazy(() => import("../Admin/ReviewRequirements"));
+import InvoiceCustomise from './../BusinessDeveloper/InvoiceCustomise';
+import InvoiceCalculation from './../BusinessDeveloper/InvoiceCalculation';
+import InvoiceAds from './../BusinessDeveloper/InvoiceAds';
+import InvoiceNoteSection from './../BusinessDeveloper/InvoiceNoteSection';
+import InvoiceHistory from './../BusinessDeveloper/InvoiceHistory';
 
 const BDRouter = () => {
   // const { currentUser } = useSelector((state) => state.user);
@@ -47,6 +53,23 @@ const BDRouter = () => {
               path="note-section/:id/:txn_id"
               element={<BDNoteSection/>}
             />
+               <Route path="invoice/:id/:txn_id" element={<BDInvoice />} />
+                        <Route path="invoice-edit/:id/:txn_id" element={<InvoiceCustomise />} />
+                         <Route path="invoice-calculator/:id/:proposalId" element={<InvoiceCalculation />}
+                        />
+                         <Route
+                          path="invoice-Adscalculator/:id/:proposalId"
+                          element={<InvoiceAds />}
+                        />
+                         
+                        <Route
+                          path="invoice-note-section/:id/:txn_id"
+                          element={<InvoiceNoteSection />}
+                        />
+                        <Route
+                          path="Invoice-history"
+                          element={<InvoiceHistory />}
+                        />
             <Route path="/review/:linkId" element={<ReviewRequirements />} />
           </Routes>
         </Suspense>
