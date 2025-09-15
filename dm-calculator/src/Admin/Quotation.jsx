@@ -691,8 +691,9 @@ export default function Quotation() {
                       )}
                     </section>
 
+                    {notesData.length > 0 ? (<>
+
                     <h2 className="text-lg font-bold">Notes</h2>
-                    {notesData.length > 0 ? (
                       <ul className="list-disc pl-5">
                         {notesData.map((note) => (
                           <li
@@ -703,8 +704,10 @@ export default function Quotation() {
                           </li>
                         ))}
                       </ul>
+                    </>
+                    
                     ) : (
-                      <p className="text-gray-500 italic">No notes added.</p>
+                      <p className="text-gray-500 italic"></p>
                     )}
                   </div>
                 </div>

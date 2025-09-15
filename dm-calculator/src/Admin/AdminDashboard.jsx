@@ -23,6 +23,7 @@ import AdminExplorePlans from "./AdminExplorePlans";
 import CreateTeam from "./CreateTeam";
 import GenerateLinkHistory from "./GenerateLinkHistory";
 import NavTabs from "../Components/NavTabs";
+import InvoiceHistory from "./InvoiceHistory";
 const AssignQuotation = lazy(() => import("./AssignQuotation"));
 const AllHistory = lazy(() => import("./AllHistory"));
 const RegisterBD = lazy(() => import("./RegisterBD"));
@@ -63,6 +64,7 @@ const AdminDashboard = () => {
     { id: "exploreplan", label: "Explore Plans", icon: List },
     { id: "registerbd", label: "Register BD", icon: ShieldPlus },
     { id: "history", label: "History", icon: Clock },
+    { id: "invoicehistory", label: "Invoice History", icon: Clock },
     { id: "assign", label: "Assign", icon: UserPlus },
     { id: "createteam", label: "Team", icon: Users },
     { id: "generatelink", label: "Generate Link", icon: Link },
@@ -250,6 +252,7 @@ const AdminDashboard = () => {
             {activeTab === "addplan" && <AdminAddPlan />}
             {activeTab === "exploreplan" && <AdminExplorePlans />}
             {activeTab === "history" && <AllHistory />}
+            {activeTab === "invoicehistory" && <InvoiceHistory />}
             {activeTab === "assign" && <AssignQuotation />}
             {activeTab === "createteam" && <CreateTeam />}
             {activeTab === "generatelink" && <GenerateLinkHistory />}

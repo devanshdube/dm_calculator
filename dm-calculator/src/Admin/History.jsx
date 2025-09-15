@@ -841,7 +841,7 @@ const History = () => {
                 ×
               </button>
               <h2 className="text-lg font-semibold mb-4 text-center">
-                Select Quotation Type
+                Select Invoice Type
               </h2>
               <div className="flex justify-center gap-4">
                 <button
