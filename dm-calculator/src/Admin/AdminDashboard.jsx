@@ -22,6 +22,7 @@ import AdminAddPlan from "./AdminAddPlan";
 import AdminExplorePlans from "./AdminExplorePlans";
 import CreateTeam from "./CreateTeam";
 import GenerateLinkHistory from "./GenerateLinkHistory";
+import NavTabs from "../Components/NavTabs";
 import InvoiceHistory from "./InvoiceHistory";
 const AssignQuotation = lazy(() => import("./AssignQuotation"));
 const AllHistory = lazy(() => import("./AllHistory"));
@@ -155,13 +156,19 @@ const AdminDashboard = () => {
         </div>
       </header>
 
+      <NavTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        fixedUnderHeader
+        persistKey="admin-active-tab"
+      />
+
       {/* Navigation Tabs - Desktop */}
       {/* Navigation Tabs - Desktop (fixed under header, pill style) */}
       {/* Navigation Tabs - Desktop (fixed, full-width, no truncate) */}
-      <nav className="hidden lg:block fixed top-16 left-0 right-0 z-20 h-12 bg-gray-900/40 backdrop-blur-xl border-b border-gray-800/50">
-        {/* ❌ max-w-7xl mx-auto ko hatao, full width lo */}
+      {/* <nav className="hidden lg:block fixed top-16 left-0 right-0 z-20 h-12 bg-gray-900/40 backdrop-blur-xl border-b border-gray-800/50">
         <div className="h-full w-full px-3 lg:px-4">
-          {/* Horizontal scroll (agar zaroorat pade) */}
           <div className="h-full overflow-x-auto no-scrollbar">
             <div className="h-full flex items-center gap-2">
               {tabs.map((tab) => {
@@ -172,13 +179,9 @@ const AdminDashboard = () => {
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
                     className={[
-                      // height & padding
                       "flex items-center gap-2 h-9 px-4 rounded-full text-sm font-medium",
-                      // text wrap: full dikhna chahiye
                       "whitespace-nowrap min-w-max",
-                      // transitions
                       "transition-all duration-200",
-                      // states
                       isActive
                         ? "bg-purple-500/20 text-purple-100 ring-1 ring-purple-400/40"
                         : "text-gray-200 hover:text-white hover:bg-white/10",
@@ -186,7 +189,6 @@ const AdminDashboard = () => {
                     title={tab.label}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
-                    {/* ❌ truncate hata diya */}
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -194,7 +196,7 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-      </nav>
+      </nav> */}
 
       {/* Mobile Navigation Menu */}
       <div
