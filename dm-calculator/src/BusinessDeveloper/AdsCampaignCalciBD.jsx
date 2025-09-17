@@ -111,76 +111,92 @@ const AdsCampaignCalciBD = () => {
   // Get unique categories
   const categories = [...new Set(adsData.map((item) => item.ads_category))];
 
-  const handleCalculateAndSave = async () => {
-    // First calculate
-    setLoading(true);
-    setError("");
 
-    const results = [];
+const handleCalculateAndSave = async () => {
+  setLoading(true);
+  setError("");
 
-    try {
-      if (!adsData || adsData.length === 0) {
-        setError("No ads data available");
-        setLoading(false);
+  const results = [];
+
+  try {
+    if (!adsData || adsData.length === 0) {
+      setError("No ads data available");
+      setLoading(false);
+      return;
+    }
+
+    Object.entries(enteredAmount).forEach(([category, amountValue]) => {
+      if (!amountValue || amountValue.trim() === "") return;
+
+      const amount = validateAmount(amountValue);
+      if (!amount) {
+        setError(`Invalid amount entered for ${category}`);
         return;
       }
 
-      Object.entries(enteredAmount).forEach(([category, amountValue]) => {
-        if (!amountValue || amountValue.trim() === "") return;
+      const matched = adsData
+        .filter((ad) => ad.ads_category === category)
+        .find((range) => {
+          const start = parseInt(range.amt_range_start);
+          const end =
+            range.amt_range_end === "Above"
+              ? Infinity
+              : parseInt(range.amt_range_end);
 
-        const amount = validateAmount(amountValue);
-        if (!amount) {
-          setError(`Invalid amount entered for ${category}`);
+          if (isNaN(start)) return false;
+          if (range.amt_range_end !== "Above" && isNaN(end)) return false;
+
+          return amount >= start && amount <= end;
+        });
+
+      if (matched) {
+        const percent = parseFloat(matched.percentage);
+        if (isNaN(percent)) {
+          setError(`Invalid percentage for ${category}`);
           return;
         }
 
-        const matched = adsData
-          .filter((ad) => ad.ads_category === category)
-          .find((range) => {
-            const start = parseInt(range.amt_range_start);
-            const end =
-              range.amt_range_end === "Above"
-                ? Infinity
-                : parseInt(range.amt_range_end);
+        const charge = roundCurrency((amount * percent) / 100);
+        const total = roundCurrency(amount + charge);
 
-            if (isNaN(start)) return false;
-            if (range.amt_range_end !== "Above" && isNaN(end)) return false;
+        results.push({
+          txn_id: proposalId,
+          client_id: id,
+          id: generateUniqueId(),
+          category,
+          amount: roundCurrency(amount),
+          percent,
+          charge,
+          total,
+          employee: userName,
+        });
+      } else {
+        setError(
+          `No matching range found for ${category} with amount ₹${amount}`
+        );
+      }
+    });
 
-            return amount >= start && amount <= end;
-          });
+    if (results.length > 0) {
+      setAdsItems(results); // update state
 
-        if (matched) {
-          const percent = parseFloat(matched.percentage);
-          if (isNaN(percent)) {
-            setError(`Invalid percentage for ${category}`);
-            return;
-          }
-
-          const charge = roundCurrency((amount * percent) / 100);
-          const total = roundCurrency(amount + charge);
-
-          results.push({
-            txn_id: proposalId,
-            client_id: id,
-            id: generateUniqueId(),
-            category,
-            amount: roundCurrency(amount),
-            percent,
-            charge,
-            total,
-            employee: userName,
-          });
-        } else {
-          setError(
-            `No matching range found for ${category} with amount ₹${amount}`
-          );
+      // --- First: Save Ads Campaign (Quotation) ---
+      const response = await fetch(
+        "https://dmcalculator.dentalguru.software/auth/api/calculator/saveAdsCampaign",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ adsItems: results }),
         }
-      });
+      );
 
-      if (results.length > 0) {
-        setAdsItems(results); // update state
-        const response = await fetch(
-          "https://dmcalculator.dentalguru.software/auth/api/calculator/saveAdsCampaign",
+      const result = await response.json();
+      if (result.status === "Success") {
+        // --- Then: Save Invoice Ads Campaign ---
+        const invoiceResponse = await fetch(
+          "https://dmcalculator.dentalguru.software/auth/api/calculator/saveInvoiceAdsCampaign",
           {
             method: "POST",
             headers: {
@@ -190,13 +206,14 @@ const AdsCampaignCalciBD = () => {
           }
         );
 
-        const result = await response.json();
-        if (result.status === "Success") {
+        const invoiceResult = await invoiceResponse.json();
+
+        if (invoiceResult.status === "Success") {
           fetchData();
           Swal.fire({
             icon: "success",
             title: "Success!",
-            text: "Ads campaign calculated and saved successfully!",
+            text: "Ads campaign & invoice saved successfully!",
             showConfirmButton: false,
             timer: 2000,
             timerProgressBar: true,
@@ -204,19 +221,30 @@ const AdsCampaignCalciBD = () => {
         } else {
           Swal.fire({
             icon: "error",
-            title: "Failed!",
-            text: "Failed to save: " + result.message,
-            showConfirmButton: true, // keep button here so user sees the error
+            title: "Invoice Failed!",
+            text: "Failed to save invoice: " + invoiceResult.message,
+            showConfirmButton: true,
           });
         }
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: "Failed to save Ads Campaign: " + result.message,
+          showConfirmButton: true,
+        });
       }
-    } catch (err) {
-      setError("An error occurred during calculation or saving.");
-      console.error(err);
-    } finally {
-      setLoading(false);
+    } else {
+      setError("No valid data to save.");
     }
-  };
+  } catch (err) {
+    setError("An error occurred during calculation or saving.");
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const fetchData = async () => {
     if (!id || !proposalId) return;

@@ -137,82 +137,105 @@ const AdminComplimentaryData = () => {
     (c) => c.category_name === selectedCategory
   );
 
-  const handleSave = () => {
-    if (!selectedEditingType) return;
-    setLoading(true);
+ const handleSave = () => {
+  if (!selectedEditingType) return;
+  setLoading(true);
 
-    // Base amount
-    let baseAmount = selectedEditingType.amount * quantity;
+  // Base amount
+  let baseAmount = selectedEditingType.amount * quantity;
 
-    // Optional addon values
-    let optionalTotal = 0;
-    let include_content_posting = 0;
-    let include_thumbnail_creation = 0;
+  // Optional addon values
+  let optionalTotal = 0;
+  let include_content_posting = 0;
+  let include_thumbnail_creation = 0;
 
-    optionalServices.forEach((opt) => {
-      const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
-      if (addons[key]) {
-        const amount = parseFloat(opt.amount);
-        const totalForThisAddon = amount * quantity; // ✅ multiply by quantity
+  optionalServices.forEach((opt) => {
+    const key = opt.editing_type_name.toLowerCase().replace(/\s+/g, "_");
+    if (addons[key]) {
+      const amount = parseFloat(opt.amount);
+      const totalForThisAddon = amount * quantity; // ✅ multiply by quantity
+      optionalTotal += totalForThisAddon;
 
-        optionalTotal += totalForThisAddon;
-
-        if (key === "content_posting") {
-          include_content_posting = amount; // Send unit amount, not total
-        } else if (key === "thumbnail_creation") {
-          include_thumbnail_creation = amount; // Send unit amount, not total
-        }
+      if (key === "content_posting") {
+        include_content_posting = amount; // unit amount
+      } else if (key === "thumbnail_creation") {
+        include_thumbnail_creation = amount; // unit amount
       }
-    });
+    }
+  });
 
-    const finalAmount = baseAmount + optionalTotal;
-    setTotal(finalAmount);
+  const finalAmount = baseAmount + optionalTotal;
+  setTotal(finalAmount);
 
-    const payload = {
-      txn_id: proposalId,
-      client_id: id,
-      service_name: selectedService,
-      category_name: selectedCategory,
-      editing_type_name: selectedEditingType.editing_type_name,
-      editing_type_amount: selectedEditingType.amount,
-      quantity,
-      include_content_posting,
-      include_thumbnail_creation,
-      total_amount: finalAmount,
-      employee: userName,
-    };
-
-    const request = editId
-      ? axios.put(
-          `${baseURL}/auth/api/calculator/updateComplimenatryDataById/${editId}`,
-          payload
-        )
-      : axios.post(
-          `${baseURL}/auth/api/calculator/saveComplimentaryData`,
-          payload
-        );
-
-    request
-      .then((res) => {
-        resetForm();
-        if (res.data.status === "Success") {
-          Swal.fire({
-            icon: "success",
-            title: editId ? "Updated!" : "Saved!",
-            text: editId ? "Entry updated successfully" : "Saved successfully",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-          });
-          fetchData();
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        setLoading(false);
-        console.error("Save error:", err);
-      });
+  const payload = {
+    txn_id: proposalId,
+    client_id: id,
+    service_name: selectedService,
+    category_name: selectedCategory,
+    editing_type_name: selectedEditingType.editing_type_name,
+    editing_type_amount: selectedEditingType.amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount: finalAmount,
+    employee: userName,
   };
+
+  // --- First Complimentary API ---
+  const complimentaryRequest = editId
+    ? axios.put(
+        `${baseURL}/auth/api/calculator/updateComplimenatryDataById/${editId}`,
+        payload
+      )
+    : axios.post(
+        `${baseURL}/auth/api/calculator/saveComplimentaryData`,
+        payload
+      );
+
+  complimentaryRequest
+    .then((res) => {
+      if (res.data.status === "Success") {
+        // --- Then Invoice API ---
+        const invoiceRequest = editId
+          ? axios.put(
+              `${baseURL}/auth/api/calculator/updateInvoiceComplimenatryDataById/${editId}`,
+              payload
+            )
+          : axios.post(
+              `${baseURL}/auth/api/calculator/saveInvoiceComplimentaryData`,
+              payload
+            );
+
+        return invoiceRequest;
+      } else {
+        throw new Error("Complimentary save failed");
+      }
+    })
+    .then((invoiceRes) => {
+      if (invoiceRes && invoiceRes.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: editId ? "Updated!" : "Saved!",
+          text: editId
+            ? "Complimentary & Invoice updated successfully"
+            : "Complimentary & Invoice saved successfully",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+        resetForm();
+        fetchData();
+      }
+    })
+    .catch((err) => {
+      console.error("Save error:", err);
+      Swal.fire("Error", "Something went wrong while saving.", "error");
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+};
+
 
   const resetForm = () => {
     setEditId(null);

@@ -2270,7 +2270,7 @@ exports.getInvoiceClientNotesbyId = async (req, res) => {
 
 exports.getAllInvoice = async (req, res) => {
   try {
-    db.query("SELECT * FROM Invoice", (err, results) => {
+    db.query("SELECT * FROM invoice", (err, results) => {
       if (err) {
         return res.status(500).json({
           status: "Failure",

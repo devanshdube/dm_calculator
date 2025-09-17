@@ -43,6 +43,7 @@ const {
   saveInvoiceCalculatorData,
   saveInvoiceNotesData,
   saveInvoiceClientIdwiseNotes,
+  copyInvoiceByTxnId,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -188,6 +189,7 @@ router.post("/saveInvoiceComplimentaryData", saveInvoiceComplimentaryData);
 router.post("/saveInvoiceCalculatorData", saveInvoiceCalculatorData);
 router.post("/saveInvoiceNotesData", saveInvoiceNotesData);
 router.post("/saveInvoiceClientIdwiseNotes", saveInvoiceClientIdwiseNotes);
+router.post("/copyInvoiceByTxnId/:txn_id", copyInvoiceByTxnId);
 
 
 // ---->  Get all routes START <----
@@ -388,6 +390,7 @@ router.put("/updateInvoiceDataById/:id", updateInvoiceDataById);
 router.put("/updateInvoiceNoteDataById/:id", updateInvoiceNoteDataById);
 router.put("/updateInvoiceClientNoteDataById/:id", updateInvoiceClientNoteDataById);
 router.put("/updateInvoiceComplimenatryDataById/:id", updateInvoiceComplimenatryDataById);
+router.put("/updateInvoiceDataById/:id", updateInvoiceDataById);
 // router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----
 

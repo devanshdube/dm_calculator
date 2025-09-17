@@ -152,7 +152,64 @@ const InvoiceHistory = () => {
       });
     }
   };
-  
+  const handleCopyInvoice = async (txnId) => {
+  try {
+    const confirm = await Swal.fire({
+      title: "Copy Invoice?",
+      text: "Do you want to create a copy of this invoice?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, copy it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    const response = await axios.post(
+      `${baseURL}/auth/api/calculator/copyInvoiceByTxnId/${txnId}`,
+      {}, // no body needed
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.data.status === "Success") {
+      Swal.fire({
+        icon: "success",
+        title: "Copied!",
+        text: "Invoice copied successfully.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+
+      // ✅ Refresh list after copying
+      fetchAllClientServices();
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Failed!",
+        text: response.data.message || "Unable to copy invoice.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+    }
+  } catch (error) {
+    console.error("Error copying invoice:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Something went wrong while copying invoice.",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -287,6 +344,12 @@ const InvoiceHistory = () => {
     >
       <Trash size={12}/>
     </button> */}
+          <button
+  onClick={() => handleCopyInvoice(item.txn_id)}
+  className="inline-block  px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 text-white shadow-lg bg-blue-600"
+>
+  Copy
+</button>
                         </td>
                       </tr>
                     ))

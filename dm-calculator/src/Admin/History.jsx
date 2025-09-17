@@ -753,9 +753,9 @@ setCreatedInvoices((prev) => {
     </button>
       <button
       onClick={() => handleDeleteInvoice(item.txn_id)}
-      className="inline-block mx-2 px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200  text-white shadow-lg bg-red-600"
-    >
-      <Trash size={12}/>
+     className="inline-block mx-2 px-4 py-3 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200  text-white shadow-lg bg-red-600"
+   >
+        <Trash size={15}/>
     </button>
     </>
   

@@ -141,56 +141,81 @@ exports.updateCalculatorDataById = (req, res) => {
       .json({ status: "Success", message: "Entry updated successfully" });
   });
 };
-
 exports.updateClientDetails = async (req, res) => {
   const clientId = req.params.id;
   const { client_name, client_organization, email, phone, address } = req.body;
 
-  if (!client_name || !phone ) {
+  if (!client_name || !phone) {
     return res
       .status(400)
-      .json({ status: "Failure", message: "All fields are required." });
+      .json({ status: "Failure", message: "Client name and phone are required." });
   }
 
   try {
     const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-    db.query(
-      `UPDATE dm_calculator_client_details
-       SET client_name = ?, client_organization = ?, email = ?, phone = ?, address = ?, created_at = ?
-       WHERE id = ?`,
-      [
-        client_name,
-        client_organization,
-        email,
-        phone,
-        address,
-        updatedAt,
-        clientId,
-      ],
-      (err, result) => {
+    // First update client details
+    const query1 = `
+      UPDATE dm_calculator_client_details
+      SET client_name = ?, client_organization = ?, email = ?, phone = ?, address = ?, created_at = ?
+      WHERE id = ?
+    `;
+
+    const values = [
+      client_name,
+      client_organization,
+      email,
+      phone,
+      address,
+      updatedAt,
+      clientId,
+    ];
+
+    db.query(query1, values, (err, result1) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Database error", error: err });
+      }
+
+      if (result1.affectedRows === 0) {
+        return res
+          .status(404)
+          .json({ status: "Failure", message: "Client not found in dm_calculator_client_details." });
+      }
+
+      // Then update invoice table
+      const query2 = `
+        UPDATE invoice
+        SET client_name = ?, client_organization = ?, email = ?, phone = ?, address = ?, created_at = ?
+        WHERE client_id = ?
+      `;
+
+      db.query(query2, values, (err, result2) => {
         if (err) {
           return res
             .status(500)
             .json({ status: "Failure", message: "Database error", error: err });
         }
 
-        if (result.affectedRows === 0) {
+        if (result2.affectedRows === 0) {
           return res
             .status(404)
-            .json({ status: "Failure", message: "Client not found." });
+            .json({ status: "Failure", message: "Client not found in invoice." });
         }
 
+        // ✅ Single response after both updates
         res.status(200).json({
           status: "Success",
-          message: "Client details updated successfully.",
+          message: "Client details updated successfully in both tables.",
         });
-      }
-    );
+      });
+    });
   } catch (error) {
     res.status(500).json({ status: "Failure", message: "Server error", error });
   }
 };
+
 
 exports.updatePlanNameDetail = async (req, res) => {
   const { id } = req.params;
@@ -906,6 +931,53 @@ exports.updateInvoiceComplimenatryDataById = (req, res) => {
       .json({ status: "Success", message: "Entry Invoice updated successfully" });
   });
 };
+
+exports.updateInvoiceDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+    created_at,
+    duration_start_date,
+    duration_end_date,
+    payment_mode,
+    client_gst_no,
+    client_pan_no,
+  } = req.body;
+
+  const query = `
+    UPDATE invoice
+    SET
+      created_at = ?,
+      duration_start_date = ?,
+      duration_end_date = ?,
+      payment_mode = ?,
+      client_gst_no = ?,
+      client_pan_no = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    created_at,
+    duration_start_date,
+    duration_end_date,
+    payment_mode,
+    client_gst_no,
+    client_pan_no,
+    id, // add id at the end
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      message: "Invoice entry updated successfully",
+    });
+  });
+};
+
 
 // working code
 
