@@ -186,6 +186,8 @@ const AdminCalculator = () => {
   };
 
   const handleEdit = (entry) => {
+    console.log(entry);
+    
     setEditId(entry.id);
     setSelectedService(entry.service_name);
     setSelectedCategory(entry.category_name);
@@ -194,6 +196,8 @@ const AdminCalculator = () => {
       editing_type_name: entry.editing_type_name,
       amount: parseFloat(entry.editing_type_amount),
     });
+    console.log(selectedEditingType);
+    
     setQuantity(parseInt(entry.quantity));
 
     // Dynamically map optional services from entry
@@ -933,6 +937,7 @@ const handleSave = () => {
                     setSelectedCategory("");
                     setSelectedEditingType(null);
                   }}
+           disabled={!!editId} 
                 >
                   <option value="">-- Choose Service --</option>
                   {data.map((service) => (
@@ -957,6 +962,7 @@ const handleSave = () => {
                         setSelectedCategory(e.target.value);
                         setSelectedEditingType(null);
                       }}
+                        disabled={!!editId} 
                     >
                       <option value="">-- Choose Category --</option>
                       {getSelectedService.categories.map((category) => (
@@ -986,6 +992,7 @@ const handleSave = () => {
                         );
                         setSelectedEditingType(edit);
                       }}
+                        disabled={!!editId} 
                     >
                       <option value="">-- Choose Editing Type --</option>
                       {getSelectedCategory.editing_types.map((edit) => (

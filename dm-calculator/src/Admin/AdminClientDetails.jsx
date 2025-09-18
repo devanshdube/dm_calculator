@@ -252,9 +252,12 @@ const AdminClientDetails = () => {
         });
       }
       return Swal.fire({
-        icon: "error",
-        title: "Failed!",
+        icon: "success",
+        title: "Deleted!",
         text: data?.message || "Unable to delete client.",
+              showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
       });
     } catch (error) {
       const data = error?.response?.data;

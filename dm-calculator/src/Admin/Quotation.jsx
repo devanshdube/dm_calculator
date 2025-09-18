@@ -28,6 +28,7 @@ export default function Quotation() {
   const [notesData, setNotesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clientData, setClientData] = useState([]);
+  const [clientDataReceived, setClientDataReceived] = useState([]);
   const [imagesLoaded, setImagesLoaded] = useState({
     header: false,
     footer: false,
@@ -166,6 +167,36 @@ export default function Quotation() {
     }
   };
 
+const fetchClientReceived = async () => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}/${txn_id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.data.status === "Success") {
+        setClientDataReceived(res.data.data);
+      }
+      console.log(clientData);
+      
+    } catch (error) {
+      if (error.response?.status === 401) {
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
   const clientName = clientData?.client_name;
   const clientAddress = clientData?.address;
   const clientPhone = clientData?.phone;
@@ -176,6 +207,7 @@ export default function Quotation() {
     fetchClientNotes();
     fetchComplimentaryData();
     fetchDiscount();
+    fetchClientReceived();
   }, [id, txn_id]);
 
   useEffect(() => {
@@ -237,24 +269,38 @@ export default function Quotation() {
     return sum + amount;
   }, 0);
 
-  const adsTotal = adsData.reduce((sum, ad) => {
+ const adsTotal = adsData.reduce((sum, ad) => {
     const amount = Number(ad.amount || 0);
     const totalBudget = Number(ad.total_amount || 0);
     const gstTotal = (amount * 18) / 100;
     return sum + totalBudget + gstTotal;
   }, 0);
+  const adsTotalBudget = adsData.reduce((sum, ad) => {
+    const amount = Number(ad.amount || 0);
+
+    const gstTotal = (amount * 18) / 100;
+    return sum + amount + gstTotal;
+  }, 0);
+  const grandTotalAds = graphicTotal + adsTotal - adsTotalBudget;
+
   const grandTotal = graphicTotal + adsTotal;
 
   // Apply discount percentage only for display
   const discountAmount = selecteddiscount
-    ? (grandTotal * Number(selecteddiscount)) / 100
+    ? (grandTotalAds * Number(selecteddiscount)) / 100
     : 0;
+
+  const gstexculidingAdsgst = grandTotalAds - discountAmount;
+  console.log(gstexculidingAdsgst);
 
   const totalAfterDiscount = grandTotal - discountAmount;
 
   // If GST applies on discounted total
-  const gstAmount = isGST ? totalAfterDiscount * 0.18 : 0;
+  const gstAmount = isGST ? gstexculidingAdsgst * 0.18 : 0;
+  console.log(gstAmount);
+
   const finalTotal = totalAfterDiscount + gstAmount;
+
 
   // if (loading) {
   //   return (
@@ -280,12 +326,16 @@ export default function Quotation() {
           >
             🖨️ Print
           </button>
+            {clientDataReceived.tag_received_amt === "received" ? (
+                    null
+                  ): (
           <button
             onClick={() => navigate(`/admin/ServicesLanding/${id}/${txn_id}`)}
             className="bg-orange-600 text-white rounded-full px-4 py-2"
           >
             ✏️ Edit
           </button>
+           )}
           <button
             onClick={() => navigate("/admin/dashboard")}
             className="bg-teal-600 text-white rounded-full px-4 py-2"

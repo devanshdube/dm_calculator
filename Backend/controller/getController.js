@@ -2089,12 +2089,12 @@ exports.getComplimentaryInvoiceData = async (req, res) => {
 };
 
 exports.getInvoiceClientDetailsById = async (req, res) => {
-  const clientId = req.params.id;
+  const {client_id,txn_id} = req.params;
 
   try {
     db.query(
-      "SELECT * FROM invoice WHERE client_id = ?",
-      [clientId],
+      "SELECT * FROM invoice WHERE client_id = ? AND txn_id = ?",
+      [client_id,txn_id],
       (err, results) => {
         if (err) {
           return res.status(500).json({

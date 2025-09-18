@@ -368,6 +368,7 @@ const handleSave = () => {
               setSelectedCategory("");
               setSelectedEditingType(null);
             }}
+              disabled={!!editId} 
           >
             <option value="">-- Choose Service --</option>
             {data.map((service) => (
@@ -388,6 +389,7 @@ const handleSave = () => {
                 setSelectedCategory(e.target.value);
                 setSelectedEditingType(null);
               }}
+                disabled={!!editId} 
             >
               <option value="">-- Choose Category --</option>
               {getSelectedService.categories.map((category) => (
@@ -416,6 +418,7 @@ const handleSave = () => {
                 );
                 setSelectedEditingType(edit);
               }}
+                disabled={!!editId} 
             >
               <option value="">-- Choose Editing Type --</option>
               {getSelectedCategory.editing_types.map((edit) => (

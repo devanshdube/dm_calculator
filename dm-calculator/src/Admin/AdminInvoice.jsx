@@ -45,6 +45,8 @@ export default function AdminInvoice() {
       payment_mode:"",
       client_gst_no:"",
       client_pan_no:"",
+      tag_received_amt:"",
+
     });
   const fetchServices = async () => {
     try {
@@ -76,7 +78,7 @@ export default function AdminInvoice() {
   const fetchClient = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}`,
+        `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}/${txn_id}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -87,6 +89,8 @@ export default function AdminInvoice() {
       if (res.data.status === "Success") {
         setClientData(res.data.data);
       }
+      console.log(clientData);
+      
     } catch (error) {
       if (error.response?.status === 401) {
         Swal.fire({
@@ -257,12 +261,13 @@ useEffect(() => {
         payment_mode:formData?.payment_mode ,
         client_gst_no:formData?.client_gst_no ,
         client_pan_no:formData?.client_pan_no,
+        tag_received_amt:formData?.tag_received_amt
         };
 
     
 
       const payload = {...clientDetail};
-      await axios.put(`${baseURL}/auth/api/calculator/updateInvoiceDataById/${clientData.id}`, payload, {
+      await axios.put(`${baseURL}/auth/api/calculator/updateInvoiceClientDataById/${clientData.id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
   
@@ -362,6 +367,7 @@ useEffect(() => {
       payment_mode:"",
       client_gst_no:"",
       client_pan_no:"",
+      tag_received_amt:"",
     })
 
     
@@ -383,12 +389,16 @@ useEffect(() => {
           >
             🖨️ Print
           </button>
+            {clientData.tag_received_amt === "received" ? (
+                    null
+                  ): (
           <button
             onClick={() => navigate(`/admin/invoice-edit/${id}/${txn_id}`)}
             className="bg-orange-600 text-white rounded-full px-4 py-2"
           >
             ✏️ Edit
           </button>
+                  )}
           <button
             onClick={() => navigate("/admin/dashboard")}
             className="bg-teal-600 text-white rounded-full px-4 py-2"
@@ -435,7 +445,12 @@ useEffect(() => {
             <tr>
               <td className="p-0 m-0 align-top">
                 <div className="flex flex-col justify-between h-full px-6 py-4 print:px-4 ">
-                  <div className=" text-end">
+                   {clientData.tag_received_amt === "received" ? (
+                  
+                  <p>{clientData.tag_received_amt}</p>
+                  ): (
+
+                  <div className=" text-end print:hidden">
 
                     <button
                   onClick={handleShowClientInvoice}
@@ -444,6 +459,7 @@ useEffect(() => {
                    Edit
                 </button>
                   </div>
+                   )}
                   <div className="flex-grow">
                     {/* Client Details */}
                     <div className=" flex justify-between">
@@ -1097,7 +1113,27 @@ useEffect(() => {
 </select>
 
                 </div>
-              
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Building className="w-4 h-4 inline mr-2" />
+                    Received Amount Status
+                  </label>
+               <select
+  name="tag_received_amt"
+  value={formData.tag_received_amt}
+  onChange={handleChange}
+  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+  required
+>
+  <option  value="" className="text-gray-500">
+   Select Status
+  </option>
+
+  <option value="received">Received</option>
+
+</select>
+
+                </div>
                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

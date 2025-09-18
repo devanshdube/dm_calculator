@@ -141,6 +141,7 @@ const {
   updateInvoiceNoteDataById,
   updateInvoiceClientNoteDataById,
   updateInvoiceComplimenatryDataById,
+  updateInvoiceClientDataById,
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -301,7 +302,7 @@ router.get(
   getInvoiceByIdData
 );
 router.get(
-  "/getInvoiceClientDetailsById/:id",
+  "/getInvoiceClientDetailsById/:client_id/:txn_id",
   authenticateToken,
   getInvoiceClientDetailsById
 );
@@ -390,7 +391,7 @@ router.put("/updateInvoiceDataById/:id", updateInvoiceDataById);
 router.put("/updateInvoiceNoteDataById/:id", updateInvoiceNoteDataById);
 router.put("/updateInvoiceClientNoteDataById/:id", updateInvoiceClientNoteDataById);
 router.put("/updateInvoiceComplimenatryDataById/:id", updateInvoiceComplimenatryDataById);
-router.put("/updateInvoiceDataById/:id", updateInvoiceDataById);
+router.put("/updateInvoiceClientDataById/:id", updateInvoiceClientDataById);
 // router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----
 

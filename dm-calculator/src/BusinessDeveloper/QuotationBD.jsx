@@ -235,24 +235,38 @@ export default function QuotationBD() {
     return sum + amount;
   }, 0);
 
-  const adsTotal = adsData.reduce((sum, ad) => {
+   const adsTotal = adsData.reduce((sum, ad) => {
     const amount = Number(ad.amount || 0);
     const totalBudget = Number(ad.total_amount || 0);
     const gstTotal = (amount * 18) / 100;
     return sum + totalBudget + gstTotal;
   }, 0);
+  const adsTotalBudget = adsData.reduce((sum, ad) => {
+    const amount = Number(ad.amount || 0);
+
+    const gstTotal = (amount * 18) / 100;
+    return sum + amount + gstTotal;
+  }, 0);
+  const grandTotalAds = graphicTotal + adsTotal - adsTotalBudget;
+
   const grandTotal = graphicTotal + adsTotal;
 
   // Apply discount percentage only for display
   const discountAmount = selecteddiscount
-    ? (grandTotal * Number(selecteddiscount)) / 100
+    ? (grandTotalAds * Number(selecteddiscount)) / 100
     : 0;
+
+  const gstexculidingAdsgst = grandTotalAds - discountAmount;
+  console.log(gstexculidingAdsgst);
 
   const totalAfterDiscount = grandTotal - discountAmount;
 
   // If GST applies on discounted total
-  const gstAmount = isGST ? totalAfterDiscount * 0.18 : 0;
+  const gstAmount = isGST ? gstexculidingAdsgst * 0.18 : 0;
+  console.log(gstAmount);
+
   const finalTotal = totalAfterDiscount + gstAmount;
+
 
   if (loading) {
     return (

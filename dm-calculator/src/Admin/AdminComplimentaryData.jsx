@@ -373,6 +373,7 @@ const AdminComplimentaryData = () => {
               setSelectedCategory("");
               setSelectedEditingType(null);
             }}
+              disabled={!!editId} 
           >
             <option value="">-- Choose Service --</option>
             {data.map((service) => (
@@ -393,6 +394,7 @@ const AdminComplimentaryData = () => {
                 setSelectedCategory(e.target.value);
                 setSelectedEditingType(null);
               }}
+                disabled={!!editId} 
             >
               <option value="">-- Choose Category --</option>
               {getSelectedService.categories.map((category) => (
@@ -402,6 +404,7 @@ const AdminComplimentaryData = () => {
                 >
                   {category.category_name}
                 </option>
+                
               ))}
             </select>
           </div>
@@ -421,6 +424,7 @@ const AdminComplimentaryData = () => {
                 );
                 setSelectedEditingType(edit);
               }}
+                disabled={!!editId} 
             >
               <option value="">-- Choose Editing Type --</option>
               {getSelectedCategory.editing_types.map((edit) => (

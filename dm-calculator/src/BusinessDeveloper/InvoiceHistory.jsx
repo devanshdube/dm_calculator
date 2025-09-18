@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, Search, ArrowLeft, Trash } from "lucide-react";
+import { Calendar, Search, ArrowLeft, Trash, ChevronDown, EyeClosed, EyeIcon, Copy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -13,6 +13,7 @@ import Swal from "sweetalert2";
 const InvoiceHistory = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
+const [openDropdown, setOpenDropdown] = useState(null); // track which row is open
   const [fetchServices, setFetchServices] = useState([]);
   // const [clientData, setClientData] = useState([]);
   const { id } = useParams();
@@ -152,7 +153,8 @@ const InvoiceHistory = () => {
       });
     }
   };
-  const handleCopyInvoice = async (txnId) => {
+  // ✅ Copy Invoice Function
+const handleCopyInvoice = async (txnId) => {
   try {
     const confirm = await Swal.fire({
       title: "Copy Invoice?",
@@ -211,6 +213,7 @@ const InvoiceHistory = () => {
   }
 };
 
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -225,7 +228,7 @@ const InvoiceHistory = () => {
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 lg:gap-0">
           <div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              History
+              Invoice History
             </h2>
             {/* <button
               onClick={() => navigate(-1)}
@@ -287,7 +290,10 @@ const InvoiceHistory = () => {
                       Status
                     </th> */}
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      Invoice Preview
+                       Preview
+                    </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
+                      Received Amount
                     </th>
                   </tr>
                 </thead>
@@ -322,34 +328,63 @@ const InvoiceHistory = () => {
                             {item.txn_id ? item.txn_id : "N/A"}
                           </div>
                         </td>
-                        <td className="py-5 px-6">
-                          <button
-                            onClick={() => {
-                              setSelectedClient(item.client_id);
-                              setSelectedTxn(item.txn_id);
-                              setShowModal(true);
-                            }}
-                            // onClick={() =>
-                            //   navigate(
-                            //     `/BD/quotation/${item.client_id}/${item.txn_id}`
-                            //   )
-                            // }
-                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
-                          >
-                            Preview
-                          </button>
-                               {/* <button
-      onClick={() => handleDeleteInvoice(item.txn_id,item.client_id)}
-      className="inline-block mx-2 px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200  text-white shadow-lg bg-red-600"
-    >
-      <Trash size={12}/>
-    </button> */}
+                 
+       
+
+        {/* Actions Dropdown */}
+        <td className="py-5 px-6 relative">
           <button
-  onClick={() => handleCopyInvoice(item.txn_id)}
-  className="inline-block  px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 text-white shadow-lg bg-blue-600"
->
-  Copy
-</button>
+            onClick={() =>
+              setOpenDropdown(openDropdown === index ? null : index)
+            }
+            className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
+          >
+            Actions <ChevronDown size={16} className="ml-2" />
+          </button>
+
+          {openDropdown === index && (
+            <div className="absolute mt-2 right-0 w-40 bg-white rounded-lg shadow-lg border z-50">
+              <ul className="text-sm text-gray-700">
+                <li>
+                  <button
+                    onClick={() => {
+                      setSelectedClient(item.client_id);
+                      setSelectedTxn(item.txn_id);
+                      setShowModal(true);
+                      setOpenDropdown(null);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    <EyeIcon size={14} className="inline mr-2" />   Preview
+                  </button>
+                </li>
+               
+                <li>
+                  <button
+                    onClick={() => {
+                      handleCopyInvoice(item.txn_id);
+                      setOpenDropdown(null);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-blue-600"
+                  >
+                      <Copy size={14} className="inline mr-2" /> Copy
+                  </button>
+                </li>
+                  
+              </ul>
+            </div>
+          )}
+        </td>
+         <td className="py-5 px-6">
+                         {item.tag_received_amt === "received" ? (
+                         <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-blue-500 text-white shadow-lg shadow-orange-500/25">
+                            {item.tag_received_amt}
+                          </div>):(
+                          <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-red-500 to-red-500 text-white shadow-lg shadow-red-500/25">
+                            {item.tag_received_amt}
+                          </div>
+                          )
+}
                         </td>
                       </tr>
                     ))
@@ -427,7 +462,6 @@ const InvoiceHistory = () => {
     </div>
   );
 };
-
 export default InvoiceHistory;
 const PaginationContainer = styled.div`
   .pagination {

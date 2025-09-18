@@ -263,7 +263,7 @@ useEffect(() => {
     
 
       const payload = {...clientDetail};
-      await axios.put(`${baseURL}/auth/api/calculator/updateInvoiceDataById/${clientData.id}`, payload, {
+      await axios.put(`${baseURL}/auth/api/calculator/updateInvoiceClientDataById/${clientData.id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
   
@@ -314,7 +314,7 @@ useEffect(() => {
     return sum + amount;
   }, 0);
 
-  const adsTotal = adsData.reduce((sum, ad) => {
+ const adsTotal = adsData.reduce((sum, ad) => {
     const amount = Number(ad.amount || 0);
     const totalBudget = Number(ad.total_amount || 0);
     const gstTotal = (amount * 18) / 100;
@@ -345,6 +345,7 @@ useEffect(() => {
   console.log(gstAmount);
 
   const finalTotal = totalAfterDiscount + gstAmount;
+
 
   if (loading) {
     return (
