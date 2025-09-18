@@ -63,7 +63,7 @@ const AdminDashboard = () => {
     { id: "addplan", label: "Add Plan", icon: List },
     { id: "exploreplan", label: "Explore Plans", icon: List },
     { id: "registerbd", label: "Register BD", icon: ShieldPlus },
-    { id: "history", label: "History", icon: Clock },
+    { id: "history", label: "Quotation History", icon: Clock },
     { id: "invoicehistory", label: "Invoice History", icon: Clock },
     { id: "assign", label: "Assign", icon: UserPlus },
     { id: "createteam", label: "Team", icon: Users },

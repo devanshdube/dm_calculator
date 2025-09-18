@@ -19,7 +19,9 @@ const History = () => {
     
   const [loading, setLoading] = useState(false);
 
-      const [createdInvoices, setCreatedInvoices] = useState({});
+  const [createdInvoices, setCreatedInvoices] = useState({});
+const [clientDataReceived, setClientDataReceived] = useState({});
+
 
   const [clientData, setClientData] = useState([]);
   const { id } = useParams();
@@ -232,6 +234,44 @@ const fetchComplimentaryData = async (txnID) => {
       }
     }
   };
+
+const fetchClientReceived = async (txnId) => {
+  try {
+    const res = await axios.get(
+      `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}/${txnId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (res.data.status === "Success") {
+      setClientDataReceived((prev) => ({
+        ...prev,
+        [txnId]: res.data.data, // store result under txnId
+      }));
+      console.log(clientDataReceived);
+      
+    }
+  } catch (error) {
+    if (error.response?.status === 401) {
+      Swal.fire({
+        title: "Session Expired",
+        text: "Please login again.",
+        icon: "warning",
+      }).then(() => {
+        dispatch(clearUser());
+        localStorage.removeItem("token");
+        navigate("/");
+      });
+    }
+  }
+};
+
+
+
   const handleDeletequotation = async (quotationId) => {
     const confirm = await Swal.fire({
       title: "Are you sure?",
@@ -455,6 +495,7 @@ console.log(data);
     fetchClient();
     fetchAllClientServices();
     fetchAllInvoiceServices();
+    fetchClientReceived();
   }, []);
 
   const filteredItems = fetchServices.filter((row) => {
@@ -499,13 +540,17 @@ console.log(data);
     setSelectedTxn(txn);
     setAssignModal(true);
   };
-  useEffect(() => {
+useEffect(() => {
   showApiData.forEach((item) => {
     if (!createdInvoices[item.txn_id]) {
       fetchAllInvoiceServices(item.txn_id);
     }
+    if (!clientDataReceived[item.txn_id]) {
+      fetchClientReceived(item.txn_id);
+    }
   });
 }, [showApiData]);
+
 
   const handleDeleteInvoice = async (txnId) => {
     const confirm = await Swal.fire({
@@ -678,6 +723,9 @@ setCreatedInvoices((prev) => {
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       Invoice
                     </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
+                      Invoice
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -711,63 +759,101 @@ setCreatedInvoices((prev) => {
                             {item.txn_id ? item.txn_id : "N/A"}
                           </div>
                         </td>
-                      
-                        <td className="py-5 px-6">
-                          <button
-                            onClick={() => {
-                              setSelectedClient(item.client_id);
-                              setSelectedTxn(item.txn_id);
-                              setShowModal(true);
-                            }}
-                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25 mx-2"
-                          >
-                            Preview
-                          </button>
-                          <button
-                            onClick={() => handleAssignClick(item)}
-                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-900 to-red-500 text-white shadow-lg shadow-orange-500/25"
-                          >
-                            Assign
-                          </button>
-                          <button
-                            onClick={() => handleDeletequotation(item.txn_id)}
-                            className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-500 text-white shadow-lg shadow-red-500/25 mx-2"
-                          >
-                            Delete
-                          </button>
-                          
-                        </td>
-                          <td className="py-5 px-6">
+               <td className="py-5 px-6">
+  {/* Always show Preview */}
+  <button
+    onClick={() => {
+      setSelectedClient(item.client_id);
+      setSelectedTxn(item.txn_id);
+      setShowModal(true);
+    }}
+    className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25 mx-2"
+  >
+    Preview
+  </button>
+
+  {/* Show Assign + Delete only if NOT received */}
+  {clientDataReceived[item.txn_id]?.tag_received_amt !== "received" && (
+    <>
+      <button
+        onClick={() => handleAssignClick(item)}
+        className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-900 to-red-500 text-white shadow-lg shadow-orange-500/25"
+      >
+        Assign
+      </button>
+
+      <button
+        onClick={() => handleDeletequotation(item.txn_id)}
+        className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-500 text-white shadow-lg shadow-red-500/25 mx-2"
+      >
+        Delete
+      </button>
+    </>
+  )}
+</td>
+
+                       <td className="py-5 px-6">
   {createdInvoices[item.txn_id] ? (
     <>
-    
-      <button
-      onClick={() => {
-                    setShowModalInvoice(true);
-                     setSelectedTxn(item.txn_id);
-                   
-                  }}
-      className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 "
-    >
-      Invoice Created
-    </button>
-      <button
-      onClick={() => handleDeleteInvoice(item.txn_id)}
-     className="inline-block mx-2 px-4 py-3 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200  text-white shadow-lg bg-red-600"
-   >
-        <Trash size={15}/>
-    </button>
+      {clientDataReceived[item.txn_id]?.tag_received_amt === "received" ? (
+        // ✅ Only Preview if received
+        <button
+          onClick={() => {
+            setShowModalInvoice(true);
+            setSelectedTxn(item.txn_id);
+          }}
+          className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
+        >
+          Preview
+        </button>
+      ) : (
+        // ✅ Show Invoice Created + Delete if pending
+        <>
+          <button
+            onClick={() => {
+              setShowModalInvoice(true);
+              setSelectedTxn(item.txn_id);
+            }}
+            className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
+          >
+            Invoice Created
+          </button>
+          <button
+            onClick={() => handleDeleteInvoice(item.txn_id)}
+            className="inline-block mx-2 px-4 py-3 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 text-white shadow-lg bg-red-600"
+          >
+            <Trash size={15} />
+          </button>
+        </>
+      )}
     </>
-  
   ) : (
+    // ✅ Create Invoice if not created
     <button
-      onClick={() => {handleCreateClientInvoice();  setSelectedTxn(item.txn_id);}}
+      onClick={() => {
+        handleCreateClientInvoice();
+        setSelectedTxn(item.txn_id);
+      }}
       className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg shadow-red-500/25"
     >
       Create Invoice
     </button>
   )}
 </td>
+
+{/* Received status column */}
+<td className="py-5 px-6">
+  {clientDataReceived[item.txn_id]?.tag_received_amt === "received" ? (
+    <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-blue-500 text-white shadow-lg">
+      {clientDataReceived[item.txn_id].tag_received_amt}
+    </div>
+  ) : (
+    <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-red-500 to-red-500 text-white shadow-lg">
+      {clientDataReceived[item.txn_id]?.tag_received_amt || "pending"}
+    </div>
+  )}
+</td>
+
 
 
                       </tr>

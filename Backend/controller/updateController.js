@@ -99,35 +99,29 @@ exports.updateCalculatorDataById = (req, res) => {
   const query = `
     UPDATE calculator_transactions
     SET
-      txn_id = ?,
-      client_id = ?,
-      service_name = ?,
-      category_name = ?,
-      editing_type_name = ?,
-      editing_type_amount = ?,
-      quantity = ?,
-      include_content_posting = ?,
-      include_thumbnail_creation = ?,
+        quantity = ?,
+
       total_amount = ?,
       employee = ?,
       created_at = ?
-    WHERE id = ?
+   WHERE txn_id = ? 
+        AND client_id = ? 
+        AND service_name = ? 
+        AND category_name = ? 
+        AND editing_type_name = ?
   `;
 
   const values = [
+    quantity,
+    total_amount,
+    employee,
+    updatedAt,
     txn_id,
     client_id,
     service_name,
     category_name,
     editing_type_name,
     editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,
-    employee,
-    updatedAt,
-    id,
   ];
 
   db.query(query, values, (err, result) => {
@@ -576,7 +570,7 @@ exports.reassignQuotation = (req, res) => {
   })();
 }; 
 
-exports.updateComplimenatryDataById = (req, res) => {
+exports.updateCalculatorDataById = (req, res) => {
   const { id } = req.params;
   const {
     txn_id,
@@ -597,35 +591,29 @@ exports.updateComplimenatryDataById = (req, res) => {
   const query = `
     UPDATE complimentary
     SET
-      txn_id = ?,
-      client_id = ?,
-      service_name = ?,
-      category_name = ?,
-      editing_type_name = ?,
-      editing_type_amount = ?,
-      quantity = ?,
-      include_content_posting = ?,
-      include_thumbnail_creation = ?,
+       quantity = ?,
+
       total_amount = ?,
       employee = ?,
       created_at = ?
-    WHERE id = ?
+   WHERE txn_id = ? 
+        AND client_id = ? 
+        AND service_name = ? 
+        AND category_name = ? 
+        AND editing_type_name = ?
   `;
 
   const values = [
+    quantity,
+    total_amount,
+    employee,
+    updatedAt,
     txn_id,
     client_id,
     service_name,
     category_name,
     editing_type_name,
     editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,
-    employee,
-    updatedAt,
-    id,
   ];
 
   db.query(query, values, (err, result) => {
@@ -760,35 +748,31 @@ exports.updateInvoiceDataById = (req, res) => {
   const query = `
     UPDATE invoice_graphic
     SET
-      txn_id = ?,
-      client_id = ?,
-      service_name = ?,
-      category_name = ?,
-      editing_type_name = ?,
-      editing_type_amount = ?,
+      
       quantity = ?,
-      include_content_posting = ?,
-      include_thumbnail_creation = ?,
+
       total_amount = ?,
       employee = ?,
       created_at = ?
-    WHERE id = ?
+   WHERE txn_id = ? 
+        AND client_id = ? 
+        AND service_name = ? 
+        AND category_name = ? 
+        AND editing_type_name = ?
   `;
 
   const values = [
+   
+    quantity,
+    total_amount,
+    employee,
+    updatedAt,
     txn_id,
     client_id,
     service_name,
     category_name,
     editing_type_name,
     editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,
-    employee,
-    updatedAt,
-    id,
   ];
 
   db.query(query, values, (err, result) => {
@@ -889,35 +873,29 @@ exports.updateInvoiceComplimenatryDataById = (req, res) => {
   const query = `
     UPDATE complimentary_invoice
     SET
-      txn_id = ?,
-      client_id = ?,
-      service_name = ?,
-      category_name = ?,
-      editing_type_name = ?,
-      editing_type_amount = ?,
-      quantity = ?,
-      include_content_posting = ?,
-      include_thumbnail_creation = ?,
+        quantity = ?,
+
       total_amount = ?,
       employee = ?,
       created_at = ?
-    WHERE id = ?
+   WHERE txn_id = ? 
+        AND client_id = ? 
+        AND service_name = ? 
+        AND category_name = ? 
+        AND editing_type_name = ?
   `;
 
   const values = [
+     quantity,
+    total_amount,
+    employee,
+    updatedAt,
     txn_id,
     client_id,
     service_name,
     category_name,
     editing_type_name,
     editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,
-    employee,
-    updatedAt,
-    id,
   ];
 
   db.query(query, values, (err, result) => {
@@ -932,7 +910,7 @@ exports.updateInvoiceComplimenatryDataById = (req, res) => {
   });
 };
 
-exports.updateInvoiceDataById = (req, res) => {
+exports.updateInvoiceClientDataById = (req, res) => {
   const { id } = req.params;
   const {
     created_at,
@@ -941,6 +919,7 @@ exports.updateInvoiceDataById = (req, res) => {
     payment_mode,
     client_gst_no,
     client_pan_no,
+    tag_received_amt
   } = req.body;
 
   const query = `
@@ -951,7 +930,8 @@ exports.updateInvoiceDataById = (req, res) => {
       duration_end_date = ?,
       payment_mode = ?,
       client_gst_no = ?,
-      client_pan_no = ?
+      client_pan_no = ?,
+      tag_received_amt = ?
     WHERE id = ?
   `;
 
@@ -961,7 +941,7 @@ exports.updateInvoiceDataById = (req, res) => {
     duration_end_date,
     payment_mode,
     client_gst_no,
-    client_pan_no,
+    client_pan_no,tag_received_amt,
     id, // add id at the end
   ];
 

@@ -263,7 +263,7 @@ useEffect(() => {
     
 
       const payload = {...clientDetail};
-      await axios.put(`${baseURL}/auth/api/calculator/updateInvoiceDataById/${clientData.id}`, payload, {
+      await axios.put(`${baseURL}/auth/api/calculator/updateInvoiceClientDataById/${clientData.id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
   
