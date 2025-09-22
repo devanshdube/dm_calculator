@@ -185,6 +185,8 @@ const CalculatorBD = () => {
   };
 
   const handleEdit = (entry) => {
+    console.log(entry);
+    
     setEditId(entry.id);
     setSelectedService(entry.service_name);
     setSelectedCategory(entry.category_name);
@@ -193,6 +195,8 @@ const CalculatorBD = () => {
       editing_type_name: entry.editing_type_name,
       amount: parseFloat(entry.editing_type_amount),
     });
+    console.log(selectedEditingType);
+    
     setQuantity(parseInt(entry.quantity));
 
     // Dynamically map optional services from entry
@@ -283,7 +287,7 @@ const handleSave = () => {
     employee: userName,
   };
 
-  // --- First Quotation API ---
+  // --- Only Quotation API ---
   const quotationRequest = editId
     ? axios.put(
         `${baseURL}/auth/api/calculator/updateGraphicEntryById/${editId}`,
@@ -297,36 +301,20 @@ const handleSave = () => {
   quotationRequest
     .then((res) => {
       if (res.data.status === "Success") {
-        // --- Then Invoice API ---
-        const invoiceRequest = editId
-          ? axios.put(
-              `${baseURL}/auth/api/calculator/updateInvoiceDataById/${editId}`,
-              payload
-            )
-          : axios.post(
-              `${baseURL}/auth/api/calculator/saveInvoiceCalculatorData`,
-              payload
-            );
-
-        return invoiceRequest; // return promise for chaining
-      } else {
-        throw new Error("Quotation save failed");
-      }
-    })
-    .then((invoiceRes) => {
-      if (invoiceRes && invoiceRes.data.status === "Success") {
         Swal.fire({
           icon: "success",
           title: editId ? "Updated!" : "Saved!",
           text: editId
-            ? "Quotation & Invoice updated successfully"
-            : "Quotation & Invoice saved successfully",
+            ? "Quotation updated successfully"
+            : "Quotation saved successfully",
           showConfirmButton: false,
           timer: 2000,
           timerProgressBar: true,
         });
         resetForm();
         fetchData();
+      } else {
+        throw new Error("Quotation save failed");
       }
     })
     .catch((err) => {
@@ -337,6 +325,8 @@ const handleSave = () => {
       setLoading(false);
     });
 };
+
+
 
   const resetForm = () => {
     setEditId(null);
@@ -931,6 +921,7 @@ const handleSave = () => {
                     setSelectedCategory("");
                     setSelectedEditingType(null);
                   }}
+           disabled={!!editId} 
                 >
                   <option value="">-- Choose Service --</option>
                   {data.map((service) => (
@@ -955,6 +946,7 @@ const handleSave = () => {
                         setSelectedCategory(e.target.value);
                         setSelectedEditingType(null);
                       }}
+                        disabled={!!editId} 
                     >
                       <option value="">-- Choose Category --</option>
                       {getSelectedService.categories.map((category) => (
@@ -984,6 +976,7 @@ const handleSave = () => {
                         );
                         setSelectedEditingType(edit);
                       }}
+                        disabled={!!editId} 
                     >
                       <option value="">-- Choose Editing Type --</option>
                       {getSelectedCategory.editing_types.map((edit) => (
@@ -1011,106 +1004,116 @@ const handleSave = () => {
 
                 {selectedService === "Video Services" &&
                   optionalServices?.length > 0 && (
-                    <div className="space-y-4">
-                      {optionalServices.map((opt) => {
-                        const key = opt.editing_type_name
-                          .toLowerCase()
-                          .replace(/\s+/g, "_");
-                        return (
-                          <div key={key}>
-                            <label className="block font-semibold">
-                              {opt.editing_type_name}?
-                            </label>
-                            <div className="flex gap-4 mt-2">
-                              <button
-                                type="button"
-                                className={`px-4 py-2 rounded ${
-                                  addons[key]
-                                    ? "bg-green-600 text-white"
-                                    : "bg-gray-300 text-black"
-                                }`}
-                                onClick={() =>
-                                  setAddons((prev) => ({
-                                    ...prev,
-                                    [key]: true,
-                                  }))
-                                }
-                              >
-                                YES
-                              </button>
-                              <button
-                                type="button"
-                                className={`px-4 py-2 rounded ${
-                                  !addons[key]
-                                    ? "bg-red-600 text-white"
-                                    : "bg-gray-300 text-black"
-                                }`}
-                                onClick={() =>
-                                  setAddons((prev) => ({
-                                    ...prev,
-                                    [key]: false,
-                                  }))
-                                }
-                              >
-                                NO
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                   <div className="space-y-4">
+    {optionalServices.map((opt) => {
+      const key = opt.editing_type_name
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+
+      return (
+        <div key={key}>
+          <label className="block font-semibold">
+            {opt.editing_type_name}?
+          </label>
+          <div className="flex gap-4 mt-2">
+            <button
+              type="button"
+              disabled={editId} // ✅ disable when editing
+              className={`px-4 py-2 rounded ${
+                addons[key]
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-300 text-black"
+              } ${editId ? "opacity-50 cursor-not-allowed" : ""}`}
+              onClick={() =>
+                !editId &&
+                setAddons((prev) => ({
+                  ...prev,
+                  [key]: true,
+                }))
+              }
+            >
+              YES
+            </button>
+            <button
+              type="button"
+              disabled={editId} // ✅ disable when editing
+              className={`px-4 py-2 rounded ${
+                !addons[key]
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-300 text-black"
+              } ${editId ? "opacity-50 cursor-not-allowed" : ""}`}
+              onClick={() =>
+                !editId &&
+                setAddons((prev) => ({
+                  ...prev,
+                  [key]: false,
+                }))
+              }
+            >
+              NO
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
                   )}
 
                 {selectedService === "Graphics Design" &&
                   optionalServices?.length > 0 && (
-                    <div className="space-y-4">
-                      {optionalServices.map((opt) => {
-                        const key = opt.editing_type_name
-                          .toLowerCase()
-                          .replace(/\s+/g, "_");
-                        return (
-                          <div key={key}>
-                            <label className="block font-semibold">
-                              {opt.editing_type_name}?
-                            </label>
-                            <div className="flex gap-4 mt-2">
-                              <button
-                                type="button"
-                                className={`px-4 py-2 rounded ${
-                                  addons[key]
-                                    ? "bg-green-600 text-white"
-                                    : "bg-gray-300 text-black"
-                                }`}
-                                onClick={() =>
-                                  setAddons((prev) => ({
-                                    ...prev,
-                                    [key]: true,
-                                  }))
-                                }
-                              >
-                                YES
-                              </button>
-                              <button
-                                type="button"
-                                className={`px-4 py-2 rounded ${
-                                  !addons[key]
-                                    ? "bg-red-600 text-white"
-                                    : "bg-gray-300 text-black"
-                                }`}
-                                onClick={() =>
-                                  setAddons((prev) => ({
-                                    ...prev,
-                                    [key]: false,
-                                  }))
-                                }
-                              >
-                                NO
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                   <div className="space-y-4">
+    {optionalServices.map((opt) => {
+      const key = opt.editing_type_name
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+
+      return (
+        <div key={key}>
+          <label className="block font-semibold">
+            {opt.editing_type_name}?
+          </label>
+          <div className="flex gap-4 mt-2">
+            <button
+              type="button"
+              disabled={editId} // ✅ disable when editing
+              className={`px-4 py-2 rounded ${
+                addons[key]
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-300 text-black"
+              } ${editId ? "opacity-50 cursor-not-allowed" : ""}`}
+              onClick={() =>
+                !editId &&
+                setAddons((prev) => ({
+                  ...prev,
+                  [key]: true,
+                }))
+              }
+            >
+              YES
+            </button>
+            <button
+              type="button"
+              disabled={editId} // ✅ disable when editing
+              className={`px-4 py-2 rounded ${
+                !addons[key]
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-300 text-black"
+              } ${editId ? "opacity-50 cursor-not-allowed" : ""}`}
+              onClick={() =>
+                !editId &&
+                setAddons((prev) => ({
+                  ...prev,
+                  [key]: false,
+                }))
+              }
+            >
+              NO
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
                   )}
 
                 <button

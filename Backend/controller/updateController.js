@@ -96,22 +96,22 @@ exports.updateCalculatorDataById = (req, res) => {
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  const query = `
+  // --- First Update Quotation (calculator_transactions) ---
+  const updateQuotationQuery = `
     UPDATE calculator_transactions
     SET
-        quantity = ?,
-
+      quantity = ?,
       total_amount = ?,
       employee = ?,
       created_at = ?
-   WHERE txn_id = ? 
-        AND client_id = ? 
-        AND service_name = ? 
-        AND category_name = ? 
-        AND editing_type_name = ?
+    WHERE txn_id = ? 
+      AND client_id = ? 
+      AND service_name = ? 
+      AND category_name = ? 
+      AND editing_type_name = ?
   `;
 
-  const values = [
+  const quotationValues = [
     quantity,
     total_amount,
     employee,
@@ -121,20 +121,87 @@ exports.updateCalculatorDataById = (req, res) => {
     service_name,
     category_name,
     editing_type_name,
-    editing_type_amount,
   ];
 
-  db.query(query, values, (err, result) => {
+  db.query(updateQuotationQuery, quotationValues, (err, result) => {
     if (err) {
-      console.error("Update Error:", err);
-      return res.status(500).json({ status: "Failure", message: "DB error" });
+      console.error("Update Quotation Error:", err);
+      return res.status(500).json({ status: "Failure", message: "Quotation DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry updated successfully" });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ status: "Failure", message: "Quotation not found" });
+    }
+
+    // --- Check if Invoice Exists ---
+    const checkInvoiceQuery = `
+      SELECT id FROM invoice_graphic 
+      WHERE txn_id = ? 
+        AND client_id = ? 
+        AND service_name = ? 
+        AND category_name = ? 
+        AND editing_type_name = ?
+      LIMIT 1
+    `;
+
+    const checkValues = [txn_id, client_id, service_name, category_name, editing_type_name];
+
+    db.query(checkInvoiceQuery, checkValues, (checkErr, checkResult) => {
+      if (checkErr) {
+        console.error("Check Invoice Error:", checkErr);
+        return res.status(500).json({ status: "Failure", message: "Invoice check error" });
+      }
+
+      if (checkResult.length > 0) {
+        // --- Invoice exists → Update it as well ---
+        const updateInvoiceQuery = `
+          UPDATE invoice_graphic
+          SET
+            quantity = ?,
+            total_amount = ?,
+            employee = ?,
+            created_at = ?
+          WHERE txn_id = ? 
+            AND client_id = ? 
+            AND service_name = ? 
+            AND category_name = ? 
+            AND editing_type_name = ?
+        `;
+
+        const invoiceValues = [
+          quantity,
+          total_amount,
+          employee,
+          updatedAt,
+          txn_id,
+          client_id,
+          service_name,
+          category_name,
+          editing_type_name,
+        ];
+
+        db.query(updateInvoiceQuery, invoiceValues, (invErr) => {
+          if (invErr) {
+            console.error("Update Invoice Error:", invErr);
+            return res.status(500).json({ status: "Failure", message: "Invoice update error" });
+          }
+
+          return res.status(200).json({
+            status: "Success",
+            message: "Quotation & Invoice updated successfully",
+          });
+        });
+      } else {
+        // --- Invoice does NOT exist → Only Quotation updated ---
+        return res.status(200).json({
+          status: "Success",
+          message: "Quotation updated successfully (No Invoice found)",
+        });
+      }
+    });
   });
 };
+
 exports.updateClientDetails = async (req, res) => {
   const clientId = req.params.id;
   const { client_name, client_organization, email, phone, address } = req.body;
@@ -570,63 +637,7 @@ exports.reassignQuotation = (req, res) => {
   })();
 }; 
 
-exports.updateCalculatorDataById = (req, res) => {
-  const { id } = req.params;
-  const {
-    txn_id,
-    client_id,
-    service_name,
-    category_name,
-    editing_type_name,
-    editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,
-    employee,
-  } = req.body;
 
-  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
-
-  const query = `
-    UPDATE complimentary
-    SET
-       quantity = ?,
-
-      total_amount = ?,
-      employee = ?,
-      created_at = ?
-   WHERE txn_id = ? 
-        AND client_id = ? 
-        AND service_name = ? 
-        AND category_name = ? 
-        AND editing_type_name = ?
-  `;
-
-  const values = [
-    quantity,
-    total_amount,
-    employee,
-    updatedAt,
-    txn_id,
-    client_id,
-    service_name,
-    category_name,
-    editing_type_name,
-    editing_type_amount,
-  ];
-
-  db.query(query, values, (err, result) => {
-    if (err) {
-      console.error("Update Error:", err);
-      return res.status(500).json({ status: "Failure", message: "DB error" });
-    }
-
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry updated successfully" });
-  });
-};
 exports.updateNoteDataById = (req, res) => {
   const { id } = req.params;
   const {
@@ -728,7 +739,7 @@ exports.updateDiscountDataById = (req, res) => {
   });
 };
 exports.updateComplimenatryDataById = (req, res) => {
-  const { id } = req.params;
+   const { id } = req.params;
   const {
     txn_id,
     client_id,
@@ -745,22 +756,22 @@ exports.updateComplimenatryDataById = (req, res) => {
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  const query = `
+  // --- First Update Quotation (complimentary) ---
+  const updateQuotationQuery = `
     UPDATE complimentary
     SET
-       quantity = ?,
-
+      quantity = ?,
       total_amount = ?,
       employee = ?,
       created_at = ?
-   WHERE txn_id = ? 
-        AND client_id = ? 
-        AND service_name = ? 
-        AND category_name = ? 
-        AND editing_type_name = ?
+    WHERE txn_id = ? 
+      AND client_id = ? 
+      AND service_name = ? 
+      AND category_name = ? 
+      AND editing_type_name = ?
   `;
 
-  const values = [
+  const quotationValues = [
     quantity,
     total_amount,
     employee,
@@ -770,18 +781,84 @@ exports.updateComplimenatryDataById = (req, res) => {
     service_name,
     category_name,
     editing_type_name,
-    editing_type_amount,
   ];
 
-  db.query(query, values, (err, result) => {
+  db.query(updateQuotationQuery, quotationValues, (err, result) => {
     if (err) {
-      console.error("Update Error:", err);
-      return res.status(500).json({ status: "Failure", message: "DB error" });
+      console.error("Update Quotation Error:", err);
+      return res.status(500).json({ status: "Failure", message: "Quotation DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry updated successfully" });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ status: "Failure", message: "Quotation not found" });
+    }
+
+    // --- Check if Invoice Exists ---
+    const checkInvoiceQuery = `
+      SELECT id FROM complimentary_invoice 
+      WHERE txn_id = ? 
+        AND client_id = ? 
+        AND service_name = ? 
+        AND category_name = ? 
+        AND editing_type_name = ?
+      LIMIT 1
+    `;
+
+    const checkValues = [txn_id, client_id, service_name, category_name, editing_type_name];
+
+    db.query(checkInvoiceQuery, checkValues, (checkErr, checkResult) => {
+      if (checkErr) {
+        console.error("Check Invoice Error:", checkErr);
+        return res.status(500).json({ status: "Failure", message: "Invoice check error" });
+      }
+
+      if (checkResult.length > 0) {
+        // --- Invoice exists → Update it as well ---
+        const updateInvoiceQuery = `
+          UPDATE complimentary_invoice
+          SET
+            quantity = ?,
+            total_amount = ?,
+            employee = ?,
+            created_at = ?
+          WHERE txn_id = ? 
+            AND client_id = ? 
+            AND service_name = ? 
+            AND category_name = ? 
+            AND editing_type_name = ?
+        `;
+
+        const invoiceValues = [
+          quantity,
+          total_amount,
+          employee,
+          updatedAt,
+          txn_id,
+          client_id,
+          service_name,
+          category_name,
+          editing_type_name,
+        ];
+
+        db.query(updateInvoiceQuery, invoiceValues, (invErr) => {
+          if (invErr) {
+            console.error("Update Invoice Error:", invErr);
+            return res.status(500).json({ status: "Failure", message: "Invoice update error" });
+          }
+
+          return res.status(200).json({
+            status: "Success",
+            message: "Quotation & Invoice updated successfully",
+          });
+        });
+      } else {
+        // --- Invoice does NOT exist → Only Quotation updated ---
+        return res.status(200).json({
+          status: "Success",
+          message: "Quotation updated successfully (No Invoice found)",
+        });
+      }
+    });
   });
 };
 
@@ -1016,6 +1093,102 @@ exports.updateInvoiceClientDataById = (req, res) => {
   });
 };
 
+exports.updateAdditionalDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+    quantity,
+    include_content_posting,
+    include_thumbnail_creation,
+    total_amount,
+    employee,
+  } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE addtional_service
+    SET
+        quantity = ?,
+
+      total_amount = ?,
+      employee = ?,
+      created_at = ?
+   WHERE txn_id = ? 
+        AND client_id = ? 
+        AND service_name = ? 
+        AND category_name = ? 
+        AND editing_type_name = ?
+  `;
+
+  const values = [
+     quantity,
+    total_amount,
+    employee,
+    updatedAt,
+    txn_id,
+    client_id,
+    service_name,
+    category_name,
+    editing_type_name,
+    editing_type_amount,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry Additional Service updated successfully" });
+  });
+};
+exports.updateRemainingDataById = (req, res) => {
+  const { id } = req.params;
+  const {
+  
+ price,
+    employee,
+  } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE amount_remaining
+    SET
+        
+ price= ?,
+  employee = ?,
+      created_at = ?
+   WHERE id = ?  `;
+
+  const values = [
+  
+ price,
+    employee,
+    updatedAt,
+   id
+   
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Entry Remaning Amount updated successfully" });
+  });
+};
 
 // working code
 

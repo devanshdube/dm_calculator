@@ -42,7 +42,8 @@ const [openDropdown, setOpenDropdown] = useState(null); // track which row is op
 
       if (res.data.status === "Success") {
     
-        setFetchServices(res.data.data);
+        setFetchServices(res.data.data.reverse());
+
         console.log(fetchServices);
         
       }

@@ -2299,3 +2299,78 @@ exports.getAllInvoice = async (req, res) => {
     });
   }
 };
+
+exports.getAdditionByIdData = async (req, res) => {
+  const { txn_id, client_id } = req.params;
+
+  try {
+    db.query(
+      "SELECT * FROM addtional_service WHERE txn_id = ? AND client_id = ?",
+      [txn_id, client_id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No Data found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+exports.getRemainingAmountByIdData = async (req, res) => {
+  const { txn_id, client_id } = req.params;
+
+  try {
+    db.query(
+      "SELECT * FROM amount_remaining WHERE txn_id = ? AND client_id = ?",
+      [txn_id, client_id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error",
+            error: err,
+          });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No Data found",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          data: results,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
