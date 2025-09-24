@@ -1046,6 +1046,7 @@ setCreatedInvoices((prev) => {
   <option  value="" className="text-gray-500">
    Select Payment Mode
   </option>
+  <option value="Pending">Pending</option>
   <option value="Payment Cheque">Payment Cheque</option>
   <option value="Net Banking">Net Banking</option>
   <option value="UPI">UPI</option>

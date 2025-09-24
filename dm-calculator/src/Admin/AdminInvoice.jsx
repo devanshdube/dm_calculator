@@ -284,6 +284,7 @@ const { currentUser, token } = useSelector((state) => state.user);
 
 
   const clientName = clientData?.client_name;
+  const clientOrganization = clientData?.client_organization;
   const clientAddress = clientData?.address;
   const clientPhone = clientData?.phone;
 
@@ -693,7 +694,7 @@ console.log(remainingAmountData);
     const gstTotal = (amount * 18) / 100;
     return sum + amount + gstTotal;
   }, 0);
-  const grandTotalAds = graphicTotal + adsTotal + additionalTotal + remainingTotalAmount - adsTotalBudget;
+  const grandTotalAds = graphicTotal + adsTotal + additionalTotal - adsTotalBudget;
 
   const grandTotal = graphicTotal + adsTotal + additionalTotal + remainingTotalAmount;
 
@@ -711,7 +712,7 @@ console.log(remainingAmountData);
   const gstAmount = isGST ? gstexculidingAdsgst * 0.18 : 0;
   console.log(gstAmount);
 
-  const finalTotal = totalAfterDiscount + gstAmount;
+  const finalTotal = totalAfterDiscount + gstAmount + remainingTotalAmount;
 
   if (loading) {
     return (
@@ -852,9 +853,6 @@ console.log(remainingAmountData);
   };
    const handleCloseAddition = () => {
     setShowModalAddition(false);
-
-
-    
   };
     const resetForm = () => {
     // setIsEditingAddition(null);
@@ -873,7 +871,7 @@ console.log(remainingAmountData);
   };
 
   const handlePrintPage = () => {
-    document.title = `${clientName} Invoice`;
+    document.title = clientOrganization ? `${clientOrganization} Invoice` :`${clientName} Invoice`;
     window.print();
   };
   return (
@@ -946,7 +944,7 @@ console.log(remainingAmountData);
                 <div className="flex flex-col justify-between h-full px-6 py-4 print:px-4 ">
                    {clientData.tag_received_amt === "received" ? (
                   
-                  <p>{clientData.tag_received_amt}</p>
+                 null
                   ): (
 
                   <div className=" text-end print:hidden">
@@ -1395,7 +1393,13 @@ console.log(remainingAmountData);
                       </section>
                       
                     )}
-                    <button
+ {clientData.tag_received_amt === "received" ? (
+                  
+                 null
+                  ): (
+                    <>
+                    
+                      <button
                   onClick={handleShow}
                   className="px-4 py-2 print:hidden mb-2 print:mb-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
                 >
@@ -1407,6 +1411,10 @@ console.log(remainingAmountData);
                 >
                   + Remaining Amount
                 </button>
+                    </>
+                  
+)}
+
                         {additionalServiceData.length > 0 && (
                       <section className="mb-2">
                         <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
@@ -1431,9 +1439,14 @@ console.log(remainingAmountData);
                               <th className="border px-3 py-2 text-right">
                                 Total (₹)
                               </th>
+                               {clientData.tag_received_amt === "received" ? (
+                  
+                 null
+                  ): (
                               <th className="border px-3 py-2 text-right print:hidden">
                                 Action
                               </th>
+                              )}
                             </tr>
                           </thead>
                           <tbody>
@@ -1470,7 +1483,13 @@ console.log(remainingAmountData);
                                     <td className="border px-3 py-2 text-right font-semibold">
                                       ₹{totalBase}
                                     </td>
+
+                                     {clientData.tag_received_amt === "received" ? (
+                  
+                 null
+                  ): (
                                       <td className="border px-3 py-2 text-right font-semibold print:hidden">
+                                   
                                      <div className="flex gap-2">
                                      <button
                             onClick={() => handleEdit(edit)}
@@ -1488,6 +1507,7 @@ console.log(remainingAmountData);
                           </button>
                           </div>
                                       </td>
+                                      )}
                                   </tr>
 
                                   {/* Thumbnail */}
@@ -1568,10 +1588,14 @@ console.log(remainingAmountData);
                               <th className="border px-3 py-2 text-left">
                                 Price (₹)
                               </th>
-                           
+                            {clientData.tag_received_amt === "received" ? (
+                  
+                 null
+                  ): (
                               <th className="border px-3 py-2 text-left print:hidden">
                                 Action
                               </th>
+                              )}
                             </tr>
                           </thead>
                           <tbody>
@@ -1587,7 +1611,10 @@ console.log(remainingAmountData);
                                     <td className="border px-3 py-2">
                                       {edit.price}
                                     </td>
-                                    
+                                   {clientData.tag_received_amt === "received" ? (
+                  
+                 null
+                  ): (  
                                <td className="border px-3 py-2 text-right font-semibold print:hidden">
                                      <div className="flex gap-2">
                                      <button
@@ -1606,6 +1633,7 @@ console.log(remainingAmountData);
                           </button>
                           </div>
                                       </td>
+                                      )}
                                   </tr>
 
                                 
@@ -1831,11 +1859,12 @@ console.log(remainingAmountData);
   value={formData.payment_mode}
   onChange={handleChange}
   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-  required
+   required
 >
   <option  value="" className="text-gray-500">
    Select Payment Mode
   </option>
+  <option value="Pending">Pending</option>
   <option value="Payment Cheque">Payment Cheque</option>
   <option value="Net Banking">Net Banking</option>
   <option value="UPI">UPI</option>
@@ -1853,7 +1882,7 @@ console.log(remainingAmountData);
   value={formData.tag_received_amt}
   onChange={handleChange}
   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-  required
+
 >
   <option  value="" className="text-gray-500">
    Select Status
