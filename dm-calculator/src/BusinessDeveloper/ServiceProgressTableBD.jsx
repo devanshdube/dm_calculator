@@ -286,7 +286,8 @@ export default function ServiceProgressTable({
         setLoading(true);
         const [histRes, progRes] = await Promise.all([
           axios.get(
-            `${baseURL}/auth/api/calculator/getClientServiceHistory/${clientId}/${txnId}`,
+            // `${baseURL}/auth/api/calculator/getClientServiceHistory/${clientId}/${txnId}`,
+            `${baseURL}/auth/api/calculator/getClientServiceHistoryAssign/${clientId}/${txnId}`,
             { headers }
           ),
           axios.get(`${baseURL}/auth/api/calculator/progress/by-txn/${txnId}`, {

@@ -27,7 +27,7 @@ import GenerateLinkHistoryBD from "./GenerateLinkHistoryBD";
 // const AdminServicesHistory = lazy(() => import("./AdminServicesHistory"));
 // const AdminAdsCampign = lazy(() => import("./AdminAdsCampign"));
 // // const AdminCalculator = lazy(() => import("./AdminCalculator"));
-import InvoiceHistory from './InvoiceHistory';
+import InvoiceHistory from "./InvoiceHistory";
 
 const BusinessDeveloperDashboard = () => {
   const dispatch = useDispatch();

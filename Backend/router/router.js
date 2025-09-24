@@ -117,7 +117,7 @@ const {
   deleteRequirementsBundle,
   deleteDiscountById,
   deleteInvoiceById,
-  deleteAllInvoiceServiceHistory, 
+  deleteAllInvoiceServiceHistory,
   deleteInvoiceAdsCampaignEntryById,
   deleteInvoiceNoteById,
   deleteInvoiceClientNotes,
@@ -191,7 +191,6 @@ router.post("/saveInvoiceCalculatorData", saveInvoiceCalculatorData);
 router.post("/saveInvoiceNotesData", saveInvoiceNotesData);
 router.post("/saveInvoiceClientIdwiseNotes", saveInvoiceClientIdwiseNotes);
 router.post("/copyInvoiceByTxnId/:txn_id", copyInvoiceByTxnId);
-
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -312,9 +311,15 @@ router.get(
   getInvoiceGraphic
 );
 router.get(
-  "/getInvoiceAdsCampaign/:txn_id/:client_id",authenticateToken,getInvoiceAdsCampaign);
+  "/getInvoiceAdsCampaign/:txn_id/:client_id",
+  authenticateToken,
+  getInvoiceAdsCampaign
+);
 router.get("/getInvoiceNoteData", getInvoiceNoteData);
-router.get("/getInvoiceClientNotesbyId/:client_id/:txn_id", getInvoiceClientNotesbyId);
+router.get(
+  "/getInvoiceClientNotesbyId/:client_id/:txn_id",
+  getInvoiceClientNotesbyId
+);
 router.get("/getAllInvoice", getAllInvoice);
 
 // ---->  Get all routes END <----
@@ -362,11 +367,16 @@ router.delete(
   "/deleteAllInvoiceServiceHistory/:client_id/:txn_id",
   deleteAllInvoiceServiceHistory
 );
-router.delete("/deleteInvoiceAdsCampaignEntryById/:id", deleteInvoiceAdsCampaignEntryById);
+router.delete(
+  "/deleteInvoiceAdsCampaignEntryById/:id",
+  deleteInvoiceAdsCampaignEntryById
+);
 router.delete("/deleteInvoiceNoteById/:id", deleteInvoiceNoteById);
 router.delete("/deleteInvoiceClientNotes/:id", deleteInvoiceClientNotes);
-router.delete("/deleteInvoiceComplimenatryById/:id", deleteInvoiceComplimenatryById);
-
+router.delete(
+  "/deleteInvoiceComplimenatryById/:id",
+  deleteInvoiceComplimenatryById
+);
 
 router.delete("/deleteRequirementsBundle/:linkId", deleteRequirementsBundle);
 
@@ -389,8 +399,14 @@ router.put("/updateClientNoteDataById/:id", updateClientNoteDataById);
 router.put("/updateDiscountDataById/:id", updateDiscountDataById);
 router.put("/updateInvoiceDataById/:id", updateInvoiceDataById);
 router.put("/updateInvoiceNoteDataById/:id", updateInvoiceNoteDataById);
-router.put("/updateInvoiceClientNoteDataById/:id", updateInvoiceClientNoteDataById);
-router.put("/updateInvoiceComplimenatryDataById/:id", updateInvoiceComplimenatryDataById);
+router.put(
+  "/updateInvoiceClientNoteDataById/:id",
+  updateInvoiceClientNoteDataById
+);
+router.put(
+  "/updateInvoiceComplimenatryDataById/:id",
+  updateInvoiceComplimenatryDataById
+);
 router.put("/updateInvoiceClientDataById/:id", updateInvoiceClientDataById);
 // router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----
