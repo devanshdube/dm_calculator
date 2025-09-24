@@ -788,7 +788,7 @@ export default function InvoiceCustomise() {
 
     try {
       const res = await axios.delete(
-        `${baseURL}/auth/api/calculator/deleteAdsCampaignEntryById/${entryId}`
+        `${baseURL}/auth/api/calculator/deleteInvoiceAdsCampaignEntryById/${entryId}`
       );
 
       const result = res.data;

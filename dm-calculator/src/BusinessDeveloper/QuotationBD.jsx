@@ -19,6 +19,7 @@ export default function QuotationBD() {
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+  const [selectedplan, setSelectedPlan] = useState("");
 
   const [serviceData, setServiceData] = useState([]);
   const [graphicData, setGraphicData] = useState([]);
@@ -44,6 +45,8 @@ export default function QuotationBD() {
         }
       );
       setServiceData(res.data.data);
+   setSelectedPlan(res.data.data.reverse()[0].plan_name);
+
     } catch (error) {
       if (error.response?.status === 401) {
         Swal.fire({
@@ -275,9 +278,10 @@ export default function QuotationBD() {
       </div>
     );
   }
+  const clientOrganization = clientData?.client_organization;
 
   const handlePrintPage = () => {
-    document.title = `${clientName} Quotation`;
+     document.title = clientOrganization ? `${clientOrganization} Quotation` :`${clientName} Quotation`;
     window.print();
   };
   return (
@@ -359,7 +363,7 @@ export default function QuotationBD() {
                       </div>
                       <div className="text-end">
                         <h2 className="text-2xl font-bold">
-                          {serviceData[0].plan_name} Plan
+                         {selectedplan} Plan
                         </h2>
                         <p>{moment().format("DD/MM/YYYY")}</p>
                         <p>Quote #: {txn_id}</p>

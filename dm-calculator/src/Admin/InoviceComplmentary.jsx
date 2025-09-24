@@ -182,18 +182,7 @@ const handleSave = () => {
     employee: userName,
   };
 
-  // Invoice Complimentary API
-  const invoiceRequest = editId
-    ? axios.put(
-        `${baseURL}/auth/api/calculator/updateInvoiceComplimenatryDataById/${editId}`,
-        payload
-      )
-    : axios.post(
-        `${baseURL}/auth/api/calculator/saveInvoiceComplimentaryData`,
-        payload
-      );
-
-  // Quotation Complimentary API
+  // ✅ Only Quotation Complimentary API (invoice removed)
   const quotationRequest = editId
     ? axios.put(
         `${baseURL}/auth/api/calculator/updateComplimenatryDataById/${editId}`,
@@ -204,32 +193,32 @@ const handleSave = () => {
         payload
       );
 
-  // Run both in parallel
-  Promise.all([invoiceRequest, quotationRequest])
-    .then(([invoiceRes, quotationRes]) => {
-      resetForm();
-      if (
-        invoiceRes.data.status === "Success" &&
-        quotationRes.data.status === "Success"
-      ) {
+  quotationRequest
+    .then((res) => {
+      if (res.data.status === "Success") {
         Swal.fire({
           icon: "success",
           title: editId ? "Updated!" : "Saved!",
-          text: editId ? "Entry updated successfully" : "Saved successfully",
+          text: editId
+            ? "Complimentary entry updated successfully"
+            : "Complimentary entry saved successfully",
           showConfirmButton: false,
           timer: 2000,
           timerProgressBar: true,
         });
+        resetForm();
         fetchData();
       }
-      setLoading(false);
     })
     .catch((err) => {
-      setLoading(false);
       console.error("Save error:", err);
       Swal.fire("Error!", "Something went wrong while saving.", "error");
+    })
+    .finally(() => {
+      setLoading(false);
     });
 };
+
 
 
   const resetForm = () => {
@@ -441,48 +430,59 @@ const handleSave = () => {
           />
         </div>
 
-        <div className="space-y-4">
-          {optionalServices.map((opt) => {
-            const key = opt.editing_type_name
-              .toLowerCase()
-              .replace(/\s+/g, "_");
-            return (
-              <div key={key}>
-                <label className="block font-semibold">
-                  Optional ({opt.editing_type_name})?
-                </label>
-                <div className="flex gap-4 mt-2">
-                  <button
-                    type="button"
-                    className={`px-4 py-2 rounded ${
-                      addons[key]
-                        ? "bg-green-600 text-white"
-                        : "bg-gray-300 text-black"
-                    }`}
-                    onClick={() =>
-                      setAddons((prev) => ({ ...prev, [key]: true }))
-                    }
-                  >
-                    YES
-                  </button>
-                  <button
-                    type="button"
-                    className={`px-4 py-2 rounded ${
-                      !addons[key]
-                        ? "bg-red-600 text-white"
-                        : "bg-gray-300 text-black"
-                    }`}
-                    onClick={() =>
-                      setAddons((prev) => ({ ...prev, [key]: false }))
-                    }
-                  >
-                    NO
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+       <div className="space-y-4">
+    {optionalServices.map((opt) => {
+      const key = opt.editing_type_name
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+
+      return (
+        <div key={key}>
+          <label className="block font-semibold">
+            {opt.editing_type_name}?
+          </label>
+          <div className="flex gap-4 mt-2">
+            <button
+              type="button"
+              disabled={editId} // ✅ disable when editing
+              className={`px-4 py-2 rounded ${
+                addons[key]
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-300 text-black"
+              } ${editId ? "opacity-50 cursor-not-allowed" : ""}`}
+              onClick={() =>
+                !editId &&
+                setAddons((prev) => ({
+                  ...prev,
+                  [key]: true,
+                }))
+              }
+            >
+              YES
+            </button>
+            <button
+              type="button"
+              disabled={editId} // ✅ disable when editing
+              className={`px-4 py-2 rounded ${
+                !addons[key]
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-300 text-black"
+              } ${editId ? "opacity-50 cursor-not-allowed" : ""}`}
+              onClick={() =>
+                !editId &&
+                setAddons((prev) => ({
+                  ...prev,
+                  [key]: false,
+                }))
+              }
+            >
+              NO
+            </button>
+          </div>
         </div>
+      );
+    })}
+  </div>
 
         <button
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded mt-4"

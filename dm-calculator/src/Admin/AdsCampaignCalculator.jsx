@@ -233,7 +233,6 @@ const AdsCampaignCalculator = () => {
   //     alert("An error occurred while saving the campaign.");
   //   }
   // };
-
 const handleCalculateAndSave = async () => {
   setLoading(true);
   setError("");
@@ -302,7 +301,7 @@ const handleCalculateAndSave = async () => {
     if (results.length > 0) {
       setAdsItems(results); // update state
 
-      // --- First: Save Ads Campaign (Quotation) ---
+      // --- Save Ads Campaign only (Quotation) ---
       const response = await fetch(
         "https://dmcalculator.dentalguru.software/auth/api/calculator/saveAdsCampaign",
         {
@@ -316,38 +315,15 @@ const handleCalculateAndSave = async () => {
 
       const result = await response.json();
       if (result.status === "Success") {
-        // --- Then: Save Invoice Ads Campaign ---
-        const invoiceResponse = await fetch(
-          "https://dmcalculator.dentalguru.software/auth/api/calculator/saveInvoiceAdsCampaign",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ adsItems: results }),
-          }
-        );
-
-        const invoiceResult = await invoiceResponse.json();
-
-        if (invoiceResult.status === "Success") {
-          fetchData();
-          Swal.fire({
-            icon: "success",
-            title: "Success!",
-            text: "Ads campaign & invoice saved successfully!",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Invoice Failed!",
-            text: "Failed to save invoice: " + invoiceResult.message,
-            showConfirmButton: true,
-          });
-        }
+        fetchData();
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "Ads campaign saved successfully!",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
       } else {
         Swal.fire({
           icon: "error",

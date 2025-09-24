@@ -25,6 +25,7 @@ export default function Quotation() {
   const [adsData, setAdsData] = useState([]);
   const [complimentaryData, setComplimentaryData] = useState([]);
   const [selecteddiscount, setSelecteddiscount] = useState("");
+  const [selectedplan, setSelectedPlan] = useState("");
   const [notesData, setNotesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clientData, setClientData] = useState([]);
@@ -45,6 +46,12 @@ export default function Quotation() {
         }
       );
       setServiceData(res.data.data);
+
+setSelectedPlan(res.data.data.reverse()[0].plan_name);
+
+
+
+      
       console.log(serviceData);
     } catch (error) {
       if (error.response?.status === 401) {
@@ -309,9 +316,10 @@ const fetchClientReceived = async () => {
   //     </div>
   //   );
   // }
+  const clientOrganization = clientData?.client_organization;
 
   const handlePrintPage = () => {
-    document.title = `${clientName} Quotation`;
+      document.title = clientOrganization ? `${clientOrganization} Quotation` :`${clientName} Quotation`;
     window.print();
   };
   return (
@@ -397,7 +405,7 @@ const fetchClientReceived = async () => {
                       </div>
                       <div className="text-end">
                         <h2 className="text-2xl font-bold">
-                          {/* {serviceData[0].plan_name} Plan */}
+                          {selectedplan} Plan
                         </h2>
                         <p>{moment().format("DD/MM/YYYY")}</p>
                         <p>Quote : {txn_id}</p>

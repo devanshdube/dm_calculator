@@ -237,6 +237,7 @@ const InvoiceAds = () => {
 const handleCalculateAndSave = async () => {
   setLoading(true);
   setError("");
+
   const results = [];
 
   try {
@@ -292,36 +293,34 @@ const handleCalculateAndSave = async () => {
           employee: userName,
         });
       } else {
-        setError(`No matching range found for ${category} with amount ₹${amount}`);
+        setError(
+          `No matching range found for ${category} with amount ₹${amount}`
+        );
       }
     });
 
     if (results.length > 0) {
       setAdsItems(results); // update state
 
-      // Call both APIs in parallel
-      const [invoiceRes, quotationRes] = await Promise.all([
-        fetch("https://dmcalculator.dentalguru.software/auth/api/calculator/saveInvoiceAdsCampaign", {
+      // --- Save Ads Campaign only (Quotation) ---
+      const response = await fetch(
+        "https://dmcalculator.dentalguru.software/auth/api/calculator/saveAdsCampaign",
+        {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ adsItems: results }),
-        }),
-        fetch("https://dmcalculator.dentalguru.software/auth/api/calculator/saveAdsCampaign", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ adsItems: results }),
-        }),
-      ]);
+        }
+      );
 
-      const invoiceResult = await invoiceRes.json();
-      const quotationResult = await quotationRes.json();
-
-      if (invoiceResult.status === "Success" && quotationResult.status === "Success") {
+      const result = await response.json();
+      if (result.status === "Success") {
         fetchData();
         Swal.fire({
           icon: "success",
           title: "Success!",
-          text: "Ads campaign calculated and saved successfully!",
+          text: "Ads campaign saved successfully!",
           showConfirmButton: false,
           timer: 2000,
           timerProgressBar: true,
@@ -330,7 +329,7 @@ const handleCalculateAndSave = async () => {
         Swal.fire({
           icon: "error",
           title: "Failed!",
-          text: "Failed to save ads data.",
+          text: "Failed to save Ads Campaign: " + result.message,
           showConfirmButton: true,
         });
       }
@@ -344,6 +343,7 @@ const handleCalculateAndSave = async () => {
     setLoading(false);
   }
 };
+
 
 
   const fetchData = async () => {

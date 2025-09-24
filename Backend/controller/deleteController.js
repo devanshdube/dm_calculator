@@ -139,34 +139,78 @@ exports.deleteAdsCampaignDetails = async (req, res) => {
 };
 
 exports.deleteAdsCampaignEntryById = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params; // ads_campaign_details.id
 
   try {
-    db.query(
-      "DELETE FROM ads_campaign_details WHERE id = ?",
-      [id],
-      (err, result) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error while deleting entry",
-            error: err,
-          });
-        }
-
-        if (result.affectedRows === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No campaign entry found to delete",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          message: "Campaign entry deleted successfully",
+    // Step 1: Find txn_id, client_id, and details for this quotation entry
+    const findTxn =
+      "SELECT txn_id, client_id, category, amount FROM ads_campaign_details WHERE id = ?";
+    db.query(findTxn, [id], (err, rows) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while fetching entry",
+          error: err,
         });
       }
-    );
+
+      if (rows.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No Ads entry found to delete",
+        });
+      }
+
+      const { txn_id, client_id, category, amount } = rows[0];
+
+      // Step 2: Delete Ads row
+      const deleteQuotation = "DELETE FROM ads_campaign_details WHERE id = ?";
+      db.query(deleteQuotation, [id], (err2, result2) => {
+        if (err2) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error deleting from ads_campaign_details",
+            error: err2,
+          });
+        }
+
+        // Step 3: Delete matching invoice row (if exists)
+        const deleteInvoice = `
+          DELETE FROM ads_campaign_details_invoice 
+          WHERE txn_id = ? 
+          AND client_id = ? 
+          AND category = ? 
+          AND amount = ? 
+          LIMIT 1
+        `;
+
+        db.query(
+          deleteInvoice,
+          [txn_id, client_id, category, amount],
+          (err3, result3) => {
+            if (err3) {
+              return res.status(500).json({
+                status: "Failure",
+                message: "Error deleting from ads_campaign_details_invoice",
+                error: err3,
+              });
+            }
+
+            if (result3.affectedRows > 0) {
+              return res.status(200).json({
+                status: "Success",
+                message: "Ads Quotation entry and matching Ads Invoice entry deleted successfully",
+              });
+            } else {
+              return res.status(200).json({
+                status: "Success",
+                message: "Ads Quotation entry deleted successfully (No matching ads invoice found)",
+              });
+            }
+          }
+        );
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",
@@ -177,34 +221,79 @@ exports.deleteAdsCampaignEntryById = async (req, res) => {
 };
 
 exports.deleteGraphicEntryById = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params; // calculator_transactions.id
 
   try {
-    db.query(
-      "DELETE FROM calculator_transactions WHERE id = ?",
-      [id],
-      (err, result) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error while deleting entry",
-            error: err,
-          });
-        }
-
-        if (result.affectedRows === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No Graphic entry found to delete",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          message: "Campaign entry deleted successfully",
+    // Step 1: Find txn_id, client_id, and details for this quotation entry
+    const findTxn =
+      "SELECT txn_id, client_id, service_name, category_name, editing_type_name FROM calculator_transactions WHERE id = ?";
+    db.query(findTxn, [id], (err, rows) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while fetching entry",
+          error: err,
         });
       }
-    );
+
+      if (rows.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No quotation entry found to delete",
+        });
+      }
+
+      const { txn_id, client_id, service_name, category_name, editing_type_name } = rows[0];
+
+      // Step 2: Delete quotation row
+      const deleteQuotation = "DELETE FROM calculator_transactions WHERE id = ?";
+      db.query(deleteQuotation, [id], (err2, result2) => {
+        if (err2) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error deleting from calculator_transactions",
+            error: err2,
+          });
+        }
+
+        // Step 3: Delete matching invoice row (if exists)
+        const deleteInvoice = `
+          DELETE FROM invoice_graphic 
+          WHERE txn_id = ? 
+          AND client_id = ? 
+          AND service_name = ? 
+          AND category_name = ? 
+          AND editing_type_name = ?
+          LIMIT 1
+        `;
+
+        db.query(
+          deleteInvoice,
+          [txn_id, client_id, service_name, category_name, editing_type_name],
+          (err3, result3) => {
+            if (err3) {
+              return res.status(500).json({
+                status: "Failure",
+                message: "Error deleting from invoice_graphic",
+                error: err3,
+              });
+            }
+
+            if (result3.affectedRows > 0) {
+              return res.status(200).json({
+                status: "Success",
+                message: "Quotation entry and matching Invoice entry deleted successfully",
+              });
+            } else {
+              return res.status(200).json({
+                status: "Success",
+                message: "Quotation entry deleted successfully (No matching invoice found)",
+              });
+            }
+          }
+        );
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",
@@ -214,14 +303,13 @@ exports.deleteGraphicEntryById = async (req, res) => {
   }
 };
 
+
 exports.deleteClientById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Step 1: delete notes first
-    const deletePlanClientNotes =
-      "DELETE FROM plan_client_notes WHERE client_id = ?";
-
+    // Step 1: delete plan client notes
+    const deletePlanClientNotes = "DELETE FROM plan_client_notes WHERE client_id = ?";
     db.query(deletePlanClientNotes, [id], (err1) => {
       if (err1) {
         return res.status(500).json({
@@ -231,29 +319,111 @@ exports.deleteClientById = async (req, res) => {
         });
       }
 
-      // Step 2: delete client details
-      const deleteClient =
-        "DELETE FROM dm_calculator_client_details WHERE id = ?";
-
-      db.query(deleteClient, [id], (err2, result) => {
+      // Step 2: delete ads campaign
+      const deleteAdsCampaign = "DELETE FROM ads_campaign_details WHERE client_id = ?";
+      db.query(deleteAdsCampaign, [id], (err2) => {
         if (err2) {
           return res.status(500).json({
             status: "Failure",
-            message: "Database error while deleting client entry",
+            message: "Error deleting ads campaign details",
             error: err2,
           });
         }
 
-        if (result.affectedRows === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No Client entry found to delete",
-          });
-        }
+        // Step 3: delete ads campaign invoice
+        const deleteAdsCampaignInvoice = "DELETE FROM ads_campaign_details_invoice WHERE client_id = ?";
+        db.query(deleteAdsCampaignInvoice, [id], (err3) => {
+          if (err3) {
+            return res.status(500).json({
+              status: "Failure",
+              message: "Error deleting ads campaign invoice",
+              error: err3,
+            });
+          }
 
-        res.status(200).json({
-          status: "Success",
-          message: "Client notes and details deleted successfully",
+          // Step 4: delete calculator transactions
+          const deleteTransactions = "DELETE FROM calculator_transactions WHERE client_id = ?";
+          db.query(deleteTransactions, [id], (err4) => {
+            if (err4) {
+              return res.status(500).json({
+                status: "Failure",
+                message: "Error deleting calculator transactions",
+                error: err4,
+              });
+            }
+
+            // Step 5: delete complimentary
+            const deleteComplimentary = "DELETE FROM complimentary WHERE client_id = ?";
+            db.query(deleteComplimentary, [id], (err5) => {
+              if (err5) {
+                return res.status(500).json({
+                  status: "Failure",
+                  message: "Error deleting complimentary services",
+                  error: err5,
+                });
+              }
+
+              // Step 6: delete complimentary invoice
+              const deleteComplimentaryInvoice = "DELETE FROM complimentary_invoice WHERE client_id = ?";
+              db.query(deleteComplimentaryInvoice, [id], (err6) => {
+                if (err6) {
+                  return res.status(500).json({
+                    status: "Failure",
+                    message: "Error deleting complimentary invoice",
+                    error: err6,
+                  });
+                }
+
+                // Step 7: delete invoice client notes
+                const deleteInvoiceNotes = "DELETE FROM invoice_client_notes WHERE client_id = ?";
+                db.query(deleteInvoiceNotes, [id], (err7) => {
+                  if (err7) {
+                    return res.status(500).json({
+                      status: "Failure",
+                      message: "Error deleting invoice client notes",
+                      error: err7,
+                    });
+                  }
+
+                  // Step 8: delete invoices
+                  const deleteInvoice = "DELETE FROM invoice WHERE client_id = ?";
+                  db.query(deleteInvoice, [id], (err8) => {
+                    if (err8) {
+                      return res.status(500).json({
+                        status: "Failure",
+                        message: "Error deleting invoices",
+                        error: err8,
+                      });
+                    }
+
+                    // Step 9: finally delete client
+                    const deleteClient = "DELETE FROM dm_calculator_client_details WHERE id = ?";
+                    db.query(deleteClient, [id], (err9, result) => {
+                      if (err9) {
+                        return res.status(500).json({
+                          status: "Failure",
+                          message: "Database error while deleting client entry",
+                          error: err9,
+                        });
+                      }
+
+                      if (result.affectedRows === 0) {
+                        return res.status(404).json({
+                          status: "Failure",
+                          message: "No Client entry found to delete",
+                        });
+                      }
+
+                      res.status(200).json({
+                        status: "Success",
+                        message: "Client and all related data deleted successfully",
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
         });
       });
     });
@@ -265,6 +435,7 @@ exports.deleteClientById = async (req, res) => {
     });
   }
 };
+
 
 exports.deleteQuoatationById = async (req, res) => {
   const { txn_id } = req.params;
@@ -684,28 +855,77 @@ exports.deleteTeam = async (req, res) => {
 };
 
 exports.deleteComplimenatryById = async (req, res) => {
-  const { id } = req.params;
+   const { id } = req.params; // complimentary.id
 
   try {
-    db.query("DELETE FROM complimentary WHERE id = ?", [id], (err, result) => {
+    // Step 1: Find txn_id, client_id, and details for this quotation entry
+    const findTxn =
+      "SELECT txn_id, client_id, service_name, category_name, editing_type_name FROM complimentary WHERE id = ?";
+    db.query(findTxn, [id], (err, rows) => {
       if (err) {
         return res.status(500).json({
           status: "Failure",
-          message: "Database error while deleting entry",
+          message: "Database error while fetching entry",
           error: err,
         });
       }
 
-      if (result.affectedRows === 0) {
+      if (rows.length === 0) {
         return res.status(404).json({
           status: "Failure",
-          message: "No complimentary entry found to delete",
+          message: "No quotation entry found to delete",
         });
       }
 
-      res.status(200).json({
-        status: "Success",
-        message: "complimentary entry deleted successfully",
+      const { txn_id, client_id, service_name, category_name, editing_type_name } = rows[0];
+
+      // Step 2: Delete quotation row
+      const deleteQuotation = "DELETE FROM complimentary WHERE id = ?";
+      db.query(deleteQuotation, [id], (err2, result2) => {
+        if (err2) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error deleting from complimentary",
+            error: err2,
+          });
+        }
+
+        // Step 3: Delete matching invoice row (if exists)
+        const deleteInvoice = `
+          DELETE FROM complimentary_invoice 
+          WHERE txn_id = ? 
+          AND client_id = ? 
+          AND service_name = ? 
+          AND category_name = ? 
+          AND editing_type_name = ?
+          LIMIT 1
+        `;
+
+        db.query(
+          deleteInvoice,
+          [txn_id, client_id, service_name, category_name, editing_type_name],
+          (err3, result3) => {
+            if (err3) {
+              return res.status(500).json({
+                status: "Failure",
+                message: "Error deleting from complimentary_invoice",
+                error: err3,
+              });
+            }
+
+            if (result3.affectedRows > 0) {
+              return res.status(200).json({
+                status: "Success",
+                message: "ComplimentaryIinvoice entry and matching Invoice entry deleted successfully",
+              });
+            } else {
+              return res.status(200).json({
+                status: "Success",
+                message: "Complimentary Invoice entry deleted successfully (No matching invoice found)",
+              });
+            }
+          }
+        );
       });
     });
   } catch (error) {
@@ -783,34 +1003,79 @@ exports.deleteDiscountById = async (req, res) => {
   }
 };
 exports.deleteInvoiceById = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params; // invoice_graphic.id
 
   try {
-    db.query(
-      "DELETE FROM invoice_graphic WHERE id = ?",
-      [id],
-      (err, result) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error while deleting entry",
-            error: err,
-          });
-        }
-
-        if (result.affectedRows === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No Invoice entry found to delete",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          message: "Invoice entry deleted successfully",
+    // Step 1: Find txn_id, client_id, and details for this quotation entry
+    const findTxn =
+      "SELECT txn_id, client_id, service_name, category_name, editing_type_name FROM invoice_graphic WHERE id = ?";
+    db.query(findTxn, [id], (err, rows) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while fetching entry",
+          error: err,
         });
       }
-    );
+
+      if (rows.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No quotation entry found to delete",
+        });
+      }
+
+      const { txn_id, client_id, service_name, category_name, editing_type_name } = rows[0];
+
+      // Step 2: Delete quotation row
+      const deleteQuotation = "DELETE FROM invoice_graphic WHERE id = ?";
+      db.query(deleteQuotation, [id], (err2, result2) => {
+        if (err2) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error deleting from invoice_graphic",
+            error: err2,
+          });
+        }
+
+        // Step 3: Delete matching invoice row (if exists)
+        const deleteInvoice = `
+          DELETE FROM calculator_transactions 
+          WHERE txn_id = ? 
+          AND client_id = ? 
+          AND service_name = ? 
+          AND category_name = ? 
+          AND editing_type_name = ?
+          LIMIT 1
+        `;
+
+        db.query(
+          deleteInvoice,
+          [txn_id, client_id, service_name, category_name, editing_type_name],
+          (err3, result3) => {
+            if (err3) {
+              return res.status(500).json({
+                status: "Failure",
+                message: "Error deleting from calculator_transactions",
+                error: err3,
+              });
+            }
+
+            if (result3.affectedRows > 0) {
+              return res.status(200).json({
+                status: "Success",
+                message: "Invoice entry and matching Quotation entry deleted successfully",
+              });
+            } else {
+              return res.status(200).json({
+                status: "Success",
+                message: "Invoice entry deleted successfully (No matching quotation found)",
+              });
+            }
+          }
+        );
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",
@@ -887,34 +1152,78 @@ exports.deleteAllInvoiceServiceHistory = async (req, res) => {
 };
 
 exports.deleteInvoiceAdsCampaignEntryById = async (req, res) => {
-  const { id } = req.params;
+ const { id } = req.params; // ads_campaign_details_invoice.id
 
   try {
-    db.query(
-      "DELETE FROM ads_campaign_details_invoice WHERE id = ?",
-      [id],
-      (err, result) => {
-        if (err) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Database error while deleting entry",
-            error: err,
-          });
-        }
-
-        if (result.affectedRows === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: "No invoice campaign entry found to delete",
-          });
-        }
-
-        res.status(200).json({
-          status: "Success",
-          message: "Invoice Campaign entry deleted successfully",
+    // Step 1: Find txn_id, client_id, and details for this quotation entry
+    const findTxn =
+      "SELECT txn_id, client_id, category, amount FROM ads_campaign_details_invoice WHERE id = ?";
+    db.query(findTxn, [id], (err, rows) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while fetching entry",
+          error: err,
         });
       }
-    );
+
+      if (rows.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No Ads entry found to delete",
+        });
+      }
+
+      const { txn_id, client_id, category, amount } = rows[0];
+
+      // Step 2: Delete Ads row
+      const deleteQuotation = "DELETE FROM ads_campaign_details_invoice WHERE id = ?";
+      db.query(deleteQuotation, [id], (err2, result2) => {
+        if (err2) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error deleting from ads_campaign_details_invoice",
+            error: err2,
+          });
+        }
+
+        // Step 3: Delete matching invoice row (if exists)
+        const deleteInvoice = `
+          DELETE FROM ads_campaign_details 
+          WHERE txn_id = ? 
+          AND client_id = ? 
+          AND category = ? 
+          AND amount = ? 
+          LIMIT 1
+        `;
+
+        db.query(
+          deleteInvoice,
+          [txn_id, client_id, category, amount],
+          (err3, result3) => {
+            if (err3) {
+              return res.status(500).json({
+                status: "Failure",
+                message: "Error deleting from ads_campaign_details",
+                error: err3,
+              });
+            }
+
+            if (result3.affectedRows > 0) {
+              return res.status(200).json({
+                status: "Success",
+                message: "Ads Invoice entry and matching Ads Quotation entry deleted successfully",
+              });
+            } else {
+              return res.status(200).json({
+                status: "Success",
+                message: "Ads Invoice entry deleted successfully (No matching ads Quotation found)",
+              });
+            }
+          }
+        );
+      });
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failure",
@@ -979,30 +1288,155 @@ exports.deleteInvoiceClientNotes = async (req, res) => {
 };
 
 exports.deleteInvoiceComplimenatryById = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params; // complimentary.id
 
   try {
-    db.query("DELETE FROM complimentary_invoice WHERE id = ?", [id], (err, result) => {
+    // Step 1: Find txn_id, client_id, and details for this quotation entry
+    const findTxn =
+      "SELECT txn_id, client_id, service_name, category_name, editing_type_name FROM complimentary_invoice WHERE id = ?";
+    db.query(findTxn, [id], (err, rows) => {
       if (err) {
         return res.status(500).json({
           status: "Failure",
-          message: "Database error while deleting entry",
+          message: "Database error while fetching entry",
           error: err,
         });
       }
 
-      if (result.affectedRows === 0) {
+      if (rows.length === 0) {
         return res.status(404).json({
           status: "Failure",
-          message: "No complimentary entry found to delete",
+          message: "No quotation entry found to delete",
         });
       }
 
-      res.status(200).json({
-        status: "Success",
-        message: "complimentary entry deleted successfully",
+      const { txn_id, client_id, service_name, category_name, editing_type_name } = rows[0];
+
+      // Step 2: Delete quotation row
+      const deleteQuotation = "DELETE FROM complimentary_invoice WHERE id = ?";
+      db.query(deleteQuotation, [id], (err2, result2) => {
+        if (err2) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error deleting from complimentary_invoice",
+            error: err2,
+          });
+        }
+
+        // Step 3: Delete matching invoice row (if exists)
+        const deleteInvoice = `
+          DELETE FROM complimentary 
+          WHERE txn_id = ? 
+          AND client_id = ? 
+          AND service_name = ? 
+          AND category_name = ? 
+          AND editing_type_name = ?
+          LIMIT 1
+        `;
+
+        db.query(
+          deleteInvoice,
+          [txn_id, client_id, service_name, category_name, editing_type_name],
+          (err3, result3) => {
+            if (err3) {
+              return res.status(500).json({
+                status: "Failure",
+                message: "Error deleting from complimentary",
+                error: err3,
+              });
+            }
+
+            if (result3.affectedRows > 0) {
+              return res.status(200).json({
+                status: "Success",
+                message: "Complimentary invoice entry and matching Quotation entry deleted successfully",
+              });
+            } else {
+              return res.status(200).json({
+                status: "Success",
+                message: "Complimentary Invoice entry deleted successfully (No matching quotation found)",
+              });
+            }
+          }
+        );
       });
     });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+exports.deleteAdditionalById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    db.query(
+      "DELETE FROM addtional_service WHERE id = ?",
+      [id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error while deleting entry",
+            error: err,
+          });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No Additional entry found to delete",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          message: "Additional entry deleted successfully",
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+exports.deleteRemainingAmountById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    db.query(
+      "DELETE FROM amount_remaining WHERE id = ?",
+      [id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            status: "Failure",
+            message: "Database error while deleting entry",
+            error: err,
+          });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            status: "Failure",
+            message: "No Remaining Amount entry found to delete",
+          });
+        }
+
+        res.status(200).json({
+          status: "Success",
+          message: "Remaining Amount entry deleted successfully",
+        });
+      }
+    );
   } catch (error) {
     res.status(500).json({
       status: "Failure",

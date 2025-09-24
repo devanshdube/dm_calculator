@@ -44,6 +44,8 @@ const {
   saveInvoiceNotesData,
   saveInvoiceClientIdwiseNotes,
   copyInvoiceByTxnId,
+  saveAdditionalData,
+  saveRemainingAmountData,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -93,6 +95,8 @@ const {
   getInvoiceNoteData,
   getInvoiceClientNotesbyId,
   getAllInvoice,
+  getAdditionByIdData,
+  getRemainingAmountByIdData,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -122,6 +126,8 @@ const {
   deleteInvoiceNoteById,
   deleteInvoiceClientNotes,
   deleteInvoiceComplimenatryById,
+  deleteAdditionalById,
+  deleteRemainingAmountById,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -142,6 +148,8 @@ const {
   updateInvoiceClientNoteDataById,
   updateInvoiceComplimenatryDataById,
   updateInvoiceClientDataById,
+  updateAdditionalDataById,
+  updateRemainingDataById,
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -191,6 +199,8 @@ router.post("/saveInvoiceCalculatorData", saveInvoiceCalculatorData);
 router.post("/saveInvoiceNotesData", saveInvoiceNotesData);
 router.post("/saveInvoiceClientIdwiseNotes", saveInvoiceClientIdwiseNotes);
 router.post("/copyInvoiceByTxnId/:txn_id", copyInvoiceByTxnId);
+router.post("/saveAdditionalData", saveAdditionalData);
+router.post("/saveRemainingAmountData", saveRemainingAmountData);
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -321,6 +331,11 @@ router.get(
   getInvoiceClientNotesbyId
 );
 router.get("/getAllInvoice", getAllInvoice);
+router.get("/getAdditionByIdData/:client_id/:txn_id", getAdditionByIdData);
+router.get(
+  "/getRemainingAmountByIdData/:client_id/:txn_id",
+  getRemainingAmountByIdData
+);
 
 // ---->  Get all routes END <----
 
@@ -377,6 +392,8 @@ router.delete(
   "/deleteInvoiceComplimenatryById/:id",
   deleteInvoiceComplimenatryById
 );
+router.delete("/deleteAdditionalById/:id", deleteAdditionalById);
+router.delete("/deleteRemainingAmountById/:id", deleteRemainingAmountById);
 
 router.delete("/deleteRequirementsBundle/:linkId", deleteRequirementsBundle);
 
@@ -408,6 +425,8 @@ router.put(
   updateInvoiceComplimenatryDataById
 );
 router.put("/updateInvoiceClientDataById/:id", updateInvoiceClientDataById);
+router.put("/updateAdditionalDataById/:id", updateAdditionalDataById);
+router.put("/updateRemainingDataById/:id", updateRemainingDataById);
 // router.put("/reassignQuotation", reassignQuotation);
 // ---->  UPDATE all routes END <----
 
