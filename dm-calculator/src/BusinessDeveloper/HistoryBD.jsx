@@ -66,9 +66,18 @@ const [clientDataReceived, setClientDataReceived] = useState({});
         }
       );
       if (res.data.status === "Success") {
+       const uniqueTxnData = [];
+        const seenTxnIds = new Set();
+
+        for (const item of res.data.data) {
+          // ✅ Skip items with missing/null/empty txn_id
+          if (item.txn_id && !seenTxnIds.has(item.txn_id)) {
+            seenTxnIds.add(item.txn_id);
+            uniqueTxnData.push(item);
+          }
+        }
         console.log(res.data);
-        setFetchServices(res.data.data);
-        console.log(fetchServices);
+        setFetchServices(uniqueTxnData);
         
       }
     } catch (error) {

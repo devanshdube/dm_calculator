@@ -713,7 +713,7 @@ console.log(remainingAmountData);
   const gstAmount = isGST ? gstexculidingAdsgst * 0.18 : 0;
   console.log(gstAmount);
 
-  const finalTotal = totalAfterDiscount + gstAmount + remainingTotalAmount;
+  const finalTotal = totalAfterDiscount + gstAmount;
 
   if (loading) {
     return (
