@@ -1267,22 +1267,25 @@ const handleSave = () => {
 
                 <div className="space-y-4">
                   {/* Dropdown for predefined notes */}
-                  <select
-                    className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none text-black focus:ring-2 focus:ring-purple-500"
-                    onChange={(e) => {
-                      const note = predefinedNotes.find(
-                        (n) => n.id === parseInt(e.target.value)
-                      );
-                      if (note) handleAddPredefinedNote(note);
-                    }}
-                  >
-                    <option value="">-- Select Predefined Note --</option>
-                    {predefinedNotes.map((note) => (
-                      <option key={note.id} value={note.id}>
-                        {note.note_text}
-                      </option>
-                    ))}
-                  </select>
+               <div className="relative">
+  <select
+    className="w-full p-2 rounded-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-purple-500 max-h-60 overflow-y-auto"
+    onChange={(e) => {
+      const note = predefinedNotes.find(
+        (n) => n.id === parseInt(e.target.value)
+      );
+      if (note) handleAddPredefinedNote(note);
+    }}
+  >
+    <option value="">-- Select Predefined Note --</option>
+    {predefinedNotes.map((note) => (
+      <option key={note.id} value={note.id}>
+        {note.note_text}
+      </option>
+    ))}
+  </select>
+</div>
+
 
                   {/* Manual Note Input */}
                   <div className="flex gap-2">
@@ -1451,7 +1454,7 @@ const handleSave = () => {
                   </div>
                 )}
                 {showModalDis && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <div className="fixed inset-0 z-50 flex  justify-center p-4">
                     {/* Backdrop */}
                     <div
                       className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
@@ -1459,7 +1462,7 @@ const handleSave = () => {
                     />
 
                     {/* Modal */}
-                    <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                    <div className="relative h-80 bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
                       {/* Header */}
                       <div className="flex items-center justify-between p-6 border-b border-gray-100">
                         <div className="flex items-center gap-3">

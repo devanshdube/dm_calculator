@@ -21,6 +21,8 @@ import {
   Notebook,
   Percent,
   PercentDiamond,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
@@ -48,6 +50,8 @@ const AdminCalculator = () => {
 
   const [optionalAmounts, setOptionalAmounts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState(null);
 
   console.log(data);
 
@@ -881,6 +885,11 @@ const handleSave = () => {
       ? grandTotal - (grandTotal * parseFloat(selecteddiscount)) / 100
       : grandTotal;
 
+  const handleSelect = (note) => {
+    handleAddPredefinedNote(note);
+     setSelectedNote(null);      
+    setIsOpen(false);
+  };
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white p-6">
@@ -1270,22 +1279,55 @@ const handleSave = () => {
 
                 <div className="space-y-4">
                   {/* Dropdown for predefined notes */}
-                  <select
-                    className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none text-black focus:ring-2 focus:ring-purple-500"
-                    onChange={(e) => {
-                      const note = predefinedNotes.find(
-                        (n) => n.id === parseInt(e.target.value)
-                      );
-                      if (note) handleAddPredefinedNote(note);
-                    }}
-                  >
-                    <option value="">-- Select Predefined Note --</option>
-                    {predefinedNotes.map((note) => (
-                      <option key={note.id} value={note.id}>
-                        {note.note_text}
-                      </option>
-                    ))}
-                  </select>
+           {/* <select
+  className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none text-black focus:ring-2 focus:ring-purple-500"
+  onChange={(e) => {
+    const note = predefinedNotes.find(
+      (n) => n.id === parseInt(e.target.value)
+    );
+    if (note) handleAddPredefinedNote(note);
+  }}
+>
+  <option value="">-- Select Predefined Note --</option>
+  {predefinedNotes.map((note) => (
+    <option key={note.id} value={note.id} title={note.note_text}>
+      {note.note_text.length > 50
+        ? note.note_text.slice(0, 50) + "..."
+        : note.note_text}
+    </option>
+  ))}
+</select> */}
+ <div className="relative w-full">
+      {/* Button to open dropdown */}
+       <div
+        className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-gray-300 text-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="truncate">
+          {selectedNote ? selectedNote.note_text : "-- Select Predefined Note --"}
+        </span>
+        {isOpen ? (
+          <ChevronUp className="w-5 h-5 text-gray-500" />
+        ) : (
+          <ChevronDown className="w-5 h-5 text-gray-500" />
+        )}
+      </div>
+      {/* Dropdown menu */}
+      {isOpen && (
+        <div className="absolute z-10 bg-white w-full mt-1 max-h-60 overflow-auto border rounded-lg text-black focus:ring-2 focus:ring-purple-500">
+          {predefinedNotes.map((note) => (
+            <div
+              key={note.id}
+              onClick={() => handleSelect(note)}
+              className="p-2 m-1 border rounded-lg bg-gray-100 hover:bg-purple-100 cursor-pointer break-words"
+            >
+              {note.note_text}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
 
                   {/* Manual Note Input */}
                   <div className="flex gap-2">
@@ -1309,18 +1351,19 @@ const handleSave = () => {
                     {selectedNotes.map((note) => (
                       <div
                         key={note.id}
-                        className="p-3 bg-gray-100 rounded-lg flex justify-between items-center border border-gray-300"
+                        className="p-3 bg-gray-100 rounded-lg gap-5 flex justify-between items-center border border-gray-300"
                       >
                         <span className="text-gray-800 font-medium">
                           {note.note_name}
                         </span>
+                        <div className="">
                         <button
                           onClick={() => handleRemoveNote(note.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold transition"
+                          className="bg-red-500 mx-2 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold transition"
                           title="Remove"
                         >
                           ×
-                        </button>
+                        </button></div>
                       </div>
                     ))}
                   </div>
@@ -1454,7 +1497,7 @@ const handleSave = () => {
                   </div>
                 )}
                 {showModalDis && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <div className="fixed inset-0 z-50 flex  justify-center  p-4">
                     {/* Backdrop */}
                     <div
                       className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
@@ -1462,7 +1505,7 @@ const handleSave = () => {
                     />
 
                     {/* Modal */}
-                    <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                    <div className="relative h-80 bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
                       {/* Header */}
                       <div className="flex items-center justify-between p-6 border-b border-gray-100">
                         <div className="flex items-center gap-3">

@@ -569,28 +569,33 @@ const AdminClientDetails = () => {
                                 </div>
                                 {/* <div className="grid grid-cols-2 gap-4 text-sm text-gray-600"> */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 break-words">
-                                  <div className="flex items-center gap-2">
                                     {client.email ? (
+                                  <div className="flex items-center gap-2">
                                       <>
                                         <Mail className="w-4 h-4" />
                                         {client.email}
                                       </>
-                                    ) : null}
                                   </div>
+                                    ) : null}
                                   <div className="flex items-center gap-2 break-words">
                                     <Phone className="w-4 h-4" />
                                     {client.phone}
                                   </div>
+                                     {client.address ? (
                                   <div className="flex items-center gap-2 break-words">
                                     <MapPin className="w-4 h-4" />
                                     {client.address}
                                   </div>
+                                    ) : null}
                                   <div className="flex items-center gap-2 break-words">
                                     <Calendar className="w-4 h-4" />
                                     Employee : {client.dg_employee}
                                   </div>
 
-                                  <button
+                                 
+                                </div>
+                                <div className="flex items-center gap-2 break-words mt-3">
+   <button
                                     onClick={(e) => {
                                       e.stopPropagation(); // prevent card onClick
                                       setSelectedClient(client);
@@ -606,19 +611,19 @@ const AdminClientDetails = () => {
                                       setIsEditing(true);
                                       setShowModal(true);
                                     }}
-                                    className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25"
+                                    className="w-full inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25"
                                   >
                                     Edit
                                   </button>
                                   <button
-                                    className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25"
+                                    className="w-full inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25"
                                     onClick={() =>
                                       handleDeleteClient(client.id)
                                     }
                                   >
                                     Delete
                                   </button>
-                                </div>
+</div>
                               </div>
                             </div>
                           </div>

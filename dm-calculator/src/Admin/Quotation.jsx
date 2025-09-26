@@ -322,6 +322,10 @@ const fetchClientReceived = async () => {
       document.title = clientOrganization ? `${clientOrganization} Quotation` :`${clientName} Quotation`;
     window.print();
   };
+    const handleCreateProposal = () => {
+    const proposalId = Date.now(); // generates unique number based on current time
+    navigate(`/admin/ServicesLanding/${id}/${proposalId}`);
+  };
   return (
     <Wrapper>
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
@@ -343,6 +347,16 @@ const fetchClientReceived = async () => {
           >
             ✏️ Edit
           </button>
+           )}
+            {clientDataReceived.tag_received_amt === "received" ? (
+                    null
+                  ): (
+             <button
+                      onClick={handleCreateProposal}
+                      className=" px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                    >
+                      📝 New  Plan
+                    </button>
            )}
           <button
             onClick={() => navigate("/admin/dashboard")}

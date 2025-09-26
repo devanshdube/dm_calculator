@@ -113,6 +113,7 @@ const AdminDashboard = () => {
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                 Control Panel
               </h1>
+              
             </div>
 
             <div className="flex items-center gap-3 sm:gap-4">
@@ -204,10 +205,20 @@ const AdminDashboard = () => {
           mobileMenuOpen ? "block" : "hidden"
         }`}
       >
+        
         <div className="bg-gray-800/95 backdrop-blur-xl border-b border-gray-700/50">
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-2">
+           <div className=" sm:block mb-2">
+                <div className="text-xs sm:text-sm text-gray-400">
+                  Welcome back,
+                </div>
+                <div className="font-semibold text-white text-sm sm:text-base">
+                  {currentUser?.name || "User"}
+                </div>
+              </div>
             {tabs.map((tab) => {
               const Icon = tab.icon;
+            
               return (
                 <button
                   key={tab.id}
@@ -218,6 +229,7 @@ const AdminDashboard = () => {
                       : "text-gray-300 hover:text-white hover:bg-gray-700/50"
                   }`}
                 >
+                  
                   <Icon className="w-5 h-5" />
                   {tab.label}
                 </button>

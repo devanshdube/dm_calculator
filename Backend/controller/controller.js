@@ -1464,8 +1464,8 @@ exports.saveClientIdwiseNotes = (req, res) => {
 
     if (filteredNotes.length === 0) {
       return res.status(200).json({
-        status: "Success",
-        message: "No new notes to save (all duplicates skipped)",
+        status: "Alert",
+        message: "Duplicate Note Please Unique Note",
       });
     }
 
