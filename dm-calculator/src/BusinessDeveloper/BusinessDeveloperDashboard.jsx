@@ -11,6 +11,7 @@ import {
   List,
   UserPlus,
   Link,
+  TrendingUp,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +29,7 @@ import GenerateLinkHistoryBD from "./GenerateLinkHistoryBD";
 // const AdminAdsCampign = lazy(() => import("./AdminAdsCampign"));
 // // const AdminCalculator = lazy(() => import("./AdminCalculator"));
 import InvoiceHistory from "./InvoiceHistory";
+import SeoServices from "./SeoServices";
 
 const BusinessDeveloperDashboard = () => {
   const dispatch = useDispatch();
@@ -56,6 +58,7 @@ const BusinessDeveloperDashboard = () => {
     { id: "exploreplan", label: "Explore Plans", icon: List },
     { id: "assign", label: "Assign", icon: UserPlus },
     { id: "generatelink", label: "Generate Link", icon: Link },
+    { id: "seo", label: "Website SEO", icon: TrendingUp },
     // { id: "AddADSCamp", label: "Add Ads Campaigns", icon: CheckCircle },
     // { id: "AddServices", label: "Add Graphic Services", icon: Plus },
     // { id: "servicehistory", label: "Graphic Service History", icon: Clock },
@@ -218,6 +221,7 @@ const BusinessDeveloperDashboard = () => {
           {activeTab === "exploreplan" && <BdExplorePlans />}
           {activeTab === "assign" && <AssignQuotationBD />}
           {activeTab === "generatelink" && <GenerateLinkHistoryBD />}
+          {activeTab === "seo" && <SeoServices />}
           {/* {activeTab === "registerbd" && <RegisterBD />}
           {activeTab === "AddADSCamp" && <AdminAdsCampign />}
           {activeTab === "AddServices" && <AdminAddServices />}

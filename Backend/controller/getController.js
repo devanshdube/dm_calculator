@@ -565,6 +565,9 @@ FROM calculator_transactions ct
 WHERE ct.txn_id = ? AND ct.client_id = ?
   AND NOT (ct.service_name = 'GMB' AND ct.category_name = 'LOCAL SEO')
   AND NOT (ct.service_name = 'SEO' AND ct.category_name = 'Intended for Lead Generation')
+  AND NOT (ct.service_name = 'SEO' AND ct.category_name = 'Backlink Creation')
+  AND NOT (ct.service_name = 'SEO' AND ct.category_name = 'Google My Business (GMB)')
+  AND NOT (ct.service_name = 'Website Maintenance' AND ct.category_name = 'Website Maintenance')
 
 UNION
 
@@ -607,7 +610,7 @@ WHERE ad.txn_id = ? AND ad.client_id = ?
 //   const { client_id, txn_id } = req.params;
 
 //   const query = `
-//   SELECT 
+//   SELECT
 //   'Graphic Service' AS service_type,
 //   ct.txn_id,
 //   ct.created_at,
@@ -630,7 +633,7 @@ WHERE ad.txn_id = ? AND ad.client_id = ?
 
 // UNION
 
-// SELECT 
+// SELECT
 //   'Ads Campaign' AS service_type,
 //   ad.txn_id,
 //   ad.created_at,
@@ -2089,12 +2092,12 @@ exports.getComplimentaryInvoiceData = async (req, res) => {
 };
 
 exports.getInvoiceClientDetailsById = async (req, res) => {
-  const {client_id,txn_id} = req.params;
+  const { client_id, txn_id } = req.params;
 
   try {
     db.query(
       "SELECT * FROM invoice WHERE client_id = ? AND txn_id = ?",
-      [client_id,txn_id],
+      [client_id, txn_id],
       (err, results) => {
         if (err) {
           return res.status(500).json({
@@ -2371,6 +2374,40 @@ exports.getRemainingAmountByIdData = async (req, res) => {
       status: "Failure",
       message: "Server error",
       error,
+    });
+  }
+};
+
+exports.getSeoClientsWithKeywords = (req, res) => {
+  try {
+    const querySQL = `
+      SELECT c.id AS client_id, c.name, c.website, k.id AS keyword_id, k.keyword, k.created_at AS keyword_created_at
+      FROM seo_clients c
+      LEFT JOIN seo_keywords k ON c.id = k.client_id
+      ORDER BY c.id DESC, k.id DESC
+    `;
+
+    db.query(querySQL, (err, results) => {
+      if (err) {
+        console.error("DB Error:", err);
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
+        });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "Clients with keywords fetched successfully",
+        data: results,
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
     });
   }
 };

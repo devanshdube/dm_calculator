@@ -979,7 +979,6 @@ exports.saveCalculatorData = (req, res) => {
   });
 };
 
-
 exports.saveAdsCampaign = async (req, res) => {
   const adsItems = req.body.adsItems;
 
@@ -1014,9 +1013,10 @@ exports.saveAdsCampaign = async (req, res) => {
   db.query(sql, [insertValues], (err) => {
     if (err) {
       console.error("DB Error:", err);
-      return res
-        .status(500)
-        .json({ status: "Failure", message: "Database error while saving ads campaign." });
+      return res.status(500).json({
+        status: "Failure",
+        message: "Database error while saving ads campaign.",
+      });
     }
 
     // Step 2: Check if invoice exists
@@ -1024,7 +1024,10 @@ exports.saveAdsCampaign = async (req, res) => {
     db.query(checkInvoice, [adsItems[0].txn_id], (err2, invoiceResult) => {
       if (err2) {
         console.error("Invoice Check Error:", err2);
-        return res.status(500).json({ status: "Failure", message: "DB error while checking invoice." });
+        return res.status(500).json({
+          status: "Failure",
+          message: "DB error while checking invoice.",
+        });
       }
 
       if (invoiceResult.length > 0) {
@@ -1304,6 +1307,7 @@ exports.addNotebyplan = async (req, res) => {
     res.status(500).json({ status: "Failure", message: "Server error", error });
   }
 };
+
 exports.savePlanClientNotes = (req, res) => {
   const { txn_id, client_id, plans, planNotes } = req.body;
 
@@ -1416,14 +1420,14 @@ exports.savePlanClientNotes = (req, res) => {
           // Only quotation saved
           return res.status(200).json({
             status: "Success",
-            message: "Plans & Notes saved successfully (Invoice not created yet)",
+            message:
+              "Plans & Notes saved successfully (Invoice not created yet)",
           });
         }
       });
     });
   });
 };
-
 
 exports.saveClientIdwiseNotes = (req, res) => {
   const { txn_id, client_id, planNotes } = req.body;
@@ -2788,7 +2792,6 @@ exports.saveComplimentaryData = (req, res) => {
     include_thumbnail_creation,
     total_amount,
     employee,
-   
   } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
@@ -2842,7 +2845,7 @@ exports.saveComplimentaryData = (req, res) => {
 
       if (invoiceResult.length > 0) {
         // Step 3: Insert into invoice table if invoice exists
-       const invoiceQuery = `
+        const invoiceQuery = `
   INSERT INTO complimentary_invoice (
     txn_id,
     client_id,
@@ -3369,8 +3372,6 @@ exports.saveInvoiceGD = (req, res) => {
     createdAt,
   ];
 
-  
-
   db.query(clientQuery, [clientValues], (err) => {
     if (err) {
       return res.status(500).json({
@@ -3584,7 +3585,10 @@ exports.saveInvoiceCalculatorData = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res.status(200).json({ status: "Success", message: "Invoice Calculation Saved successfully" });
+    res.status(200).json({
+      status: "Success",
+      message: "Invoice Calculation Saved successfully",
+    });
   });
 };
 
@@ -3690,134 +3694,202 @@ exports.saveInvoiceClientIdwiseNotes = (req, res) => {
   });
 };
 
-
 exports.copyInvoiceByTxnId = (req, res) => {
   const { txn_id } = req.params;
   if (!txn_id) {
-    return res.status(400).json({ status: "Failure", message: "txn_id is required" });
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "txn_id is required" });
   }
 
   const newTxnId = Date.now(); // new txn id
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
   // 1. Fetch old invoice
-  db.query("SELECT * FROM invoice WHERE txn_id = ?", [txn_id], (err, invoiceRows) => {
-    if (err) {
-      console.error("Fetch Invoice Error:", err);
-      return res.status(500).json({ status: "Failure", message: "DB fetch error" });
-    }
-    if (!invoiceRows.length) {
-      return res.status(404).json({ status: "Failure", message: "Invoice not found" });
-    }
+  db.query(
+    "SELECT * FROM invoice WHERE txn_id = ?",
+    [txn_id],
+    (err, invoiceRows) => {
+      if (err) {
+        console.error("Fetch Invoice Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "DB fetch error" });
+      }
+      if (!invoiceRows.length) {
+        return res
+          .status(404)
+          .json({ status: "Failure", message: "Invoice not found" });
+      }
 
-    const oldInvoice = invoiceRows[0];
+      const oldInvoice = invoiceRows[0];
 
-    // Insert new invoice
-    const invoiceInsertQuery = `
+      // Insert new invoice
+      const invoiceInsertQuery = `
       INSERT INTO invoice 
       (txn_id, client_id, client_name, client_organization, email, phone, address, dg_employee, duration_start_date, duration_end_date, payment_mode, client_gst_no, client_pan_no, created_at) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    db.query(invoiceInsertQuery, [
-      newTxnId,
-      oldInvoice.client_id,
-      oldInvoice.client_name,
-      oldInvoice.client_organization,
-      oldInvoice.email,
-      oldInvoice.phone,
-      oldInvoice.address,
-      oldInvoice.dg_employee,
-      oldInvoice.duration_start_date,
-      oldInvoice.duration_end_date,
-      oldInvoice.payment_mode,
-      oldInvoice.client_gst_no,
-      oldInvoice.client_pan_no,
-      createdAt,
-    ], (err2) => {
-      if (err2) {
-        console.error("Insert Invoice Error:", err2);
-        return res.status(500).json({ status: "Failure", message: "DB insert error" });
-      }
+      db.query(
+        invoiceInsertQuery,
+        [
+          newTxnId,
+          oldInvoice.client_id,
+          oldInvoice.client_name,
+          oldInvoice.client_organization,
+          oldInvoice.email,
+          oldInvoice.phone,
+          oldInvoice.address,
+          oldInvoice.dg_employee,
+          oldInvoice.duration_start_date,
+          oldInvoice.duration_end_date,
+          oldInvoice.payment_mode,
+          oldInvoice.client_gst_no,
+          oldInvoice.client_pan_no,
+          createdAt,
+        ],
+        (err2) => {
+          if (err2) {
+            console.error("Insert Invoice Error:", err2);
+            return res
+              .status(500)
+              .json({ status: "Failure", message: "DB insert error" });
+          }
 
-      // --- 2. Copy invoice_graphic ---
-      db.query("SELECT * FROM invoice_graphic WHERE txn_id = ?", [txn_id], (err, graphicRows) => {
-        if (!err && graphicRows.length > 0) {
-          const values = graphicRows.map(r => [
-            newTxnId, r.client_id, r.service_name, r.category_name, r.editing_type_name,
-            r.editing_type_amount, r.quantity, r.include_content_posting, r.include_thumbnail_creation,
-            r.total_amount, r.employee, r.plan_name, createdAt
-          ]);
+          // --- 2. Copy invoice_graphic ---
           db.query(
-            `INSERT INTO invoice_graphic 
+            "SELECT * FROM invoice_graphic WHERE txn_id = ?",
+            [txn_id],
+            (err, graphicRows) => {
+              if (!err && graphicRows.length > 0) {
+                const values = graphicRows.map((r) => [
+                  newTxnId,
+                  r.client_id,
+                  r.service_name,
+                  r.category_name,
+                  r.editing_type_name,
+                  r.editing_type_amount,
+                  r.quantity,
+                  r.include_content_posting,
+                  r.include_thumbnail_creation,
+                  r.total_amount,
+                  r.employee,
+                  r.plan_name,
+                  createdAt,
+                ]);
+                db.query(
+                  `INSERT INTO invoice_graphic 
               (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at) 
-             VALUES ?`, [values], (e) => {
-              if (e) console.error("Insert Graphic Error:", e);
+             VALUES ?`,
+                  [values],
+                  (e) => {
+                    if (e) console.error("Insert Graphic Error:", e);
+                  }
+                );
+              }
             }
           );
-        }
-      });
 
-      // --- 3. Copy ads_campaign_details_invoice ---
-      db.query("SELECT * FROM ads_campaign_details_invoice WHERE txn_id = ?", [txn_id], (err, adsRows) => {
-        if (!err && adsRows.length > 0) {
-          const values = adsRows.map(r => [
-            newTxnId, r.client_id, r.unique_id, r.category, r.amount,
-            r.percent, r.charge, r.total, r.employee, createdAt
-          ]);
+          // --- 3. Copy ads_campaign_details_invoice ---
           db.query(
-            `INSERT INTO ads_campaign_details_invoice 
+            "SELECT * FROM ads_campaign_details_invoice WHERE txn_id = ?",
+            [txn_id],
+            (err, adsRows) => {
+              if (!err && adsRows.length > 0) {
+                const values = adsRows.map((r) => [
+                  newTxnId,
+                  r.client_id,
+                  r.unique_id,
+                  r.category,
+                  r.amount,
+                  r.percent,
+                  r.charge,
+                  r.total,
+                  r.employee,
+                  createdAt,
+                ]);
+                db.query(
+                  `INSERT INTO ads_campaign_details_invoice 
               (txn_id, client_id, unique_id, category, amount, percent, charge, total, employee, created_at) 
-             VALUES ?`, [values], (e) => {
-              if (e) console.error("Insert Ads Error:", e);
+             VALUES ?`,
+                  [values],
+                  (e) => {
+                    if (e) console.error("Insert Ads Error:", e);
+                  }
+                );
+              }
             }
           );
-        }
-      });
 
-      // --- 4. Copy complimentary_invoice ---
-      db.query("SELECT * FROM complimentary_invoice WHERE txn_id = ?", [txn_id], (err, compRows) => {
-        if (!err && compRows.length > 0) {
-          const values = compRows.map(r => [
-            newTxnId, r.client_id, r.service_name, r.category_name, r.editing_type_name,
-            r.editing_type_amount, r.quantity, r.include_content_posting, r.include_thumbnail_creation,
-            r.total_amount, r.employee, createdAt
-          ]);
+          // --- 4. Copy complimentary_invoice ---
           db.query(
-            `INSERT INTO complimentary_invoice 
+            "SELECT * FROM complimentary_invoice WHERE txn_id = ?",
+            [txn_id],
+            (err, compRows) => {
+              if (!err && compRows.length > 0) {
+                const values = compRows.map((r) => [
+                  newTxnId,
+                  r.client_id,
+                  r.service_name,
+                  r.category_name,
+                  r.editing_type_name,
+                  r.editing_type_amount,
+                  r.quantity,
+                  r.include_content_posting,
+                  r.include_thumbnail_creation,
+                  r.total_amount,
+                  r.employee,
+                  createdAt,
+                ]);
+                db.query(
+                  `INSERT INTO complimentary_invoice 
               (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, created_at) 
-             VALUES ?`, [values], (e) => {
-              if (e) console.error("Insert Complimentary Error:", e);
+             VALUES ?`,
+                  [values],
+                  (e) => {
+                    if (e) console.error("Insert Complimentary Error:", e);
+                  }
+                );
+              }
             }
           );
-        }
-      });
 
-      // --- 5. Copy invoice_client_notes ---
-      db.query("SELECT * FROM invoice_client_notes WHERE txn_id = ?", [txn_id], (err, notesRows) => {
-        if (!err && notesRows.length > 0) {
-          const values = notesRows.map(r => [
-            newTxnId, r.client_id, r.note_name, createdAt
-          ]);
+          // --- 5. Copy invoice_client_notes ---
           db.query(
-            `INSERT INTO invoice_client_notes (txn_id, client_id, note_name, created_at) VALUES ?`,
-            [values],
-            (e) => {
-              if (e) console.error("Insert Client Notes Error:", e);
+            "SELECT * FROM invoice_client_notes WHERE txn_id = ?",
+            [txn_id],
+            (err, notesRows) => {
+              if (!err && notesRows.length > 0) {
+                const values = notesRows.map((r) => [
+                  newTxnId,
+                  r.client_id,
+                  r.note_name,
+                  createdAt,
+                ]);
+                db.query(
+                  `INSERT INTO invoice_client_notes (txn_id, client_id, note_name, created_at) VALUES ?`,
+                  [values],
+                  (e) => {
+                    if (e) console.error("Insert Client Notes Error:", e);
+                  }
+                );
+              }
             }
           );
-        }
-      });
 
-      // ✅ Final Response
-      return res.status(200).json({
-        status: "Success",
-        message: "Invoice copied successfully",
-        new_txn_id: newTxnId,
-      });
-    });
-  });
+          // ✅ Final Response
+          return res.status(200).json({
+            status: "Success",
+            message: "Invoice copied successfully",
+            new_txn_id: newTxnId,
+          });
+        }
+      );
+    }
+  );
 };
+
 exports.saveAdditionalData = (req, res) => {
   const {
     txn_id,
@@ -3879,13 +3951,7 @@ exports.saveAdditionalData = (req, res) => {
 };
 
 exports.saveRemainingAmountData = (req, res) => {
-  const {
-    txn_id,
-    client_id,
- service_name,
- price,
-    employee,
-  } = req.body;
+  const { txn_id, client_id, service_name, price, employee } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
@@ -3900,15 +3966,7 @@ exports.saveRemainingAmountData = (req, res) => {
     ) VALUES (?, ?, ?, ?,?, ?)
   `;
 
-  const values = [  
-    txn_id,
-    client_id,
-    service_name,
-     price,
-    employee,
-
-    createdAt,
-  ];
+  const values = [txn_id, client_id, service_name, price, employee, createdAt];
 
   db.query(query, values, (err, result) => {
     if (err) {
@@ -3918,4 +3976,101 @@ exports.saveRemainingAmountData = (req, res) => {
 
     res.status(200).json({ status: "Success", message: "Saved successfully" });
   });
+};
+
+exports.seoClientsDetails = (req, res) => {
+  try {
+    const { name, website } = req.body;
+
+    // Validation
+    if (!name || !website) {
+      return res.status(400).json({
+        status: "Failure",
+        message: "Client Name & Website is required",
+      });
+    }
+
+    const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+    const querySQL = `INSERT INTO seo_clients (name, website, created_at) VALUES (?, ?, ?)`;
+
+    db.query(querySQL, [name, website, createdAt], (err, result) => {
+      if (err) {
+        console.error("DB Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Database error", error: err });
+      }
+
+      return res.status(201).json({
+        status: "Success",
+        message: "Client added successfully",
+        data: {
+          id: result.insertId,
+          name,
+          website,
+          created_at: createdAt,
+        },
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+exports.seoWebsiteKeyword = (req, res) => {
+  try {
+    const { client_id } = req.params;
+
+    if (!client_id) {
+      return res.status(400).json({
+        status: "Failure",
+        message: "Client ID is required",
+      });
+    }
+
+    const { keyword } = req.body;
+
+    if (!keyword) {
+      return res.status(400).json({
+        status: "Failure",
+        message: "Keyword is required",
+      });
+    }
+
+    const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+    const querySQL = `INSERT INTO seo_keywords (client_id, keyword, created_at) VALUES (?, ?, ?)`;
+
+    db.query(querySQL, [client_id, keyword, createdAt], (err, result) => {
+      if (err) {
+        console.error("DB Error:", err);
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
+        });
+      }
+
+      return res.status(201).json({
+        status: "Success",
+        message: "Keyword added successfully",
+        data: {
+          id: result.insertId,
+          client_id,
+          keyword,
+          created_at: createdAt,
+        },
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+    });
+  }
 };

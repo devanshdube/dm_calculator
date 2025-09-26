@@ -13,6 +13,7 @@ import {
   List,
   UserPlus,
   Link,
+  TrendingUp,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +25,7 @@ import CreateTeam from "./CreateTeam";
 import GenerateLinkHistory from "./GenerateLinkHistory";
 import NavTabs from "../Components/NavTabs";
 import InvoiceHistory from "./InvoiceHistory";
+import SeoServicesA from "./SeoServicesA";
 const AssignQuotation = lazy(() => import("./AssignQuotation"));
 const AllHistory = lazy(() => import("./AllHistory"));
 const RegisterBD = lazy(() => import("./RegisterBD"));
@@ -68,6 +70,7 @@ const AdminDashboard = () => {
     { id: "assign", label: "Assign", icon: UserPlus },
     { id: "createteam", label: "Team", icon: Users },
     { id: "generatelink", label: "Generate Link", icon: Link },
+    { id: "seo", label: "Website SEO", icon: TrendingUp },
   ];
 
   const handleLogout = () => {
@@ -256,6 +259,7 @@ const AdminDashboard = () => {
             {activeTab === "assign" && <AssignQuotation />}
             {activeTab === "createteam" && <CreateTeam />}
             {activeTab === "generatelink" && <GenerateLinkHistory />}
+            {activeTab === "seo" && <SeoServicesA />}
           </div>
         </div>
       </main>
