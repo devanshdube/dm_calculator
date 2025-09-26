@@ -47,7 +47,7 @@ export default function Quotation() {
       );
       setServiceData(res.data.data);
 
-setSelectedPlan(res.data.data.reverse()[0].plan_name);
+setSelectedPlan(res.data.data[0].plan_name || "Customise");
 
 
 

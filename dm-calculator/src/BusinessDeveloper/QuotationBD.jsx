@@ -45,7 +45,8 @@ export default function QuotationBD() {
         }
       );
       setServiceData(res.data.data);
-   setSelectedPlan(res.data.data.reverse()[0].plan_name);
+setSelectedPlan(res.data.data[0].plan_name || "Customise");
+
 
     } catch (error) {
       if (error.response?.status === 401) {

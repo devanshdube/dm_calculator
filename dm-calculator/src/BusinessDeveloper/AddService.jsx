@@ -102,7 +102,8 @@ export default function AddService() {
   const fetchClient = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientDetailsById/${id}`,
+        `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}/${txn_id}`,   
+      
         {
           headers: {
             Authorization: `Bearer ${token}`,

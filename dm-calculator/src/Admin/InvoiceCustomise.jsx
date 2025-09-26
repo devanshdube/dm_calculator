@@ -102,7 +102,7 @@ export default function InvoiceCustomise() {
   const fetchClient = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}`,
+        `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}/${txn_id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -112,6 +112,8 @@ export default function InvoiceCustomise() {
       if (res.data.status === "Success") {
         console.log(res.data.data);
         setClientData(res.data.data);
+        console.log(clientData);
+        
       }
     } catch (error) {
       console.log(error);

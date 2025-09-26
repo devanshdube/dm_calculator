@@ -79,7 +79,7 @@ const [clientDataReceived, setClientDataReceived] = useState({});
           }
         }
         console.log(res.data);
-        setFetchServices(uniqueTxnData);
+        setFetchServices(uniqueTxnData.reverse());
         console.log(fetchServices);
         
       }

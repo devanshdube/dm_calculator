@@ -165,7 +165,8 @@ const InvoiceCalculation = () => {
           },
         }
       );
-      setDiscountData(data.data || []);
+          setDiscountData(data.data[0]);
+
       setSelecteddiscount(data.data[0].discount_per);
     } catch (error) {
       console.error(error);
@@ -1120,9 +1121,10 @@ const handleSave = () => {
                 >
                   {loading ? "Save..." : "Calculate & Save"}
                 </button>
-                <button
+         <button
                   onClick={handleShow}
-                  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+                  className={`px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition ${discountData ? "opacity-50 cursor-not-allowed" : ""}`}
+                  disabled = {discountData} 
                 >
                   + Discount
                 </button>
@@ -1132,17 +1134,18 @@ const handleSave = () => {
                 >
                   Reset Form
                 </button>
-                <div className="space-y-4">
-                  {discountData.map((dis) => (
+            {discountData ? (
+ <div className="space-y-4">
+                
                     <div
-                      key={dis.id}
+                      key={discountData.id}
                       className="p-4 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition"
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
                         {/* Left Section: Info */}
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 font-semibold text-lg">
-                            <span>{dis.discount_per} %</span>
+                            <span>{discountData.discount_per} %</span>
                           </div>
                         </div>
 
@@ -1151,9 +1154,9 @@ const handleSave = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation(); // prevent card onClick
-                              setSelectedDiscountId(dis);
+                              setSelectedDiscountId(discountData);
                               setFormDataDis({
-                                discount_per: dis.discount_per,
+                                discount_per: discountData.discount_per,
                               });
                               setIsEditingDis(true);
                               setShowModalDis(true);
@@ -1164,7 +1167,7 @@ const handleSave = () => {
                             ✎
                           </button>
                           <button
-                            onClick={() => handleDeleteDiscount(dis.id)}
+                            onClick={() => handleDeleteDiscount(discountData.id)}
                             className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
                             title="Delete"
                           >
@@ -1173,8 +1176,12 @@ const handleSave = () => {
                         </div>
                       </div>
                     </div>
-                  ))}
+           
                 </div>
+
+                ) : (
+                  null
+                )}
 
                 <div className="text-xl font-semibold text-center text-green-300 mt-4">
                   Total Amount: ₹{grandTotal.toLocaleString()}
