@@ -33,6 +33,8 @@ export default function QuotationBD() {
     header: false,
     footer: false,
   });
+    const [clientDataReceived, setClientDataReceived] = useState([]);
+
   const fetchServices = async () => {
     try {
       const res = await axios.get(
@@ -45,7 +47,8 @@ export default function QuotationBD() {
         }
       );
       setServiceData(res.data.data);
-   setSelectedPlan(res.data.data.reverse()[0].plan_name);
+setSelectedPlan(res.data.data[0].plan_name || "Customise");
+
 
     } catch (error) {
       if (error.response?.status === 401) {
@@ -61,7 +64,36 @@ export default function QuotationBD() {
       }
     }
   };
-
+const fetchClientReceived = async () => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}/${txn_id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.data.status === "Success") {
+        setClientDataReceived(res.data.data);
+      }
+      console.log(clientData);
+      
+    } catch (error) {
+      if (error.response?.status === 401) {
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
+    }
+  };
   const fetchClient = async () => {
     try {
       const res = await axios.get(
@@ -177,6 +209,7 @@ export default function QuotationBD() {
     fetchClientNotes();
     fetchComplimentaryData();
     fetchDiscount();
+    fetchClientReceived();
   }, [id, txn_id]);
 
   useEffect(() => {
@@ -284,6 +317,10 @@ export default function QuotationBD() {
      document.title = clientOrganization ? `${clientOrganization} Quotation` :`${clientName} Quotation`;
     window.print();
   };
+  const handleCreateProposal = () => {
+    const proposalId = Date.now(); // generates unique number based on current time
+    navigate(`/BD/AddService/${id}/${proposalId}`);
+  };
   return (
     <Wrapper>
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
@@ -296,12 +333,26 @@ export default function QuotationBD() {
           >
             🖨️ Print
           </button>
+               {clientDataReceived.tag_received_amt === "received" ? (
+                    null
+                  ): (
           <button
             onClick={() => navigate(`/BD/AddService/${id}/${txn_id}`)}
             className="bg-orange-600 text-white rounded-full px-4 py-2"
           >
             ✏️ Edit
           </button>
+           )}
+            {clientDataReceived.tag_received_amt === "received" ? (
+                    null
+                  ): (
+             <button
+                      onClick={handleCreateProposal}
+                      className=" px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                    >
+                      📝 New  Plan
+                    </button>
+           )}
           <button
             onClick={() => navigate("/BD/dashboard")}
             className="bg-teal-600 text-white rounded-full px-4 py-2"

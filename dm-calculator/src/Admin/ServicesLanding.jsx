@@ -530,6 +530,7 @@ export default function ServicesLanding() {
         timer: 2000,
         timerProgressBar: true,
       });
+         setShowModal(true);
 
       fetchData();
       fetchClientNotes();

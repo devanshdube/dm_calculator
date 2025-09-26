@@ -143,7 +143,7 @@ const AllHistory = () => {
               <input
                 type="text"
                 value={keyword}
-                placeholder="Search history..."
+                placeholder="Search By Name,Txn Id"
                 className="w-full sm:w-auto pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 backdrop-blur-sm hover:bg-gray-700/50 transition-all text-sm"
                 onChange={(e) => {
                   setKeyword(e.target.value);
@@ -168,7 +168,7 @@ const AllHistory = () => {
                       Date
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      Client
+                      Client Name
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       TXN ID

@@ -45,14 +45,15 @@ const ForgotPassword = () => {
     } catch (error) {
       console.error("Error sending OTP:", error);
 
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Error sending OTP",
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
-      });
+   Swal.fire({
+  icon: "error",
+  title: "Error",
+  text: error.response?.data?.message || "Something went wrong",
+  showConfirmButton: false,
+  timer: 2000,
+  timerProgressBar: true,
+});
+
     } finally {
       setLoading(false);
     }

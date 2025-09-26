@@ -713,7 +713,7 @@ console.log(remainingAmountData);
   const gstAmount = isGST ? gstexculidingAdsgst * 0.18 : 0;
   console.log(gstAmount);
 
-  const finalTotal = totalAfterDiscount + gstAmount + remainingTotalAmount;
+  const finalTotal = totalAfterDiscount + gstAmount;
 
   if (loading) {
     return (
@@ -1404,7 +1404,7 @@ console.log(remainingAmountData);
                   onClick={handleShow}
                   className="px-4 py-2 print:hidden mb-2 print:mb-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
                 >
-                  + Addition Service 
+                  + Additional Service 
                 </button>
                 <button
                   onClick={handleRemainingShow}
@@ -1975,15 +1975,17 @@ console.log(remainingAmountData);
                   <X className="w-5 h-5" />
                 </button>
               </div>
+               <div className="mx-2 mt-2">
+               <button
+                                className=" px-4 py-1 float-end bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
+                                onClick={resetForm}
+                              >
+                               <RefreshCcw/>
+                              </button></div>
 
               {/* Form */}
               <form onSubmit={handleSave} className="p-6 space-y-4">
-                <button
-                  className=" px-4 py-1 float-end bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
-                  onClick={resetForm}
-                >
-                 <RefreshCcw/>
-                </button>
+              
                 <div>
                 <label className="block font-semibold mb-1">
                   Select Service

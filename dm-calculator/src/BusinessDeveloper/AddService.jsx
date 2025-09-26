@@ -103,6 +103,8 @@ export default function AddService() {
     try {
       const res = await axios.get(
         `${baseURL}/auth/api/calculator/getClientDetailsById/${id}`,
+
+      
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -526,6 +528,7 @@ export default function AddService() {
         timer: 2000,
         timerProgressBar: true,
       });
+               setShowModal(true);
 
       fetchData();
       fetchClientNotes();
@@ -820,6 +823,7 @@ export default function AddService() {
       });
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">

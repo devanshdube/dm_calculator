@@ -66,9 +66,18 @@ const [clientDataReceived, setClientDataReceived] = useState({});
         }
       );
       if (res.data.status === "Success") {
+       const uniqueTxnData = [];
+        const seenTxnIds = new Set();
+
+        for (const item of res.data.data) {
+          // ✅ Skip items with missing/null/empty txn_id
+          if (item.txn_id && !seenTxnIds.has(item.txn_id)) {
+            seenTxnIds.add(item.txn_id);
+            uniqueTxnData.push(item);
+          }
+        }
         console.log(res.data);
-        setFetchServices(res.data.data);
-        console.log(fetchServices);
+        setFetchServices(uniqueTxnData.reverse());
         
       }
     } catch (error) {
@@ -681,7 +690,7 @@ setCreatedInvoices((prev) => {
               <input
                 type="text"
                 value={keyword}
-                placeholder="Search history..."
+                placeholder="Search By Name,Txn Id"
                 className="w-full sm:w-auto pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 backdrop-blur-sm hover:bg-gray-700/50 transition-all text-sm"
                 onChange={(e) => {
                   setKeyword(e.target.value);

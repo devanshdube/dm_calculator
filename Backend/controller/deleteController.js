@@ -466,82 +466,62 @@ exports.deleteQuoatationById = async (req, res) => {
     });
   }
 
-  const deleteCalculatorQuery =
-    "DELETE FROM calculator_transactions WHERE txn_id = ?";
-  const deleteAdsCampaignQuery =
-    "DELETE FROM ads_campaign_details WHERE txn_id = ?";
-  const deleteNotesClient = "DELETE FROM plan_client_notes WHERE txn_id = ?";
-  const deleteAssign = `DELETE FROM assign_quotation WHERE txn_id = ?`;
+  // All related tables for quotation deletion
+  const queries = [
+    { table: "calculator_transactions", field: "txn_id" },
+    { table: "ads_campaign_details", field: "txn_id" },
+    { table: "plan_client_notes", field: "txn_id" },
+    { table: "assign_quotation", field: "txn_id" },
+     { table: "invoice", field: "txn_id" },
+    { table: "invoice_graphic", field: "txn_id" },
+    { table: "ads_campaign_details_invoice", field: "txn_id" },
+    { table: "complimentary_invoice", field: "txn_id" },
+    { table: "addtional_service", field: "txn_id" },
+    { table: "amount_remaining", field: "txn_id" },
+  ];
 
-  db.query(deleteCalculatorQuery, [txn_id], (err1, result1) => {
-    if (err1) {
-      return res.status(500).json({
+  try {
+    let deletedTables = [];
+
+    // Run deletes sequentially
+    for (const q of queries) {
+      const result = await new Promise((resolve, reject) => {
+        db.query(
+          `DELETE FROM ${q.table} WHERE ${q.field} = ?`,
+          [txn_id],
+          (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+          }
+        );
+      });
+
+      if (result.affectedRows > 0) {
+        deletedTables.push(q.table);
+      }
+    }
+
+    if (deletedTables.length === 0) {
+      return res.status(404).json({
         status: "Failure",
-        message: "Error deleting from calculator_transactions",
-        error: err1,
+        message: "No quotation records found for given txn_id",
       });
     }
 
-    db.query(deleteAdsCampaignQuery, [txn_id], (err2, result2) => {
-      if (err2) {
-        return res.status(500).json({
-          status: "Failure",
-          message: "Error deleting from ads_campaign_details",
-          error: err2,
-        });
-      }
-
-      db.query(deleteNotesClient, [txn_id], (err3, result3) => {
-        if (err3) {
-          return res.status(500).json({
-            status: "Failure",
-            message: "Error deleting from plan_client_notes",
-            error: err3,
-          });
-        }
-
-        db.query(deleteAssign, [txn_id], (err4, result4) => {
-          if (err4) {
-            return res.status(500).json({
-              status: "Failure",
-              message: "Error deleting from assign_quotation",
-              error: err4,
-            });
-          }
-
-          const deletedFromCalculator = result1.affectedRows > 0;
-          const deletedFromAds = result2.affectedRows > 0;
-          const deletedFromNotes = result3.affectedRows > 0;
-          const deletedFromAssign = result4.affectedRows > 0;
-
-          if (
-            !deletedFromCalculator &&
-            !deletedFromAds &&
-            !deletedFromNotes &&
-            !deletedFromAssign
-          ) {
-            return res.status(404).json({
-              status: "Failure",
-              message: "No transaction found with the given txn_id",
-            });
-          }
-
-          res.status(200).json({
-            status: "Success",
-            message: `Transaction deleted from ${[
-              deletedFromCalculator ? "calculator_transactions" : null,
-              deletedFromAds ? "ads_campaign_details" : null,
-              deletedFromNotes ? "plan_client_notes" : null,
-              deletedFromAssign ? "assign_quotation" : null,
-            ]
-              .filter(Boolean)
-              .join(", ")} successfully`,
-          });
-        });
-      });
+    res.status(200).json({
+      status: "Success",
+      message: `Quotation deleted successfully from: ${deletedTables.join(", ")}`,
     });
-  });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({
+      status: "Failure",
+      message: "Error deleting quotation data",
+      error,
+    });
+  }
 };
+
 
 exports.deletePlanNameDetail = async (req, res) => {
   const { id } = req.params;
@@ -1155,6 +1135,8 @@ exports.deleteAllInvoiceServiceHistory = async (req, res) => {
     { table: "invoice_graphic", field: "txn_id" },
     { table: "ads_campaign_details_invoice", field: "txn_id" },
     { table: "complimentary_invoice", field: "txn_id" },
+    { table: "addtional_service", field: "txn_id" },
+    { table: "amount_remaining", field: "txn_id" },
   ];
 
   try {
