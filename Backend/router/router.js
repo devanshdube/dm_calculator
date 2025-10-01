@@ -46,6 +46,8 @@ const {
   copyInvoiceByTxnId,
   saveAdditionalData,
   saveRemainingAmountData,
+  seoClientsDetails,
+  seoWebsiteKeyword,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -97,6 +99,7 @@ const {
   getAllInvoice,
   getAdditionByIdData,
   getRemainingAmountByIdData,
+  getSeoClientsWithKeywords,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -128,6 +131,8 @@ const {
   deleteInvoiceComplimenatryById,
   deleteAdditionalById,
   deleteRemainingAmountById,
+  deleteSeoClient,
+  deleteSeoKeyword,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -150,10 +155,16 @@ const {
   updateInvoiceClientDataById,
   updateAdditionalDataById,
   updateRemainingDataById,
+  updateSeoClient,
+  updateSeoKeyword,
   // reassignQuotation,
 } = require("../controller/updateController");
 
 const authenticateToken = require("../middleware/authenticateToken");
+const {
+  pagespeedReportpdf,
+  // fullSEOReport,
+} = require("../controller/seoController");
 
 const router = express.Router();
 
@@ -202,6 +213,9 @@ router.post("/copyInvoiceByTxnId/:txn_id", copyInvoiceByTxnId);
 router.post("/saveAdditionalData", saveAdditionalData);
 router.post("/saveRemainingAmountData", saveRemainingAmountData);
 router.post("/saveCalculatorDataofplanDetail", saveCalculatorDataOfPlanDetail);
+router.post("/seoClientsDetails", seoClientsDetails);
+router.post("/seoWebsiteKeyword/:client_id", seoWebsiteKeyword);
+
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
 router.get("/categories/:service_id", getAddCategories);
@@ -336,6 +350,7 @@ router.get(
   "/getRemainingAmountByIdData/:client_id/:txn_id",
   getRemainingAmountByIdData
 );
+router.get("/getSeoClientsWithKeywords", getSeoClientsWithKeywords);
 
 // ---->  Get all routes END <----
 
@@ -396,6 +411,8 @@ router.delete("/deleteAdditionalById/:id", deleteAdditionalById);
 router.delete("/deleteRemainingAmountById/:id", deleteRemainingAmountById);
 
 router.delete("/deleteRequirementsBundle/:linkId", deleteRequirementsBundle);
+router.delete("/deleteSeoClient/:clientId", deleteSeoClient);
+router.delete("/deleteSeoKeyword/:keywordId", deleteSeoKeyword);
 
 // ---->  DELETE all routes END <----
 
@@ -428,11 +445,16 @@ router.put("/updateInvoiceClientDataById/:id", updateInvoiceClientDataById);
 router.put("/updateAdditionalDataById/:id", updateAdditionalDataById);
 router.put("/updateRemainingDataById/:id", updateRemainingDataById);
 // router.put("/reassignQuotation", reassignQuotation);
+router.put("/updateSeoClient/:clientId", updateSeoClient);
+router.put("/updateSeoKeyword/:keywordId", updateSeoKeyword);
 // ---->  UPDATE all routes END <----
 
 router.get("/optional-service-amounts", optionalServiceAmounts);
 
 router.patch("/progress/set-done", setDoneQty);
 router.patch("/progress/increment", incrementDoneQty);
+
+router.get("/pagespeedReportpdf", pagespeedReportpdf);
+// router.get("/pagespeedReportpdf", fullSEOReport);
 
 module.exports = router;

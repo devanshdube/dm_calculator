@@ -126,11 +126,15 @@ exports.updateCalculatorDataById = (req, res) => {
   db.query(updateQuotationQuery, quotationValues, (err, result) => {
     if (err) {
       console.error("Update Quotation Error:", err);
-      return res.status(500).json({ status: "Failure", message: "Quotation DB error" });
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Quotation DB error" });
     }
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ status: "Failure", message: "Quotation not found" });
+      return res
+        .status(404)
+        .json({ status: "Failure", message: "Quotation not found" });
     }
 
     // --- Check if Invoice Exists ---
@@ -144,12 +148,20 @@ exports.updateCalculatorDataById = (req, res) => {
       LIMIT 1
     `;
 
-    const checkValues = [txn_id, client_id, service_name, category_name, editing_type_name];
+    const checkValues = [
+      txn_id,
+      client_id,
+      service_name,
+      category_name,
+      editing_type_name,
+    ];
 
     db.query(checkInvoiceQuery, checkValues, (checkErr, checkResult) => {
       if (checkErr) {
         console.error("Check Invoice Error:", checkErr);
-        return res.status(500).json({ status: "Failure", message: "Invoice check error" });
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Invoice check error" });
       }
 
       if (checkResult.length > 0) {
@@ -183,7 +195,9 @@ exports.updateCalculatorDataById = (req, res) => {
         db.query(updateInvoiceQuery, invoiceValues, (invErr) => {
           if (invErr) {
             console.error("Update Invoice Error:", invErr);
-            return res.status(500).json({ status: "Failure", message: "Invoice update error" });
+            return res
+              .status(500)
+              .json({ status: "Failure", message: "Invoice update error" });
           }
 
           return res.status(200).json({
@@ -207,9 +221,10 @@ exports.updateClientDetails = async (req, res) => {
   const { client_name, client_organization, email, phone, address } = req.body;
 
   if (!client_name || !phone) {
-    return res
-      .status(400)
-      .json({ status: "Failure", message: "Client name and phone are required." });
+    return res.status(400).json({
+      status: "Failure",
+      message: "Client name and phone are required.",
+    });
   }
 
   try {
@@ -240,9 +255,10 @@ exports.updateClientDetails = async (req, res) => {
       }
 
       if (result1.affectedRows === 0) {
-        return res
-          .status(404)
-          .json({ status: "Failure", message: "Client not found in dm_calculator_client_details." });
+        return res.status(404).json({
+          status: "Failure",
+          message: "Client not found in dm_calculator_client_details.",
+        });
       }
 
       // Then update invoice table
@@ -260,9 +276,10 @@ exports.updateClientDetails = async (req, res) => {
         }
 
         if (result2.affectedRows === 0) {
-          return res
-            .status(404)
-            .json({ status: "Failure", message: "Client not found in invoice." });
+          return res.status(404).json({
+            status: "Failure",
+            message: "Client not found in invoice.",
+          });
         }
 
         // ✅ Single response after both updates
@@ -277,7 +294,6 @@ exports.updateClientDetails = async (req, res) => {
   }
 };
 
-
 exports.updatePlanNameDetail = async (req, res) => {
   const { id } = req.params;
   const { plan_name } = req.body;
@@ -289,10 +305,8 @@ exports.updatePlanNameDetail = async (req, res) => {
     });
   }
 
-  const updatePlanDetail =
-    "UPDATE plan_details SET plan_name = ? WHERE id = ?";
-  const updatePlanData =
-    "UPDATE plan_data SET plan_name = ? WHERE plan_id = ?";
+  const updatePlanDetail = "UPDATE plan_details SET plan_name = ? WHERE id = ?";
+  const updatePlanData = "UPDATE plan_data SET plan_name = ? WHERE plan_id = ?";
   const updatePlanDataNotes =
     "UPDATE plans_notes SET plan = ? WHERE plan_id = ?";
 
@@ -336,16 +350,14 @@ exports.updatePlanNameDetail = async (req, res) => {
   });
 };
 
-
-
-
-
 exports.updatePlandata = async (req, res) => {
   const { id } = req.params;
   const data = req.body; // expect array of objects
 
   if (!Array.isArray(data) || data.length === 0) {
-    return res.status(400).json({ status: "Failure", message: "No data received" });
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "No data received" });
   }
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
@@ -403,7 +415,9 @@ exports.updatePlandata = async (req, res) => {
     const updatedRows = results.reduce((sum, r) => sum + r.affectedRows, 0);
 
     if (updatedRows === 0) {
-      return res.status(404).json({ status: "Failure", message: "No matching entries found" });
+      return res
+        .status(404)
+        .json({ status: "Failure", message: "No matching entries found" });
     }
 
     res.status(200).json({
@@ -416,15 +430,13 @@ exports.updatePlandata = async (req, res) => {
   }
 };
 
-
-
 exports.updatePlanNotes = async (req, res) => {
   const { id } = req.params;
-  const { note_name,plan,plan_id } = req.body;
+  const { note_name, plan, plan_id } = req.body;
 
   db.query(
     "UPDATE plans_notes SET note_name = ?, plan = ?,plan_id= ? WHERE id = ?",
-    [note_name,plan,plan_id, id],
+    [note_name, plan, plan_id, id],
     (err, result) => {
       if (err)
         return res
@@ -435,19 +447,18 @@ exports.updatePlanNotes = async (req, res) => {
   );
 };
 
-
 exports.updateServiceData = async (req, res) => {
-  const {editing_type_id } = req.params;
-  const { editing_type_name,amount } = req.body;
+  const { editing_type_id } = req.params;
+  const { editing_type_name, amount } = req.body;
 
   db.query(
     "UPDATE editing_types SET editing_type_name = ?, amount = ? WHERE editing_type_id = ?",
-    [editing_type_name,amount,editing_type_id],
+    [editing_type_name, amount, editing_type_id],
     (err, result) => {
       if (err)
         return res
           .status(500)
-          .json({status: "Failure", message: "Database error" });
+          .json({ status: "Failure", message: "Database error" });
       res.json({ status: "Success", message: "Edit updated successfully" });
     }
   );
@@ -635,14 +646,11 @@ exports.reassignQuotation = (req, res) => {
         .json({ status: "Failure", message: "Internal Server Error" });
     }
   })();
-}; 
-
+};
 
 exports.updateNoteDataById = (req, res) => {
   const { id } = req.params;
-  const {
-    note_text
-  } = req.body;
+  const { note_text } = req.body;
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
@@ -654,11 +662,7 @@ exports.updateNoteDataById = (req, res) => {
     WHERE id = ?
   `;
 
-  const values = [
-  note_text,
-    updatedAt,
-    id,
-  ];
+  const values = [note_text, updatedAt, id];
 
   db.query(query, values, (err, result) => {
     if (err) {
@@ -666,17 +670,16 @@ exports.updateNoteDataById = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry updated of Note successfully" });
+    res.status(200).json({
+      status: "Success",
+      message: "Entry updated of Note successfully",
+    });
   });
 };
 
 exports.updateClientNoteDataById = (req, res) => {
   const { id } = req.params;
-  const {
-    note_name
-  } = req.body;
+  const { note_name } = req.body;
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
@@ -688,11 +691,7 @@ exports.updateClientNoteDataById = (req, res) => {
     WHERE id = ?
   `;
 
-  const values = [
-  note_name,
-    updatedAt,
-    id,
-  ];
+  const values = [note_name, updatedAt, id];
 
   db.query(query, values, (err, result) => {
     if (err) {
@@ -700,16 +699,15 @@ exports.updateClientNoteDataById = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry updated of Client Note successfully" });
+    res.status(200).json({
+      status: "Success",
+      message: "Entry updated of Client Note successfully",
+    });
   });
 };
 exports.updateDiscountDataById = (req, res) => {
   const { id } = req.params;
-  const {
-    discount_per
-  } = req.body;
+  const { discount_per } = req.body;
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
@@ -721,11 +719,7 @@ exports.updateDiscountDataById = (req, res) => {
     WHERE id = ?
   `;
 
-  const values = [
-  discount_per,
-    updatedAt,
-    id,
-  ];
+  const values = [discount_per, updatedAt, id];
 
   db.query(query, values, (err, result) => {
     if (err) {
@@ -733,13 +727,14 @@ exports.updateDiscountDataById = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry updated of Discount successfully" });
+    res.status(200).json({
+      status: "Success",
+      message: "Entry updated of Discount successfully",
+    });
   });
 };
 exports.updateComplimenatryDataById = (req, res) => {
-   const { id } = req.params;
+  const { id } = req.params;
   const {
     txn_id,
     client_id,
@@ -786,11 +781,15 @@ exports.updateComplimenatryDataById = (req, res) => {
   db.query(updateQuotationQuery, quotationValues, (err, result) => {
     if (err) {
       console.error("Update Quotation Error:", err);
-      return res.status(500).json({ status: "Failure", message: "Quotation DB error" });
+      return res
+        .status(500)
+        .json({ status: "Failure", message: "Quotation DB error" });
     }
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ status: "Failure", message: "Quotation not found" });
+      return res
+        .status(404)
+        .json({ status: "Failure", message: "Quotation not found" });
     }
 
     // --- Check if Invoice Exists ---
@@ -804,12 +803,20 @@ exports.updateComplimenatryDataById = (req, res) => {
       LIMIT 1
     `;
 
-    const checkValues = [txn_id, client_id, service_name, category_name, editing_type_name];
+    const checkValues = [
+      txn_id,
+      client_id,
+      service_name,
+      category_name,
+      editing_type_name,
+    ];
 
     db.query(checkInvoiceQuery, checkValues, (checkErr, checkResult) => {
       if (checkErr) {
         console.error("Check Invoice Error:", checkErr);
-        return res.status(500).json({ status: "Failure", message: "Invoice check error" });
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Invoice check error" });
       }
 
       if (checkResult.length > 0) {
@@ -843,7 +850,9 @@ exports.updateComplimenatryDataById = (req, res) => {
         db.query(updateInvoiceQuery, invoiceValues, (invErr) => {
           if (invErr) {
             console.error("Update Invoice Error:", invErr);
-            return res.status(500).json({ status: "Failure", message: "Invoice update error" });
+            return res
+              .status(500)
+              .json({ status: "Failure", message: "Invoice update error" });
           }
 
           return res.status(200).json({
@@ -897,7 +906,6 @@ exports.updateInvoiceDataById = (req, res) => {
   `;
 
   const values = [
-   
     quantity,
     total_amount,
     employee,
@@ -916,16 +924,15 @@ exports.updateInvoiceDataById = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry Invoice updated successfully" });
+    res.status(200).json({
+      status: "Success",
+      message: "Entry Invoice updated successfully",
+    });
   });
 };
 exports.updateInvoiceNoteDataById = (req, res) => {
   const { id } = req.params;
-  const {
-    note_text
-  } = req.body;
+  const { note_text } = req.body;
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
@@ -937,11 +944,7 @@ exports.updateInvoiceNoteDataById = (req, res) => {
     WHERE id = ?
   `;
 
-  const values = [
-  note_text,
-    updatedAt,
-    id,
-  ];
+  const values = [note_text, updatedAt, id];
 
   db.query(query, values, (err, result) => {
     if (err) {
@@ -949,16 +952,15 @@ exports.updateInvoiceNoteDataById = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry updated of Note successfully" });
+    res.status(200).json({
+      status: "Success",
+      message: "Entry updated of Note successfully",
+    });
   });
 };
 exports.updateInvoiceClientNoteDataById = (req, res) => {
   const { id } = req.params;
-  const {
-    note_name
-  } = req.body;
+  const { note_name } = req.body;
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
@@ -970,11 +972,7 @@ exports.updateInvoiceClientNoteDataById = (req, res) => {
     WHERE id = ?
   `;
 
-  const values = [
-  note_name,
-    updatedAt,
-    id,
-  ];
+  const values = [note_name, updatedAt, id];
 
   db.query(query, values, (err, result) => {
     if (err) {
@@ -982,9 +980,10 @@ exports.updateInvoiceClientNoteDataById = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry updated of Client Note successfully" });
+    res.status(200).json({
+      status: "Success",
+      message: "Entry updated of Client Note successfully",
+    });
   });
 };
 exports.updateInvoiceComplimenatryDataById = (req, res) => {
@@ -1021,7 +1020,7 @@ exports.updateInvoiceComplimenatryDataById = (req, res) => {
   `;
 
   const values = [
-     quantity,
+    quantity,
     total_amount,
     employee,
     updatedAt,
@@ -1039,9 +1038,10 @@ exports.updateInvoiceComplimenatryDataById = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry Invoice updated successfully" });
+    res.status(200).json({
+      status: "Success",
+      message: "Entry Invoice updated successfully",
+    });
   });
 };
 
@@ -1054,7 +1054,7 @@ exports.updateInvoiceClientDataById = (req, res) => {
     payment_mode,
     client_gst_no,
     client_pan_no,
-    tag_received_amt
+    tag_received_amt,
   } = req.body;
 
   const query = `
@@ -1076,7 +1076,8 @@ exports.updateInvoiceClientDataById = (req, res) => {
     duration_end_date,
     payment_mode,
     client_gst_no,
-    client_pan_no,tag_received_amt,
+    client_pan_no,
+    tag_received_amt,
     id, // add id at the end
   ];
 
@@ -1127,7 +1128,7 @@ exports.updateAdditionalDataById = (req, res) => {
   `;
 
   const values = [
-     quantity,
+    quantity,
     total_amount,
     employee,
     updatedAt,
@@ -1145,18 +1146,15 @@ exports.updateAdditionalDataById = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry Additional Service updated successfully" });
+    res.status(200).json({
+      status: "Success",
+      message: "Entry Additional Service updated successfully",
+    });
   });
 };
 exports.updateRemainingDataById = (req, res) => {
   const { id } = req.params;
-  const {
-  
- price,
-    employee,
-  } = req.body;
+  const { price, employee } = req.body;
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
@@ -1169,14 +1167,7 @@ exports.updateRemainingDataById = (req, res) => {
       created_at = ?
    WHERE id = ?  `;
 
-  const values = [
-  
- price,
-    employee,
-    updatedAt,
-   id
-   
-  ];
+  const values = [price, employee, updatedAt, id];
 
   db.query(query, values, (err, result) => {
     if (err) {
@@ -1184,10 +1175,137 @@ exports.updateRemainingDataById = (req, res) => {
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Entry Remaning Amount updated successfully" });
+    res.status(200).json({
+      status: "Success",
+      message: "Entry Remaning Amount updated successfully",
+    });
   });
+};
+
+exports.updateSeoClient = (req, res) => {
+  try {
+    const { clientId } = req.params;
+    const { name, website } = req.body;
+
+    if (!clientId) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Client ID is required" });
+    }
+    if (!name || !website) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Name & Website are required" });
+    }
+
+    // Optional: check if website is used by another client (unique constraint)
+    const checkSql = `SELECT id FROM seo_clients WHERE website = ? AND id <> ? LIMIT 1`;
+    db.query(checkSql, [website.trim(), clientId], (err, rows) => {
+      if (err) {
+        console.error("DB Error:", err);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "Database error", error: err });
+      }
+      if (rows.length > 0) {
+        return res.status(409).json({
+          status: "Failure",
+          message: "Website already in use by another client",
+        });
+      }
+
+      const updatedAt = moment()
+        .tz("Asia/Kolkata")
+        .format("YYYY-MM-DD HH:mm:ss");
+      const updateSql = `UPDATE seo_clients SET name = ?, website = ?, created_at = ? WHERE id = ?`;
+      db.query(
+        updateSql,
+        [name.trim(), website.trim(), updatedAt, clientId],
+        (uErr, result) => {
+          if (uErr) {
+            console.error("DB Error:", uErr);
+            return res.status(500).json({
+              status: "Failure",
+              message: "Database error",
+              error: uErr,
+            });
+          }
+          if (result.affectedRows === 0) {
+            return res
+              .status(404)
+              .json({ status: "Failure", message: "Client not found" });
+          }
+          return res.status(200).json({
+            status: "Success",
+            message: "Client updated successfully",
+            data: {
+              id: Number(clientId),
+              name: name.trim(),
+              website: website.trim(),
+              updated_at: updatedAt,
+            },
+          });
+        }
+      );
+    });
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+exports.updateSeoKeyword = (req, res) => {
+  try {
+    const { keywordId } = req.params;
+    const { keyword } = req.body;
+
+    if (!keywordId) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Keyword ID is required" });
+    }
+    if (!keyword || !keyword.trim()) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Keyword is required" });
+    }
+
+    const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+    const updateSql = `UPDATE seo_keywords SET keyword = ?, created_at = ? WHERE id = ?`;
+    db.query(
+      updateSql,
+      [keyword.trim(), updatedAt, keywordId],
+      (err, result) => {
+        if (err) {
+          console.error("DB Error:", err);
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "Database error", error: err });
+        }
+        if (result.affectedRows === 0) {
+          return res
+            .status(404)
+            .json({ status: "Failure", message: "Keyword not found" });
+        }
+        return res.status(200).json({
+          status: "Success",
+          message: "Keyword updated successfully",
+          data: {
+            id: Number(keywordId),
+            keyword: keyword.trim(),
+            updated_at: updatedAt,
+          },
+        });
+      }
+    );
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res
+      .status(500)
+      .json({ status: "Failure", message: "Internal Server Error" });
+  }
 };
 
 // working code
