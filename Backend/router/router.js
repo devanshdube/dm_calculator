@@ -201,7 +201,7 @@ router.post("/saveInvoiceClientIdwiseNotes", saveInvoiceClientIdwiseNotes);
 router.post("/copyInvoiceByTxnId/:txn_id", copyInvoiceByTxnId);
 router.post("/saveAdditionalData", saveAdditionalData);
 router.post("/saveRemainingAmountData", saveRemainingAmountData);
-
+router.post("/saveCalculatorDataofplanDetail", saveCalculatorDataOfPlanDetail);
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
 router.get("/categories/:service_id", getAddCategories);

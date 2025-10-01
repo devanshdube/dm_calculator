@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useRef } from "react";
 import {
   User,
   Phone,
@@ -50,6 +50,7 @@ const ClientDetails = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const clientPerPage = 3;
   const [isEditing, setIsEditing] = useState(false);
+    const detailRef = useRef(null);
 
   const handleClose = () => {
     setShowModal(false);
@@ -455,6 +456,21 @@ const ClientDetails = () => {
       Swal.fire({ icon: "error", title: "Copy failed" });
     }
   };
+  const handleClientClick = (client) => {
+    setSelectedClient(client);
+
+    // scroll only on mobile/tablet
+    if (window.innerWidth < 1024) {
+      setTimeout(() => {
+        if (detailRef.current) {
+          detailRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 100);
+    }
+  };
 
   return (
     <>
@@ -510,7 +526,7 @@ const ClientDetails = () => {
                                 ? "border-blue-500 bg-blue-50"
                                 : "border-gray-200"
                             }`}
-                            onClick={() => setSelectedClient(client)}
+                             onClick={() => handleClientClick(client)}
                           >
                                        <div className="flex justify-between items-start">
                                                        <div className="flex-1">
@@ -617,7 +633,78 @@ const ClientDetails = () => {
 
           <div className="lg:col-span-1">
             {selectedClient ? (
+              <>
+              
+                  <div ref={detailRef} className="block lg:hidden">
               <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Client Profile</h3>
+                  <div className="text-center mb-6">
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <User className="w-10 h-10 text-white" />
+                    </div>
+                 {selectedClient.client_organization ? (
+                    <h4 className="font-bold text-xl text-gray-900">
+                      {selectedClient.client_organization}
+                    </h4>
+                     ) : null}
+
+                    <p className="text-gray-600">
+                      {selectedClient.client_name}
+                    </p>
+                  </div>
+                          <div className="space-y-4">
+                     {selectedClient.email ? (
+                                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                        <Mail className="w-5 h-5 text-gray-500" />
+                                        <span className="text-sm">{selectedClient.email}</span>
+                                      </div>
+                                       ) : null}
+                                       
+                                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                        <Phone className="w-5 h-5 text-gray-500" />
+                                        <span className="text-sm">{selectedClient.phone}</span>
+                                      </div>
+                                         {selectedClient.address ? (
+                                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                        <MapPin className="w-5 h-5 text-gray-500" />
+                                        <span className="text-sm">{selectedClient.address}</span>
+                                      </div>
+                                       ) : null}
+                                    </div>
+                  <div className="mt-6 space-y-2">
+                    <button
+                      onClick={handleCreateProposal}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Create Proposal
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleGeneratePublicLink();
+                      }}
+                      disabled={!selectedClient || generating}
+                      className="w-full px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 transition-colors shadow-md disabled:opacity-60"
+                    >
+                      {generating ? "Generating..." : "Generate Link"}
+                    </button>
+                    <button
+                      onClick={() =>
+                        navigate(
+                          `/BD/client/service/history/${selectedClient.id}`
+                        )
+                      }
+                      className="w-full px-4 py-2 bg-white text-blue-600 dark:text-sky-400 rounded-lg hover:bg-sky-300 transition-colors border-2 border-dashed border-sky-300 hover:text-white"
+                    >
+                      Proposal History
+                    </button>
+                  </div>
+                </div>
+              </div>
+                    </div>
+                     <div className="hidden lg:block lg:col-span-1">
+                       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                 <div className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Client Profile</h3>
                   <div className="text-center mb-6">
@@ -675,6 +762,8 @@ const ClientDetails = () => {
                   </div>
                 </div>
               </div>
+                     </div>
+              </>
             ) : (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="text-center text-gray-500">

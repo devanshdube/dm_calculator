@@ -290,7 +290,7 @@ const handleCopyInvoice = async (txnId) => {
                       Status
                     </th> */}
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                       Preview
+                      Action
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       Received Amount

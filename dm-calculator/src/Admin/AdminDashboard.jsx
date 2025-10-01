@@ -207,7 +207,7 @@ const AdminDashboard = () => {
       >
         
         <div className="bg-gray-800/95 backdrop-blur-xl border-b border-gray-700/50">
-          <div className="max-w-7xl mx-auto px-4 py-4 space-y-2">
+          <div className="max-w-7xl mx-auto px-4 py-4 space-y-2 max-h-[80vh] overflow-auto">
            <div className=" sm:block mb-2">
                 <div className="text-xs sm:text-sm text-gray-400">
                   Welcome back,
@@ -216,6 +216,7 @@ const AdminDashboard = () => {
                   {currentUser?.name || "User"}
                 </div>
               </div>
+              
             {tabs.map((tab) => {
               const Icon = tab.icon;
             
@@ -235,8 +236,7 @@ const AdminDashboard = () => {
                 </button>
               );
             })}
-
-            {/* Mobile Logout Button */}
+ {/* Mobile Logout Button */}
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 py-3 px-4 rounded-xl font-medium text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-300 border-t border-gray-700/50 mt-4 pt-4"
@@ -244,6 +244,7 @@ const AdminDashboard = () => {
               <LogOut className="w-5 h-5" />
               Logout
             </button>
+           
           </div>
         </div>
       </div>

@@ -866,7 +866,7 @@ export default function AddService() {
                 </div>
                 <div>
                   <p className="text-white/60 text-sm font-medium">
-                    Total Amount
+                    Total Service Amount
                   </p>
                   <p className="text-3xl font-bold text-white">
                     ₹{totalAmount.toLocaleString()}

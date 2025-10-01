@@ -21,6 +21,8 @@ import {
   Notebook,
   Percent,
   PercentDiamond,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
@@ -49,6 +51,8 @@ const InvoiceCalculation = () => {
 
   const [optionalAmounts, setOptionalAmounts] = useState([]);
   const [loading, setLoading] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState(null);
 
   console.log(data);
 
@@ -57,7 +61,7 @@ const InvoiceCalculation = () => {
   console.log(id, proposalId);
   const [editId, setEditId] = useState(null);
   const [allClientNote, setAllClientNote] = useState([]);
-  const [discountData, setDiscountData] = useState([]);
+  const [discountData, setDiscountData] = useState("");
   const [formData, setFormData] = useState({
     note_name: "",
     plan: "Customise",
@@ -278,6 +282,7 @@ const handleSave = () => {
     client_id: id,
     service_name: selectedService,
     category_name: selectedCategory,
+    editing_type_id: selectedEditingType.editing_type_id,
     editing_type_name: selectedEditingType.editing_type_name,
     editing_type_amount: selectedEditingType.amount,
     quantity,
@@ -298,23 +303,37 @@ const handleSave = () => {
         payload
       );
 
-  quotationRequest
-    .then((res) => {
-      if (res.data.status === "Success") {
-        Swal.fire({
-          icon: "success",
-          title: editId ? "Updated!" : "Saved!",
-          text: editId
-            ? "Invoice updated successfully"
-            : "Invoice saved successfully",
-          showConfirmButton: false,
-          timer: 2000,
-          timerProgressBar: true,
-        });
-        resetForm();
-        fetchData();
-      }
-    })
+  
+    quotationRequest
+      .then((res) => {
+        if (res.data.status === "Success") {
+          Swal.fire({
+            icon: "success",
+            title: editId ? "Updated!" : "Saved!",
+            text: editId
+              ? "Invoice updated successfully"
+              : "Invoice saved successfully",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
+          resetForm();
+          fetchData();
+        } else if (res.data.status === "Alert")  {
+          // Handle backend "Failure" response
+          Swal.fire({
+            icon: "warning",
+            title: "Already Exists",
+            text: res.data.message || "This service already exists",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
+             resetForm();
+          fetchData();
+        }
+        
+      })
     .catch((err) => {
       console.error("Save error:", err);
       Swal.fire("Error!", "Something went wrong while saving.", "error");
@@ -589,64 +608,83 @@ const handleSave = () => {
   const handleRemoveNote = (id) => {
     setSelectedNotes(selectedNotes.filter((note) => note.id !== id));
   };
-  const handleSaveNotes = async () => {
-    if (selectedNotes.length === 0) {
+
+ const handleSaveNotes = async () => {
+  if (selectedNotes.length === 0) {
+    Swal.fire({
+      icon: "warning",
+      title: "No Notes",
+      text: "Please add at least one note before saving.",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+    return;
+  }
+
+  try {
+    const planNotes = selectedNotes.map((item) => ({
+      note_name: item.note_name,
+    }));
+
+    const payload = {
+      txn_id: proposalId,
+      client_id: id,
+      planNotes,
+    };
+
+    const response = await axios.post(
+      `${baseURL}/auth/api/calculator/saveInvoiceClientIdwiseNotes`,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    if (response.data.status === "Alert") {
       Swal.fire({
         icon: "warning",
-        title: "No Notes",
-        text: "Please add at least one note before saving.",
+        title: "Duplicate Note",
+        text: response.data.message,
         showConfirmButton: false,
         timer: 2000,
         timerProgressBar: true,
       });
-      return;
+         getAllPlanNotes();
+    setManualNote("");
+    setPredefinedNotes([]);
+    setSelectedNotes([]);
+    fetchPredefinedNotes();
+      return; // stop execution here
     }
 
-    try {
-      const planNotes = selectedNotes.map((item) => ({
-        note_name: item.note_name,
-      }));
+    Swal.fire({
+      icon: "success",
+      title: "Notes Created",
+      text: response.data.message || "Notes saved successfully!",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
 
-      const payload = {
-        txn_id: proposalId,
-        client_id: id,
-        planNotes,
-      };
+    getAllPlanNotes();
+    setManualNote("");
+    setPredefinedNotes([]);
+    setSelectedNotes([]);
+    fetchPredefinedNotes();
+  } catch (err) {
+    console.error("Save error:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Something went wrong while saving the notes.",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+  }
+};
 
-      await axios.post(
-        `${baseURL}/auth/api/calculator/saveInvoiceClientIdwiseNotes`,
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      Swal.fire({
-        icon: "success",
-        title: "Notes Created",
-        text: `Notes saved successfully!`,
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
-      });
-
-      getAllPlanNotes();
-      setManualNote("");
-      setPredefinedNotes([]);
-      setSelectedNotes([]);
-      fetchPredefinedNotes();
-    } catch (err) {
-      console.error("Save error:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Something went wrong while saving the notes.",
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
-      });
-    }
-  };
 
   const handleDeleteClientNote = async (noteId) => {
     const confirm = await Swal.fire({
@@ -876,6 +914,12 @@ const handleSave = () => {
     selecteddiscount && !isNaN(selecteddiscount)
       ? grandTotal - (grandTotal * parseFloat(selecteddiscount)) / 100
       : grandTotal;
+
+    const handleSelect = (note) => {
+    handleAddPredefinedNote(note);
+     setSelectedNote(null);      
+    setIsOpen(false);
+  };
 
   return (
     <>
@@ -1121,6 +1165,7 @@ const handleSave = () => {
                 >
                   {loading ? "Save..." : "Calculate & Save"}
                 </button>
+                   <div className="flex flex-wrap gap-2">
          <button
                   onClick={handleShow}
                   className={`px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition ${discountData ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -1134,6 +1179,7 @@ const handleSave = () => {
                 >
                   Reset Form
                 </button>
+                </div>
             {discountData ? (
  <div className="space-y-4">
                 
@@ -1265,7 +1311,7 @@ const handleSave = () => {
 
                 <div className="space-y-4">
                   {/* Dropdown for predefined notes */}
-                  <select
+                  {/* <select
                     className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none text-black focus:ring-2 focus:ring-purple-500"
                     onChange={(e) => {
                       const note = predefinedNotes.find(
@@ -1275,18 +1321,50 @@ const handleSave = () => {
                     }}
                   >
                     <option value="">-- Select Predefined Note --</option>
+                    
                     {predefinedNotes.map((note) => (
                       <option key={note.id} value={note.id}>
                         {note.note_text}
                       </option>
                     ))}
-                  </select>
+                  </select> */}
+                   <div className="relative w-full">
+      {/* Button to open dropdown */}
+       <div
+        className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-gray-300 text-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="truncate">
+          {selectedNote ? selectedNote.note_text : "-- Select Predefined Note --"}
+        </span>
+        {isOpen ? (
+          <ChevronUp className="w-5 h-5 text-gray-500" />
+        ) : (
+          <ChevronDown className="w-5 h-5 text-gray-500" />
+        )}
+      </div>
+      {/* Dropdown menu */}
+      {isOpen && (
+        <div className="absolute z-10 bg-white w-full mt-1 max-h-60 overflow-auto border rounded-lg text-black focus:ring-2 focus:ring-purple-500">
+          {predefinedNotes.map((note) => (
+            <div
+              key={note.id}
+              onClick={() => handleSelect(note)}
+              className="p-2 m-1 border rounded-lg bg-gray-100 hover:bg-purple-100 cursor-pointer break-words"
+            >
+              {note.note_text}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
 
                   {/* Manual Note Input */}
-                  <div className="flex gap-2">
-                    <input
+                  <div className="flex flex-wrap gap-2">
+                    <textarea
                       type="text"
                       value={manualNote}
+                        rows={2}
                       onChange={(e) => setManualNote(e.target.value)}
                       placeholder="Enter custom note"
                       className="flex-1 p-2 rounded-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -1309,13 +1387,14 @@ const handleSave = () => {
                         <span className="text-gray-800 font-medium">
                           {note.note_name}
                         </span>
+                             <div className="">
                         <button
                           onClick={() => handleRemoveNote(note.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold transition"
+                          className="bg-red-500 mx-2 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold transition"
                           title="Remove"
                         >
                           ×
-                        </button>
+                        </button></div>
                       </div>
                     ))}
                   </div>
@@ -1448,85 +1527,85 @@ const handleSave = () => {
                     </div>
                   </div>
                 )}
-                {showModalDis && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    {/* Backdrop */}
-                    <div
-                      className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
-                      onClick={handleCloseDis}
-                    />
-
-                    {/* Modal */}
-                    <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
-                      {/* Header */}
-                      <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <PercentDiamond className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <h2 className="text-xl font-semibold text-gray-900">
-                            {isEditingDis
-                              ? "Edit Discount"
-                              : "Add New Discount"}
-                          </h2>
-                        </div>
-                        <button
-                          onClick={handleCloseDis}
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
-                      </div>
-
-                      {/* Form */}
-                      <form
-                        onSubmit={handleSubmitDis}
-                        className="p-6 space-y-4"
-                      >
-                        {/* Note */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <Percent className="w-4 h-4 inline mr-2" />
-                            Discount
-                          </label>
-                          <input
-                            name="discount_per"
-                            type="number"
-                            value={formDataDis.discount_per}
-                            onChange={handleChangeDis}
-                            className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
-                            placeholder="Enter discount percent"
-                            required
-                          ></input>
-                        </div>
-
-                        {/* Buttons */}
-                        <div className="flex justify-end gap-3 pt-4">
-                          <button
-                            type="button"
-                            onClick={handleCloseDis}
-                            className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-                          >
-                            {loading
-                              ? isEditing
-                                ? "Updating..."
-                                : "Saving..."
-                              : isEditing
-                              ? "Update Discount"
-                              : "Save Discount"}
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                )}
+                    {showModalDis && (
+                                <div className="fixed inset-0 z-50 flex  justify-center  p-4">
+                                  {/* Backdrop */}
+                                  <div
+                                    className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+                                    onClick={handleCloseDis}
+                                  />
+              
+                                  {/* Modal */}
+                                  <div className="relative h-80 bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                          <PercentDiamond className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                        <h2 className="text-xl font-semibold text-gray-900">
+                                          {isEditingDis
+                                            ? "Edit Discount"
+                                            : "Add New Discount"}
+                                        </h2>
+                                      </div>
+                                      <button
+                                        onClick={handleCloseDis}
+                                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                      >
+                                        <X className="w-5 h-5" />
+                                      </button>
+                                    </div>
+              
+                                    {/* Form */}
+                                    <form
+                                      onSubmit={handleSubmitDis}
+                                      className="p-6 space-y-4"
+                                    >
+                                      {/* Note */}
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                          <Percent className="w-4 h-4 inline mr-2" />
+                                          Discount
+                                        </label>
+                                        <input
+                                          name="discount_per"
+                                          type="number"
+                                          value={formDataDis.discount_per}
+                                          onChange={handleChangeDis}
+                                          className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                                          placeholder="Enter discount percent"
+                                          required
+                                        ></input>
+                                      </div>
+              
+                                      {/* Buttons */}
+                                      <div className="flex justify-end gap-3 pt-4">
+                                        <button
+                                          type="button"
+                                          onClick={handleCloseDis}
+                                          className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                                        >
+                                          Cancel
+                                        </button>
+                                        <button
+                                          type="submit"
+                                          disabled={loading}
+                                          className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                                        >
+                                          {loading
+                                            ? isEditing
+                                              ? "Updating..."
+                                              : "Saving..."
+                                            : isEditing
+                                            ? "Update Discount"
+                                            : "Save Discount"}
+                                        </button>
+                                      </div>
+                                    </form>
+                                  </div>
+                                </div>
+                              )}
                 {/* <div className="space-y-3">
             {getData.map((order) => (
               <div

@@ -178,7 +178,7 @@ const BusinessDeveloperDashboard = () => {
         }`}
       >
         <div className="bg-gray-800/95 backdrop-blur-xl border-b border-gray-700/50">
-          <div className="max-w-7xl mx-auto px-4 py-4 space-y-2">
+          <div className="max-w-7xl mx-auto px-4 py-4 space-y-2 max-h-[80vh] overflow-auto">
             <div className=" sm:block mb-2">
                 <div className="text-xs sm:text-sm text-gray-400">
                   Welcome back,

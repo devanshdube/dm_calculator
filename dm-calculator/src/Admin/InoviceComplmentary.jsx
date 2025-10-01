@@ -173,6 +173,7 @@ const handleSave = () => {
     client_id: id,
     service_name: selectedService,
     category_name: selectedCategory,
+    editing_type_id: selectedEditingType.editing_type_id,
     editing_type_name: selectedEditingType.editing_type_name,
     editing_type_amount: selectedEditingType.amount,
     quantity,
@@ -193,23 +194,37 @@ const handleSave = () => {
         payload
       );
 
-  quotationRequest
-    .then((res) => {
-      if (res.data.status === "Success") {
-        Swal.fire({
-          icon: "success",
-          title: editId ? "Updated!" : "Saved!",
-          text: editId
-            ? "Complimentary entry updated successfully"
-            : "Complimentary entry saved successfully",
-          showConfirmButton: false,
-          timer: 2000,
-          timerProgressBar: true,
-        });
-        resetForm();
-        fetchData();
-      }
-    })
+  
+    quotationRequest
+      .then((res) => {
+        if (res.data.status === "Success") {
+          Swal.fire({
+            icon: "success",
+            title: editId ? "Updated!" : "Saved!",
+            text: editId
+              ? "Complimentary entry updated successfully"
+              : "Complimentary entry saved successfully",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
+          resetForm();
+          fetchData();
+        } else if (res.data.status === "Alert")  {
+          // Handle backend "Failure" response
+          Swal.fire({
+            icon: "warning",
+            title: "Already Exists",
+            text: res.data.message || "This service already exists",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
+             resetForm();
+          fetchData();
+        }
+        
+      })
     .catch((err) => {
       console.error("Save error:", err);
       Swal.fire("Error!", "Something went wrong while saving.", "error");

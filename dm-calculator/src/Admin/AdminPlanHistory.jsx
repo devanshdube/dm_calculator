@@ -202,7 +202,19 @@ const AdminPlanHistory = () => {
           setShowModal(false);
           getAllPlanNotes();
         });
-      } else {
+      } else if (response.data.status === "Alert") {
+            Swal.fire({
+              icon: "warning",
+              title: "Duplicate Notes",
+              text: response.data.message,
+      
+                    showConfirmButton: false,
+              timer: 2000,
+              timerProgressBar: true,
+              
+            });
+            setShowModal(false);
+          }  else {
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -440,6 +452,7 @@ const AdminPlanHistory = () => {
         plan_name: planName,
         service_name: selectedService,
         category_name: selectedCategory,
+        editing_type_id: selectedEditingType.editing_type_id,
         editing_type_name: selectedEditingType.editing_type_name,
         editing_type_amount: selectedEditingType.amount,
         quantity,

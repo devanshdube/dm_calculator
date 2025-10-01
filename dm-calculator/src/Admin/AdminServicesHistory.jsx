@@ -235,9 +235,10 @@ const AdminServicesHistory = () => {
   return (
     <>
       <div className="space-y-8 mb-8">
-        <div className="flex justify-between items-center flex-wrap gap-2">
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+
           <h2 className="text-2xl font-bold text-gray-300">Services History</h2>
-          <div className="flex gap-3">
+          <div className="">
             {/* <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <select className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -252,8 +253,8 @@ const AdminServicesHistory = () => {
               <input
                 type="search"
                 value={keyword}
-                placeholder="Search history..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Search By Services , Categories ,Editing Type Name"
+                className="w-full pl-10 pr-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 onChange={(e) => {
                   setKeyword(e.target.value);
                   setCurrentPage(0);

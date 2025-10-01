@@ -873,6 +873,7 @@ exports.saveCalculatorData = (req, res) => {
     client_id,
     service_name,
     category_name,
+    editing_type_id,
     editing_type_name,
     editing_type_amount,
     quantity,
@@ -885,98 +886,131 @@ exports.saveCalculatorData = (req, res) => {
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  // Step 1: Insert into calculator_transactions (Quotation)
-  const query = `
-    INSERT INTO calculator_transactions (
-      txn_id,
-      client_id,
-      service_name,
-      category_name,
-      editing_type_name,
-      editing_type_amount,
-      quantity,
-      include_content_posting,
-      include_thumbnail_creation,
-      total_amount,
-      employee,
-      plan_name,
-      created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  // 🔎 Step 0: Check if the same service already exists for this txn_id
+  const checkDuplicate = `
+    SELECT id FROM calculator_transactions 
+    WHERE txn_id = ? AND service_name = ? AND category_name = ? AND editing_type_id = ?
   `;
 
-  const values = [
-    txn_id,
-    client_id,
-    service_name,
-    category_name,
-    editing_type_name,
-    editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,
-    employee,
-    plan_name || "Customise",
-    createdAt,
-  ];
-
-  db.query(query, values, (err, result) => {
-    if (err) {
-      console.error("Insert Error (Quotation):", err);
-      return res.status(500).json({ status: "Failure", message: "DB error" });
-    }
-
-    // Step 2: Check if invoice already exists
-    const checkInvoice = "SELECT id FROM invoice WHERE txn_id = ?";
-    db.query(checkInvoice, [txn_id], (err2, invoiceResult) => {
-      if (err2) {
-        console.error("Invoice Check Error:", err2);
+  db.query(
+    checkDuplicate,
+    [txn_id, service_name, category_name, editing_type_id],
+    (dupErr, dupResult) => {
+      if (dupErr) {
+        console.error("Duplicate Check Error:", dupErr);
         return res.status(500).json({ status: "Failure", message: "DB error" });
       }
 
-      if (invoiceResult.length > 0) {
-        // Step 3: Insert into invoice table if invoice exists
-        const invoiceQuery = `
-          INSERT INTO invoice_graphic (
-            txn_id,
-            client_id,
-            service_name,
-            category_name,
-            editing_type_name,
-            editing_type_amount,
-            quantity,
-            include_content_posting,
-            include_thumbnail_creation,
-            total_amount,
-            employee,
-            plan_name,
-            created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        db.query(invoiceQuery, values, (err3) => {
-          if (err3) {
-            console.error("Insert Error (Invoice):", err3);
-            return res.status(500).json({
-              status: "Failure",
-              message: "Quotation saved but Invoice insert failed",
-            });
-          }
-
-          return res.status(200).json({
-            status: "Success",
-            message: "Quotation & Invoice saved successfully",
-          });
-        });
-      } else {
-        // Only Quotation saved
+      if (dupResult.length > 0) {
+        // ⚠️ Service already exists, stop insert
         return res.status(200).json({
-          status: "Success",
-          message: "Quotation saved successfully (Invoice not created yet)",
+          status: "Alert",
+          message: "This service already exists for the selected quotation",
         });
       }
-    });
-  });
+
+      // Step 1: Insert into calculator_transactions (Quotation)
+      const query = `
+        INSERT INTO calculator_transactions (
+          txn_id,
+          client_id,
+          service_name,
+          category_name,
+          editing_type_id,
+          editing_type_name,
+          editing_type_amount,
+          quantity,
+          include_content_posting,
+          include_thumbnail_creation,
+          total_amount,
+          employee,
+          plan_name,
+          created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
+      `;
+
+      const values = [
+        txn_id,
+        client_id,
+        service_name,
+        category_name,
+        editing_type_id,
+        editing_type_name,
+        editing_type_amount,
+        quantity,
+        include_content_posting,
+        include_thumbnail_creation,
+        total_amount,
+        employee,
+        plan_name || "Customise",
+        createdAt,
+      ];
+
+      db.query(query, values, (err, result) => {
+        if (err) {
+          console.error("Insert Error (Quotation):", err);
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "DB error" });
+        }
+
+        // Step 2: Check if invoice already exists
+        const checkInvoice = "SELECT id FROM invoice WHERE txn_id = ?";
+        db.query(checkInvoice, [txn_id], (err2, invoiceResult) => {
+          if (err2) {
+            console.error("Invoice Check Error:", err2);
+            return res
+              .status(500)
+              .json({ status: "Failure", message: "DB error" });
+          }
+
+          if (invoiceResult.length > 0) {
+            // Step 3: Insert into invoice_graphic table
+            const invoiceQuery = `
+              INSERT INTO invoice_graphic (
+                txn_id,
+                client_id,
+                service_name,
+                category_name,
+                editing_type_id,
+                editing_type_name,
+                editing_type_amount,
+                quantity,
+                include_content_posting,
+                include_thumbnail_creation,
+                total_amount,
+                employee,
+                plan_name,
+                created_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
+            `;
+
+            db.query(invoiceQuery, values, (err3) => {
+              if (err3) {
+                console.error("Insert Error (Invoice):", err3);
+                return res.status(500).json({
+                  status: "Failure",
+                  message: "Quotation saved but Invoice insert failed",
+                });
+              }
+
+              return res.status(200).json({
+                status: "Success",
+                message: "Quotation & Invoice saved successfully",
+              });
+            });
+          } else {
+            // Only Quotation saved
+            return res.status(200).json({
+              status: "Success",
+              message:
+                "Quotation saved successfully (Invoice not created yet)",
+            });
+          }
+        });
+      });
+    }
+  );
 };
 
 
@@ -1074,12 +1108,12 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
 
   const query = `
     INSERT INTO plan_data (
-      plan_id, plan_name, service_name, category_name,
+      plan_id, plan_name, service_name, category_name,editing_type_id,
       editing_type_name, editing_type_amount, quantity,
       include_content_posting, include_thumbnail_creation,
       total_amount, amount_ads, percent_ads,
       charge_ads, total_ads, employee, created_at
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `;
 
   const tasks = data.map((item) => {
@@ -1088,6 +1122,7 @@ exports.saveCalculatorDataOfPlan = (req, res) => {
       item.plan_name || null,
       item.service_name || null,
       item.category_name || null,
+      item.editing_type_id || null,
       item.editing_type_name || null,
       item.editing_type_amount || null,
       item.quantity || null,
@@ -1279,31 +1314,65 @@ exports.addNotebyplan = async (req, res) => {
   if (!note_name || !plan) {
     return res.status(400).json({
       status: "Failure",
-      message: "Notes name , plan required",
+      message: "Notes name and plan are required",
     });
   }
 
   try {
-    db.query(
-      "INSERT INTO plans_notes (note_name,plan,plan_id, created_at) VALUES (?,?, ?,?)",
-      [note_name, plan, plan_id, createdAt],
-      (err, result) => {
-        if (err) {
-          return res
-            .status(500)
-            .json({ status: "Failure", message: "Database error" });
-        }
+    // Step 1: Check if the note already exists for this plan_id
+    const checkQuery = `
+      SELECT note_name 
+      FROM plans_notes 
+      WHERE plan_id = ? AND LOWER(note_name) = LOWER(?)
+    `;
 
-        res.status(201).json({
-          status: "Success",
-          message: "notes added successfully",
+    db.query(checkQuery, [plan_id, note_name], (checkErr, existingRows) => {
+      if (checkErr) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error checking existing notes",
+          error: checkErr,
         });
       }
-    );
+
+      if (existingRows.length > 0) {
+        // Duplicate found
+        return res.status(200).json({
+          status: "Alert",
+          message: "Duplicate Note, please use a unique note",
+        });
+      }
+
+      // Step 2: Insert new note
+      const insertQuery = `
+        INSERT INTO plans_notes (note_name, plan, plan_id, created_at) 
+        VALUES (?, ?, ?, ?)
+      `;
+
+      db.query(
+        insertQuery,
+        [note_name, plan, plan_id, createdAt],
+        (err, result) => {
+          if (err) {
+            return res
+              .status(500)
+              .json({ status: "Failure", message: "Database error" });
+          }
+
+          res.status(201).json({
+            status: "Success",
+            message: "Note added successfully",
+          });
+        }
+      );
+    });
   } catch (error) {
-    res.status(500).json({ status: "Failure", message: "Server error", error });
+    res
+      .status(500)
+      .json({ status: "Failure", message: "Server error", error });
   }
 };
+
 exports.savePlanClientNotes = (req, res) => {
   const { txn_id, client_id, plans, planNotes } = req.body;
 
@@ -2781,6 +2850,7 @@ exports.saveComplimentaryData = (req, res) => {
     client_id,
     service_name,
     category_name,
+    editing_type_id,
     editing_type_name,
     editing_type_amount,
     quantity,
@@ -2788,101 +2858,137 @@ exports.saveComplimentaryData = (req, res) => {
     include_thumbnail_creation,
     total_amount,
     employee,
-   
   } = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  // Step 1: Insert into complimentary (Quotation)
-  const query = `
-    INSERT INTO complimentary (
-      txn_id,
-      client_id,
-      service_name,
-      category_name,
-      editing_type_name,
-      editing_type_amount,
-      quantity,
-      include_content_posting,
-      include_thumbnail_creation,
-      total_amount,
-      employee,
-      created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  // ✅ Step 0: Check if service already exists for this txn_id + editing_type_id
+  const checkDuplicate = `
+    SELECT id FROM complimentary 
+    WHERE txn_id = ? AND client_id = ? AND service_name = ? AND category_name = ? AND editing_type_id = ?
   `;
 
-  const values = [
-    txn_id,
-    client_id,
-    service_name,
-    category_name,
-    editing_type_name,
-    editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,
-    employee,
-    createdAt,
-  ];
-
-  db.query(query, values, (err, result) => {
-    if (err) {
-      console.error("Insert Error (Quotation):", err);
-      return res.status(500).json({ status: "Failure", message: "DB error" });
-    }
-
-    // Step 2: Check if invoice already exists
-    const checkInvoice = "SELECT id FROM invoice WHERE txn_id = ?";
-    db.query(checkInvoice, [txn_id], (err2, invoiceResult) => {
-      if (err2) {
-        console.error("Invoice Check Error:", err2);
-        return res.status(500).json({ status: "Failure", message: "DB error" });
+  db.query(
+    checkDuplicate,
+    [txn_id, client_id, service_name, category_name, editing_type_id],
+    (dupErr, dupResult) => {
+      if (dupErr) {
+        console.error("Duplicate Check Error:", dupErr);
+        return res
+          .status(500)
+          .json({ status: "Failure", message: "DB error" });
       }
 
-      if (invoiceResult.length > 0) {
-        // Step 3: Insert into invoice table if invoice exists
-       const invoiceQuery = `
-  INSERT INTO complimentary_invoice (
-    txn_id,
-    client_id,
-    service_name,
-    category_name,
-    editing_type_name,
-    editing_type_amount,
-    quantity,
-    include_content_posting,
-    include_thumbnail_creation,
-    total_amount,
-    employee,
-    created_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`;
+      if (dupResult.length > 0) {
+        // Already exists → stop here
+        return res.status(200).json({
+          status: "Alert",
+          message: "This complimentary service already exists",
+        });
+      }
 
-        db.query(invoiceQuery, values, (err3) => {
-          if (err3) {
-            console.error("Insert Error (Invoice):", err3);
-            return res.status(500).json({
-              status: "Failure",
-              message: "Quotation saved but Invoice insert failed",
-            });
+      // Step 1: Insert into complimentary (Quotation)
+      const query = `
+        INSERT INTO complimentary (
+          txn_id,
+          client_id,
+          service_name,
+          category_name,
+          editing_type_id,
+          editing_type_name,
+          editing_type_amount,
+          quantity,
+          include_content_posting,
+          include_thumbnail_creation,
+          total_amount,
+          employee,
+          created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      const values = [
+        txn_id,
+        client_id,
+        service_name,
+        category_name,
+        editing_type_id,
+        editing_type_name,
+        editing_type_amount,
+        quantity,
+        include_content_posting,
+        include_thumbnail_creation,
+        total_amount,
+        employee,
+        createdAt,
+      ];
+
+      db.query(query, values, (err, result) => {
+        if (err) {
+          console.error("Insert Error (Complimentary):", err);
+          return res
+            .status(500)
+            .json({ status: "Failure", message: "DB error" });
+        }
+
+        // Step 2: Check if invoice exists
+        const checkInvoice = "SELECT id FROM invoice WHERE txn_id = ?";
+        db.query(checkInvoice, [txn_id], (err2, invoiceResult) => {
+          if (err2) {
+            console.error("Invoice Check Error:", err2);
+            return res
+              .status(500)
+              .json({ status: "Failure", message: "DB error" });
           }
 
-          return res.status(200).json({
-            status: "Success",
-            message: "Quotation & Invoice saved successfully",
-          });
+          if (invoiceResult.length > 0) {
+            // Step 3: Insert into complimentary_invoice
+            const invoiceQuery = `
+              INSERT INTO complimentary_invoice (
+                txn_id,
+                client_id,
+                service_name,
+                category_name,
+                editing_type_id,
+                editing_type_name,
+                editing_type_amount,
+                quantity,
+                include_content_posting,
+                include_thumbnail_creation,
+                total_amount,
+                employee,
+                created_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            db.query(invoiceQuery, values, (err3) => {
+              if (err3) {
+                console.error("Insert Error (Complimentary Invoice):", err3);
+                return res.status(500).json({
+                  status: "Failure",
+                  message: "Complimentary saved but Invoice insert failed",
+                });
+              }
+
+              return res.status(200).json({
+                status: "Success",
+                message:
+                  "Complimentary & Invoice saved successfully",
+              });
+            });
+          } else {
+            // Only Complimentary saved
+            return res.status(200).json({
+              status: "Success",
+              message:
+                "Complimentary saved successfully (Invoice not created yet)",
+            });
+          }
         });
-      } else {
-        // Only Quotation saved
-        return res.status(200).json({
-          status: "Success",
-          message: "Quotation saved successfully (Invoice not created yet)",
-        });
-      }
-    });
-  });
+      });
+    }
+  );
 };
+
 function makeSlug(clientId) {
   return `${clientId}-${Date.now().toString(36)}-${crypto
     .randomBytes(3)
@@ -3653,8 +3759,8 @@ exports.saveInvoiceClientIdwiseNotes = (req, res) => {
 
     if (filteredNotes.length === 0) {
       return res.status(200).json({
-        status: "Success",
-        message: "No new notes to save (all duplicates skipped)",
+        status: "Alert",
+      message: "Duplicate Note, please use a unique note",
       });
     }
 
@@ -3824,6 +3930,7 @@ exports.saveAdditionalData = (req, res) => {
     client_id,
     service_name,
     category_name,
+    editing_type_id,
     editing_type_name,
     editing_type_amount,
     quantity,
@@ -3835,28 +3942,12 @@ exports.saveAdditionalData = (req, res) => {
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  const query = `
-    INSERT INTO addtional_service (
-    	txn_id,
-      client_id,
-      service_name,
-      category_name,
-      editing_type_name,
-      editing_type_amount,
-      quantity,
-      include_content_posting,
-      include_thumbnail_creation,
-      total_amount,
-      employee,
-      created_at
-    ) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
   const values = [
     txn_id,
     client_id,
     service_name,
     category_name,
+    editing_type_id,
     editing_type_name,
     editing_type_amount,
     quantity,
@@ -3864,19 +3955,62 @@ exports.saveAdditionalData = (req, res) => {
     include_thumbnail_creation,
     total_amount,
     employee,
-
     createdAt,
   ];
 
-  db.query(query, values, (err, result) => {
+  // ✅ Step 1: Check if this service already exists
+  const checkDuplicate = `
+    SELECT id FROM addtional_service
+     WHERE txn_id = ? AND client_id = ? AND service_name = ? AND category_name = ? AND editing_type_id = ?
+ 
+  `;
+
+  db.query(checkDuplicate, [txn_id, client_id, service_name, category_name, editing_type_id], (err, duplicateResult) => {
     if (err) {
-      console.error("Insert Error:", err);
+      console.error("Duplicate Check Error:", err);
       return res.status(500).json({ status: "Failure", message: "DB error" });
     }
 
-    res.status(200).json({ status: "Success", message: "Saved successfully" });
+    if (duplicateResult.length > 0) {
+      return res.status(200).json({
+        status: "Alert",
+        message: "This additional service already exists for this quotation",
+      });
+    }
+
+    // ✅ Step 2: Insert into addtional_service (Only Quotation)
+    const insertQuery = `
+      INSERT INTO addtional_service (
+        txn_id,
+        client_id,
+        service_name,
+        category_name,
+        editing_type_id,
+        editing_type_name,
+        editing_type_amount,
+        quantity,
+        include_content_posting,
+        include_thumbnail_creation,
+        total_amount,
+        employee,
+        created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(insertQuery, values, (err2) => {
+      if (err2) {
+        console.error("Insert Error (Additional Quotation):", err2);
+        return res.status(500).json({ status: "Failure", message: "DB error" });
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "Additional Quotation saved successfully",
+      });
+    });
   });
 };
+
 
 exports.saveRemainingAmountData = (req, res) => {
   const {

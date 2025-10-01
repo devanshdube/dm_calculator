@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, Search, ArrowLeft, X, User, Building, Mail, Phone, MapPin, Timer, Calendar1, Trash } from "lucide-react";
+import { Calendar, Search, ArrowLeft, X, User, Building, Mail, Phone, MapPin, Timer, Calendar1, Trash, ChevronDown, EyeIcon, Copy, FilePlus, Eye, MoreVertical } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -18,7 +18,10 @@ const History = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
   const navigate = useNavigate();
   const [fetchServices, setFetchServices] = useState([]);
-    
+    const [openDropdown, setOpenDropdown] = useState(null); 
+      const [open, setOpen] = useState(false);
+
+  const toggleDropdown = () => setOpen(!open);
   const [loading, setLoading] = useState(false);
 
   const [createdInvoices, setCreatedInvoices] = useState({});
@@ -730,7 +733,7 @@ setCreatedInvoices((prev) => {
                       Status
                     </th> */}
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      Action
+                      Quotation
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       Invoice
@@ -771,40 +774,64 @@ setCreatedInvoices((prev) => {
                             {item.txn_id ? item.txn_id : "N/A"}
                           </div>
                         </td>
-               <td className="py-5 px-6">
-  {/* Always show Preview */}
-  <button
-    onClick={() => {
-      setSelectedClient(item.client_id);
-      setSelectedTxn(item.txn_id);
-      setShowModal(true);
-    }}
-    className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25 mx-2"
-  >
-    Preview
-  </button>
- <button
+           
+<td className="py-5 px-6 relative">
+          <button
+            onClick={() =>
+              setOpenDropdown(openDropdown === index ? null : index)
+            }
+            className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
+          >
+            Actions <ChevronDown size={16} className="ml-2" />
+          </button>
+
+          {openDropdown === index && (
+            <div className="absolute mt-2 right-0 w-40 bg-white rounded-lg shadow-lg border z-50">
+              <ul className="text-sm text-gray-700">
+                <li>
+                  <button
+                    onClick={() => {
+                      setSelectedClient(item.client_id);
+                      setSelectedTxn(item.txn_id);
+                      setShowModal(true);
+                      setOpenDropdown(null);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    <EyeIcon size={14} className="inline mr-2" />   Preview
+                  </button>
+                </li>
+               
+                <li>
+             <button
         onClick={() => handleAssignClick(item)}
-        className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-orange-900 to-red-500 text-white shadow-lg shadow-orange-500/25"
-      >
-        Assign
+        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-blue-600"  >
+         <User size={14} className="inline mr-2" />   Assign
       </button>
-  {/* Show Assign + Delete only if NOT received */}
-  {clientDataReceived[item.txn_id]?.tag_received_amt !== "received" && (
-    <>
-     
+                </li>
+                  {item.tag_received_amt === "received" ? (
+                    null
+                  ): (
+                 <li>
+                  <button
+                    onClick={() => {
+                      handleDeleteInvoice(item.txn_id, item.client_id);
+                      setOpenDropdown(null);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+                  >
+                    <Trash size={14} className="inline mr-2" /> Delete
+                  </button>
+                </li>
+                  )
+                
+                }
+              </ul>
+            </div>
+          )}
+        </td>
 
-      <button
-        onClick={() => handleDeletequotation(item.txn_id)}
-        className="inline-block px-4 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-red-500 to-red-500 text-white shadow-lg shadow-red-500/25 mx-2"
-      >
-        Delete
-      </button>
-    </>
-  )}
-</td>
-
-                       <td className="py-5 px-6">
+                       {/* <td className="py-5 px-6">
   {createdInvoices[item.txn_id] ? (
     <>
       {clientDataReceived[item.txn_id]?.tag_received_amt === "received" ? (
@@ -851,9 +878,76 @@ setCreatedInvoices((prev) => {
       Create Invoice
     </button>
   )}
-</td>
+</td> */}
 
 {/* Received status column */}
+ <td className="py-5 px-6 relative">
+      <div className="inline-block text-left">
+        {/* Dropdown trigger button */}
+        <button
+          onClick={toggleDropdown}
+          className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-blue-500 text-white shadow-lg shadow-orange-500/25"
+        >
+          Actions
+          <ChevronDown size={16} className="ml-2" />
+        </button>
+
+        {/* Dropdown menu */}
+        {open && (
+          <div className="absolute mt-2 right-0 w-48 rounded-lg bg-white border border-gray-200 shadow-lg z-50">
+            {createdInvoices[item.txn_id] ? (
+              <>
+                {clientDataReceived[item.txn_id]?.tag_received_amt === "received" ? (
+                  <button
+                    onClick={() => {
+                      setShowModalInvoice(true);
+                      setSelectedTxn(item.txn_id);
+                      setOpen(false);
+                    }}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <Eye className="mr-2 w-4 h-4" /> Preview
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        setShowModalInvoice(true);
+                        setSelectedTxn(item.txn_id);
+                        setOpen(false);
+                      }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <FilePlus className="mr-2 w-4 h-4" /> Invoice Created
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDeleteInvoice(item.txn_id);
+                        setOpen(false);
+                      }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-100"
+                    >
+                      <Trash className="mr-2 w-4 h-4" /> Delete
+                    </button>
+                  </>
+                )}
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  handleCreateClientInvoice();
+                  setSelectedTxn(item.txn_id);
+                  setOpen(false);
+                }}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                <FilePlus className="mr-2 w-4 h-4" /> Create Invoice
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </td>
 <td className="py-5 px-6">
   {clientDataReceived[item.txn_id]?.tag_received_amt === "received" ? (
     <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-blue-500 text-white shadow-lg">
@@ -865,7 +959,6 @@ setCreatedInvoices((prev) => {
     </div>
   )}
 </td>
-
 
 
                       </tr>

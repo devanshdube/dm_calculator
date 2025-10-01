@@ -472,6 +472,7 @@ useEffect(() => {
       client_id: id,
       service_name: selectedService,
       category_name: selectedCategory,
+      editing_type_id: selectedEditingType.editing_type_id,
       editing_type_name: selectedEditingType.editing_type_name,
       editing_type_amount: selectedEditingType.amount,
       quantity,
@@ -491,23 +492,35 @@ useEffect(() => {
           payload
         );
 
-    request
-      .then((res) => {
-        resetForm();
-        if (res.data.status === "Success") {
-          Swal.fire({
-            icon: "success",
-            title: isEditingAddition ? "Updated!" : "Saved!",
-            text: isEditingAddition ? "Entry updated successfully" : "Saved successfully",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-          });
-          fetchAdditionservice();
-            setShowModalAddition(false);
-        
-        }
-      })
+  request
+        .then((res) => {
+          resetForm();
+          if (res.data.status === "Success") {
+            Swal.fire({
+              icon: "success",
+              title: isEditingAddition ? "Updated!" : "Saved!",
+              text: isEditingAddition ? "Entry updated successfully" : "Saved successfully",
+              showConfirmButton: false,
+              timer: 2000,
+              timerProgressBar: true,
+            });
+            fetchAdditionservice();
+              setShowModalAddition(false);
+          
+          } else if (res.data.status === "Alert") {
+        Swal.fire({
+          icon: "warning",
+          title: "Already Exists",
+          text: res.data.message || "This Additoinal service already exists",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+         resetForm();
+        fetchAdditionservice();
+              setShowModalAddition(false);
+      }
+        })
       .catch((err) => {
      
         console.error("Save error:", err);
@@ -2277,6 +2290,7 @@ console.log(remainingAmountData);
                   <input
                     type="number"
                     name="price"
+                    min="1" 
                     value={formDataRemaining.price}
                     onChange={handleChangeRemaining}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"

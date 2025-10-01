@@ -180,6 +180,7 @@ const AdminAddPlan = () => {
           fetchData();
           setLoading(false);
           setSelectedPlan("");
+          setEditId(null)
 
           // ✅ navigate using insertId (only if it's a new insert, not update)
           if (!editId && res.data.insertId) {
@@ -319,7 +320,7 @@ const AdminAddPlan = () => {
             onClick={handleSave}
             disabled={loading}
           >
-            {loading ? "Save..." : "Create Plan"}
+            {loading ? "Save..." :  editId ? "Edit Plan": "Create Plan"}
           </button>
           <button
             className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold p-3 rounded mt-2"

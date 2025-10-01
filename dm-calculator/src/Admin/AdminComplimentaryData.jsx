@@ -173,6 +173,7 @@ const handleSave = () => {
     client_id: id,
     service_name: selectedService,
     category_name: selectedCategory,
+    editing_type_id: selectedEditingType.editing_type_id,
     editing_type_name: selectedEditingType.editing_type_name,
     editing_type_amount: selectedEditingType.amount,
     quantity,
@@ -194,22 +195,34 @@ const handleSave = () => {
       );
 
   quotationRequest
-    .then((res) => {
-      if (res.data.status === "Success") {
-        Swal.fire({
-          icon: "success",
-          title: editId ? "Updated!" : "Saved!",
-          text: editId
-            ? "Complimentary updated successfully"
-            : "Complimentary saved successfully",
-          showConfirmButton: false,
-          timer: 2000,
-          timerProgressBar: true,
-        });
-        resetForm();
-        fetchData();
-      }
-    })
+  .then((res) => {
+    if (res.data.status === "Success") {
+      Swal.fire({
+        icon: "success",
+        title: editId ? "Updated!" : "Saved!",
+        text: editId
+          ? "Complimentary updated successfully"
+          : "Complimentary saved successfully",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+      resetForm();
+      fetchData();
+    } else if (res.data.status === "Alert") {
+      Swal.fire({
+        icon: "warning",
+        title: "Already Exists",
+        text: res.data.message || "This complimentary service already exists",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+       resetForm();
+      fetchData();
+    }
+  })
+
     .catch((err) => {
       console.error("Save error:", err);
       Swal.fire("Error!", "Something went wrong while saving.", "error");

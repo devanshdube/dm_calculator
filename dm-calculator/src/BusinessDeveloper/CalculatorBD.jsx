@@ -278,6 +278,7 @@ const handleSave = () => {
     client_id: id,
     service_name: selectedService,
     category_name: selectedCategory,
+    editing_type_id: selectedEditingType.editing_type_id,
     editing_type_name: selectedEditingType.editing_type_name,
     editing_type_amount: selectedEditingType.amount,
     quantity,
@@ -298,25 +299,37 @@ const handleSave = () => {
         payload
       );
 
-  quotationRequest
-    .then((res) => {
-      if (res.data.status === "Success") {
-        Swal.fire({
-          icon: "success",
-          title: editId ? "Updated!" : "Saved!",
-          text: editId
-            ? "Quotation updated successfully"
-            : "Quotation saved successfully",
-          showConfirmButton: false,
-          timer: 2000,
-          timerProgressBar: true,
-        });
-        resetForm();
-        fetchData();
-      } else {
-        throw new Error("Quotation save failed");
-      }
-    })
+  
+    quotationRequest
+      .then((res) => {
+        if (res.data.status === "Success") {
+          Swal.fire({
+            icon: "success",
+            title: editId ? "Updated!" : "Saved!",
+            text: editId
+              ? "Quotation updated successfully"
+              : "Quotation saved successfully",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
+          resetForm();
+          fetchData();
+        } else if (res.data.status === "Alert")  {
+          // Handle backend "Failure" response
+          Swal.fire({
+            icon: "warning",
+            title: "Already Exists",
+            text: res.data.message || "This service already exists",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
+             resetForm();
+          fetchData();
+        }
+        
+      })
     .catch((err) => {
       console.error("Save error:", err);
       Swal.fire("Error", "Something went wrong while saving.", "error");
@@ -591,42 +604,43 @@ const handleSave = () => {
   const handleRemoveNote = (id) => {
     setSelectedNotes(selectedNotes.filter((note) => note.id !== id));
   };
-  const handleSaveNotes = async () => {
-    if (selectedNotes.length === 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "No Notes",
-        text: "Please add at least one note before saving.",
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
-      });
-      return;
-    }
+const handleSaveNotes = async () => {
+  if (selectedNotes.length === 0) {
+    Swal.fire({
+      icon: "warning",
+      title: "No Notes",
+      text: "Please add at least one note before saving.",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+    return;
+  }
 
-    try {
-      const planNotes = selectedNotes.map((item) => ({
-        note_name: item.note_name,
-      }));
+  try {
+    const planNotes = selectedNotes.map((item) => ({
+      note_name: item.note_name,
+    }));
 
-      const payload = {
-        txn_id: proposalId,
-        client_id: id,
-        planNotes,
-      };
+    const payload = {
+      txn_id: proposalId,
+      client_id: id,
+      planNotes,
+    };
 
-      await axios.post(
-        `${baseURL}/auth/api/calculator/saveClientIdwiseNotes`,
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+    const res = await axios.post(
+      `${baseURL}/auth/api/calculator/saveClientIdwiseNotes`,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
+    if (res.data.status === "Success") {
       Swal.fire({
         icon: "success",
         title: "Notes Created",
-        text: `Notes saved successfully!`,
+        text: res.data.message,
         showConfirmButton: false,
         timer: 2000,
         timerProgressBar: true,
@@ -637,18 +651,43 @@ const handleSave = () => {
       setPredefinedNotes([]);
       setSelectedNotes([]);
       fetchPredefinedNotes();
-    } catch (err) {
-      console.error("Save error:", err);
+    } else if (res.data.status === "Alert") {
+      Swal.fire({
+        icon: "warning",
+        title: "Duplicate Notes",
+        text: res.data.message,
+
+              showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+    getAllPlanNotes();
+      setManualNote("");
+      setPredefinedNotes([]);
+      setSelectedNotes([]);
+      fetchPredefinedNotes();
+    } else {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Something went wrong while saving the notes.",
+        text: res.data.message || "Something went wrong while saving the notes.",
         showConfirmButton: false,
         timer: 2000,
         timerProgressBar: true,
       });
     }
-  };
+  } catch (err) {
+    console.error("Save error:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Something went wrong while saving the notes.",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+  }
+};
 
   const handleDeleteClientNote = async (noteId) => {
     const confirm = await Swal.fire({
@@ -1123,6 +1162,7 @@ const handleSave = () => {
                 >
                   {loading ? "Save..." : "Calculate & Save"}
                 </button>
+                   <div className="flex flex-wrap gap-2">
                 <button
                   onClick={handleShow}
                   className={`px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition ${discountData ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -1136,6 +1176,7 @@ const handleSave = () => {
                 >
                   Reset Form
                 </button>
+                </div>
               {discountData ? (
  <div className="space-y-4">
                 
@@ -1288,10 +1329,11 @@ const handleSave = () => {
 
 
                   {/* Manual Note Input */}
-                  <div className="flex gap-2">
-                    <input
+                  <div className="flex flex-wrap gap-2">
+                    <textarea
                       type="text"
                       value={manualNote}
+                        rows={2}
                       onChange={(e) => setManualNote(e.target.value)}
                       placeholder="Enter custom note"
                       className="flex-1 p-2 rounded-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-green-500"
