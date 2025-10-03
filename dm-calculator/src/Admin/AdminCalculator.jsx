@@ -1391,7 +1391,7 @@ const handleSaveNotes = async () => {
                       value={manualNote}
                       onChange={(e) => setManualNote(e.target.value)}
                       placeholder="Enter custom note"
-                      rows={2}
+                      rows={1}
               
                       className="flex-1 p-2 rounded-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-green-500"
                     />

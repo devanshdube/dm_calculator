@@ -709,8 +709,8 @@ setCreatedInvoices((prev) => {
 
         {/* Main Table */}
         <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl overflow-hidden">
-          <div className="p-8">
-            <div className="overflow-x-auto">
+          <div className="p-8 ">
+            <div className="overflow-x-auto h-[35rem]">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700/50">
@@ -815,7 +815,7 @@ setCreatedInvoices((prev) => {
                  <li>
                   <button
                     onClick={() => {
-                      handleDeleteInvoice(item.txn_id, item.client_id);
+                      handleDeletequotation(item.txn_id, item.client_id);
                       setOpenDropdown(null);
                     }}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
@@ -831,7 +831,7 @@ setCreatedInvoices((prev) => {
           )}
         </td>
 
-                       {/* <td className="py-5 px-6">
+                       <td className="py-5 px-6">
   {createdInvoices[item.txn_id] ? (
     <>
       {clientDataReceived[item.txn_id]?.tag_received_amt === "received" ? (
@@ -859,9 +859,9 @@ setCreatedInvoices((prev) => {
           </button>
           <button
             onClick={() => handleDeleteInvoice(item.txn_id)}
-            className="inline-block mx-2 px-4 py-3 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 text-white shadow-lg bg-red-600"
-          >
-            <Trash size={15} />
+            className=" mx-2 inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-red-500 to-red-500 text-white shadow-lg shadow-red-500/25"
+             >
+         Delete
           </button>
         </>
       )}
@@ -878,12 +878,12 @@ setCreatedInvoices((prev) => {
       Create Invoice
     </button>
   )}
-</td> */}
+</td>
 
 {/* Received status column */}
- <td className="py-5 px-6 relative">
+ {/* <td className="py-5 px-6 relative">
       <div className="inline-block text-left">
-        {/* Dropdown trigger button */}
+     
         <button
           onClick={toggleDropdown}
           className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-blue-500 text-white shadow-lg shadow-orange-500/25"
@@ -892,7 +892,7 @@ setCreatedInvoices((prev) => {
           <ChevronDown size={16} className="ml-2" />
         </button>
 
-        {/* Dropdown menu */}
+       
         {open && (
           <div className="absolute mt-2 right-0 w-48 rounded-lg bg-white border border-gray-200 shadow-lg z-50">
             {createdInvoices[item.txn_id] ? (
@@ -947,7 +947,7 @@ setCreatedInvoices((prev) => {
           </div>
         )}
       </div>
-    </td>
+    </td> */}
 <td className="py-5 px-6">
   {clientDataReceived[item.txn_id]?.tag_received_amt === "received" ? (
     <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500 to-blue-500 text-white shadow-lg">

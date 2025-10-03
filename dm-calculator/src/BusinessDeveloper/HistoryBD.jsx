@@ -704,7 +704,7 @@ setCreatedInvoices((prev) => {
         {/* Main Table */}
         <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl overflow-hidden">
           <div className="p-8">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto  h-[35rem]">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700/50">
@@ -801,7 +801,7 @@ setCreatedInvoices((prev) => {
   )}
 </td>
 
-                       <td className="py-5 px-6">
+                                       <td className="py-5 px-6">
   {createdInvoices[item.txn_id] ? (
     <>
       {clientDataReceived[item.txn_id]?.tag_received_amt === "received" ? (
@@ -827,7 +827,12 @@ setCreatedInvoices((prev) => {
           >
             Invoice Created
           </button>
-          
+          <button
+            onClick={() => handleDeleteInvoice(item.txn_id)}
+            className=" mx-2 inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-red-500 to-red-500 text-white shadow-lg shadow-red-500/25"
+             >
+         Delete
+          </button>
         </>
       )}
     </>

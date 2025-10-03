@@ -1363,7 +1363,7 @@ const handleSave = () => {
                     <textarea
                       type="text"
                       value={manualNote}
-                        rows={2}
+                        rows={1}
                       onChange={(e) => setManualNote(e.target.value)}
                       placeholder="Enter custom note"
                       className="flex-1 p-2 rounded-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-green-500"

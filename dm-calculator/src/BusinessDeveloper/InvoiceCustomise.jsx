@@ -102,7 +102,7 @@ export default function InvoiceCustomise() {
   const fetchClient = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}`,
+            `${baseURL}/auth/api/calculator/getInvoiceClientDetailsById/${id}/${txn_id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

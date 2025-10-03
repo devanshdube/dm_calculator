@@ -442,6 +442,7 @@ export default function ServicesLanding() {
         .map((item) => ({
           service_name: item.service_name,
           category_name: item.category_name,
+          editing_type_id: item.editing_type_id,
           editing_type_name: item.editing_type_name,
           editing_type_amount: item.editing_type_amount,
           quantity: item.quantity,
@@ -475,6 +476,7 @@ export default function ServicesLanding() {
           client_id: id,
           service_name: item.service_name,
           category_name: item.category_name,
+          editing_type_id: item.editing_type_id,
           editing_type_name: item.editing_type_name,
           editing_type_amount: item.editing_type_amount,
           quantity: item.quantity,
