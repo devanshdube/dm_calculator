@@ -1,9 +1,11 @@
 // src/components/SeoServicesA.jsx
 import axios from "axios";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useSelector } from "react-redux";
 
 const SeoServicesA = () => {
   const baseURL = "https://dmcalculator.dentalguru.software";
+  const { currentUser, token } = useSelector((state) => state.user);
 
   // data / state
   const [clients, setClients] = useState([]);
@@ -86,7 +88,12 @@ const SeoServicesA = () => {
       setError(null);
       const res = await fetch(
         `${baseURL}/auth/api/calculator/getSeoClientsWithKeywords`,
-        { signal }
+        { signal },{
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (!res.ok) {
         let msg = `Server returned ${res.status}`;
@@ -109,6 +116,19 @@ const SeoServicesA = () => {
       if (err.name === "AbortError") return;
       console.error("fetchClients error:", err);
       setError(err.message || "Failed to fetch clients");
+      if (err.response && err.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -547,7 +567,7 @@ const SeoServicesA = () => {
                         {/* <button
                           onClick={async () => {
                             const res = await fetch(
-                              `http://localhost:5555/auth/api/calculator/pagespeedReportpdf?url=${client.website}`
+                              `https://dmcalculator.dentalguru.software/auth/api/calculator/pagespeedReportpdf?url=${client.website}`
                             );
                             const blob = await res.blob();
                             const link = document.createElement("a");

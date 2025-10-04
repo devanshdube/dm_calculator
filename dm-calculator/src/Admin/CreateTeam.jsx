@@ -129,6 +129,19 @@ const CreateTeam = () => {
     } catch (e) {
       console.error(e);
       Swal.fire("Error", "Failed to load employees/teams.", "error");
+      if (e.response && e.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     } finally {
       setLoading(false);
     }

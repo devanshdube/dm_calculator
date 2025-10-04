@@ -6,6 +6,7 @@ import axios from "axios";
 import styled from "styled-components";
 import ReactPaginate from "react-paginate";
 import Swal from "sweetalert2";
+import { useSelector } from "react-redux";
 
 const GenerateLinkHistory = () => {
   const baseURL = `https://dmcalculator.dentalguru.software`;
@@ -14,19 +15,38 @@ const GenerateLinkHistory = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 5;
+  const { currentUser, token } = useSelector((state) => state.user);
 
   // Fetch API Data
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await axios.get(
-          `${baseURL}/auth/api/calculator/requirements`
+          `${baseURL}/auth/api/calculator/requirements`,{
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
         );
         if (res.data.success) {
           setData(res.data.data);
         }
       } catch (err) {
         console.error("Error fetching history:", err);
+        if (err.response && err.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
       }
     };
     fetchData();

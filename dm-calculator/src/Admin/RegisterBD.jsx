@@ -79,6 +79,19 @@ export default function RegisterBD() {
     } catch (error) {
       console.error("Error fetching BDs:", error);
       Swal.fire("Error", "Failed to fetch registered BDs", "error");
+      if (error.response && error.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     }
   };
 

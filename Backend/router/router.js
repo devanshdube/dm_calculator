@@ -179,7 +179,7 @@ router.post("/verifyOTP-forgot", verifyOtpAndResetPassword);
 router.post("/insertAdsServices", insertAdsServices);
 router.put("/updateAdsServices/:id", updateAdsServices);
 router.post("/insertClientDetails", insertClientDetails);
-router.get("/getClientDetails", getClientDetails);
+router.get("/getClientDetails",authenticateToken, getClientDetails);
 router.get("/getClientsByEmployee/:employee", getClientsByEmployee);
 router.post("/addServices", addServices);
 router.post("/addCategories", addCategories);
@@ -262,14 +262,14 @@ router.get(
   authenticateToken,
   getAllClientsTxnHistory
 );
-router.get("/getAllBD", getAllBD);
+router.get("/getAllBD",authenticateToken, getAllBD);
 
-router.get("/getAllPlanData", getPlanData);
+router.get("/getAllPlanData",authenticateToken, getPlanData);
 router.get("/getAllPlanDataById/:id", getPlanDataById);
-router.get("/getAllPlanDetails", getPlanDetails);
-router.get("/getAllPlanDetailsById/:id", getPlanDetailsById);
-router.get("/getPlanNotes", getPlanNotes);
-router.get("/getClientNotesbyId/:client_id/:txn_id", getClientNotesbyId);
+router.get("/getAllPlanDetails", authenticateToken, getPlanDetails);
+router.get("/getAllPlanDetailsById/:id",authenticateToken , getPlanDetailsById);
+router.get("/getPlanNotes",authenticateToken, getPlanNotes);
+router.get("/getClientNotesbyId/:client_id/:txn_id",authenticateToken, getClientNotesbyId);
 router.get(
   "/getByIDComplimentaryData/:txn_id/:client_id",
   authenticateToken,
@@ -300,20 +300,20 @@ router.get(
   getClientsTxnHistoryByEmployee
 );
 //NEW work
-router.get("/retrieveUser", retrieveUser);
+router.get("/retrieveUser",authenticateToken, retrieveUser);
 router.get("/getAssignmentByTxn/:txn_id", getAssignmentByTxn);
-router.get("/getAssignedQuotations", getAssignedQuotations);
+router.get("/getAssignedQuotations",authenticateToken, getAssignedQuotations);
 router.get(
-  "/assigned-quotations/by-employee/:employee_name",
+  "/assigned-quotations/by-employee/:employee_name",authenticateToken,
   getAssignedQuotationsByEmployeeName
 );
 router.get("/progress/by-txn/:txn_id", getProgressByTxn);
 router.get("/retrieveTeam", retrieveTeam);
 router.get("/retrieveTeamById/:id", retrieveTeamById);
 router.get("/getAssignmentsSummary/:txn_id", getAssignmentsSummary);
-router.get("/requirements", getRequirementsLink);
+router.get("/requirements",authenticateToken, getRequirementsLink);
 router.get("/getRequirementsDetail/:linkId", getRequirementsDetail);
-router.get("/getNoteData", getNoteData);
+router.get("/getNoteData",authenticateToken, getNoteData);
 router.get(
   "/getByIDDiscountData/:client_id/:txn_id",
   authenticateToken,
@@ -339,18 +339,18 @@ router.get(
   authenticateToken,
   getInvoiceAdsCampaign
 );
-router.get("/getInvoiceNoteData", getInvoiceNoteData);
+router.get("/getInvoiceNoteData",authenticateToken, getInvoiceNoteData);
 router.get(
   "/getInvoiceClientNotesbyId/:client_id/:txn_id",
   getInvoiceClientNotesbyId
 );
-router.get("/getAllInvoice", getAllInvoice);
+router.get("/getAllInvoice",authenticateToken, getAllInvoice);
 router.get("/getAdditionByIdData/:client_id/:txn_id", getAdditionByIdData);
 router.get(
   "/getRemainingAmountByIdData/:client_id/:txn_id",
   getRemainingAmountByIdData
 );
-router.get("/getSeoClientsWithKeywords", getSeoClientsWithKeywords);
+router.get("/getSeoClientsWithKeywords",authenticateToken, getSeoClientsWithKeywords);
 
 // ---->  Get all routes END <----
 

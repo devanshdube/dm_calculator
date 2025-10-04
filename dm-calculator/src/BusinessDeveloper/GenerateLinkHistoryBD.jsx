@@ -19,13 +19,33 @@ const GenerateLinkHistoryBD = () => {
     const fetchData = async () => {
       try {
         const res = await axios.get(
-          `${baseURL}/auth/api/calculator/requirements`
+          `${baseURL}/auth/api/calculator/requirements`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
         );
         if (res.data.success) {
           setData(res.data.data);
         }
       } catch (err) {
         console.error("Error fetching history:", err);
+        if (err.response && err.response.status === 401) {
+                // Token is invalid or expired
+                Swal.fire({
+                  title: "Session Expired",
+                  text: "Please login again.",
+                  icon: "warning",
+                  showConfirmButton: false,
+                  timer: 2000,
+                  timerProgressBar: true,
+                }).then(() => {
+                  dispatch(clearUser());
+                  localStorage.removeItem("token");
+                  navigate("/");
+                });
+              }
       }
     };
     fetchData();

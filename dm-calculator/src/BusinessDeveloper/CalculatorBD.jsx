@@ -55,7 +55,7 @@ const CalculatorBD = () => {
   console.log(id, proposalId);
   const [editId, setEditId] = useState(null);
   const [allClientNote, setAllClientNote] = useState([]);
-  const [discountData, setDiscountData] = useState([]);
+  const [discountData, setDiscountData] = useState("");
   const [formData, setFormData] = useState({
     note_name: "",
     plan: "Customise",

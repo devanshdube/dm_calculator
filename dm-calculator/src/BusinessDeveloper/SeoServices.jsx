@@ -86,7 +86,12 @@ const SeoServices = () => {
       setError(null);
       const res = await fetch(
         `${baseURL}/auth/api/calculator/getSeoClientsWithKeywords`,
-        { signal }
+        { signal },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (!res.ok) {
         let msg = `Server returned ${res.status}`;
@@ -109,6 +114,21 @@ const SeoServices = () => {
       if (err.name === "AbortError") return;
       console.error("fetchClients error:", err);
       setError(err.message || "Failed to fetch clients");
+      if (err.response && err.response.status === 401) {
+        // Token is invalid or expired
+        Swal.fire({
+          title: "Session Expired",
+          text: "Please login again.",
+          icon: "warning",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        }).then(() => {
+          dispatch(clearUser());
+          localStorage.removeItem("token");
+          navigate("/");
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -547,7 +567,7 @@ const SeoServices = () => {
                         {/* <button
                           onClick={async () => {
                             const res = await fetch(
-                              `http://localhost:5555/auth/api/calculator/pagespeedReportpdf?url=${client.website}`
+                              `https://dmcalculator.dentalguru.software/auth/api/calculator/pagespeedReportpdf?url=${client.website}`
                             );
                             const blob = await res.blob();
                             const link = document.createElement("a");
