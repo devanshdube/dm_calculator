@@ -54,7 +54,7 @@ export default function InvoiceCustomise() {
       icon: Palette,
       gradient: "from-slate-600 to-gray-700",
       bgPattern: "bg-gradient-to-br from-slate-50 to-gray-50",
-      navigation: "/admin/invoice-calculator",
+      navigation: "/BD/invoice-calculator",
       features: [
         "Logo Design",
         "Brand Identity",
@@ -72,7 +72,7 @@ export default function InvoiceCustomise() {
       icon: Megaphone,
       gradient: "from-blue-600 to-slate-700",
       bgPattern: "bg-gradient-to-br from-blue-50 to-slate-50",
-      navigation: "/admin/invoice-Adscalculator",
+      navigation: "/BD/invoice-Adscalculator",
       features: [
         "Social Media Ads",
         "Google Ads",
@@ -89,7 +89,7 @@ export default function InvoiceCustomise() {
       icon: FileText, // you can import from lucide-react
       gradient: "from-purple-600 to-indigo-700",
       bgPattern: "bg-gradient-to-br from-purple-50 to-indigo-50",
-      navigation: "/admin/invoice-note-section",
+      navigation: "/BD/invoice-note-section",
       features: [
         "Custom remarks",
         "Special conditions",
@@ -375,7 +375,7 @@ export default function InvoiceCustomise() {
           subtitle: "Custom Plan", // you can make this dynamic if needed
           description: `Includes ${item.plan_name} services tailored to your needs.`,
           gradient: "from-green-500 to-teal-600", // default or dynamic
-          navigation: "/admin/dynamicPlan",
+          navigation: "/BD/dynamicPlan",
           features: [],
           totalAmount: 0, // new field for amount
         };
@@ -1085,7 +1085,7 @@ export default function InvoiceCustomise() {
                       <button
                         className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
                         onClick={() =>
-                          navigate(`/admin/invoice-calculator/${id}/${txn_id}`, {
+                          navigate(`/BD/invoice-calculator/${id}/${txn_id}`, {
                             state: { servicetype: "paid" },
                           })
                         }
@@ -1150,7 +1150,7 @@ export default function InvoiceCustomise() {
                       <button
                         className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
                         onClick={() =>
-                          navigate(`/admin/invoice-Adscalculator/${id}/${txn_id}`)
+                          navigate(`/BD/invoice-Adscalculator/${id}/${txn_id}`)
                         }
                       >
                         Edit
@@ -1213,7 +1213,7 @@ export default function InvoiceCustomise() {
                       <button
                         className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
                         onClick={() =>
-                          navigate(`/admin/invoice-calculator/${id}/${txn_id}`, {
+                          navigate(`/BD/invoice-calculator/${id}/${txn_id}`, {
                             state: { servicetype: "complimentary" },
                           })
                         }
@@ -1267,7 +1267,7 @@ export default function InvoiceCustomise() {
                       <button
                         className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
                         onClick={() =>
-                          navigate(`/admin/invoice-calculator/${id}/${txn_id}`)
+                          navigate(`/BD/invoice-calculator/${id}/${txn_id}`)
                         }
                       >
                         Edit
@@ -1302,7 +1302,7 @@ export default function InvoiceCustomise() {
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => {
-                    navigate(`/admin/invoice/${id}/${txn_id}?gst=1`);
+                    navigate(`/BD/invoice/${id}/${txn_id}?gst=1`);
                     setShowModal(false);
                   }}
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
@@ -1311,7 +1311,7 @@ export default function InvoiceCustomise() {
                 </button>
                 <button
                   onClick={() => {
-                    navigate(`/admin/invoice/${id}/${txn_id}?gst=0`);
+                    navigate(`/BD/invoice/${id}/${txn_id}?gst=0`);
                     setShowModal(false);
                   }}
                   className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
