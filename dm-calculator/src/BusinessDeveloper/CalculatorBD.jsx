@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useLocation, useParams } from "react-router-dom";
@@ -15,16 +15,20 @@ import {
   Package,
   Clock,
   CheckCircle,
+  User,
   X,
   StickyNote,
   Notebook,
-  PercentDiamond,
   Percent,
+  PercentDiamond,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
+import { useNavigate } from "react-router-dom";
 import AdminComplimentaryData from "../Admin/AdminComplimentaryData";
+
 
 const CalculatorBD = () => {
   const location = useLocation();
@@ -47,6 +51,8 @@ const CalculatorBD = () => {
 
   const [optionalAmounts, setOptionalAmounts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState(null);
 
   console.log(data);
 
@@ -74,6 +80,7 @@ const CalculatorBD = () => {
   const [predefinedNotes, setPredefinedNotes] = useState([]); // fetched from API
   const [selectedNotes, setSelectedNotes] = useState([]); // selected + manual
   const [manualNote, setManualNote] = useState("");
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     if (location.state?.servicetype) {
@@ -163,7 +170,7 @@ const CalculatorBD = () => {
           },
         }
       );
-      setDiscountData(data.data || []);
+      setDiscountData(data.data[0]);
       setSelecteddiscount(data.data[0].discount_per);
     } catch (error) {
       console.error(error);
@@ -263,9 +270,9 @@ const handleSave = () => {
       optionalTotal += totalForThisAddon;
 
       if (key === "content_posting") {
-        include_content_posting = amount; // Send unit amount, not total
+        include_content_posting = amount; // Send unit amount
       } else if (key === "thumbnail_creation") {
-        include_thumbnail_creation = amount; // Send unit amount, not total
+        include_thumbnail_creation = amount; // Send unit amount
       }
     }
   });
@@ -299,45 +306,55 @@ const handleSave = () => {
         payload
       );
 
-  
-    quotationRequest
-      .then((res) => {
-        if (res.data.status === "Success") {
-          Swal.fire({
-            icon: "success",
-            title: editId ? "Updated!" : "Saved!",
-            text: editId
-              ? "Quotation updated successfully"
-              : "Quotation saved successfully",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-          });
-          resetForm();
-          fetchData();
-        } else if (res.data.status === "Alert")  {
-          // Handle backend "Failure" response
-          Swal.fire({
-            icon: "warning",
-            title: "Already Exists",
-            text: res.data.message || "This service already exists",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-          });
-             resetForm();
-          fetchData();
-        }
-        
-      })
+  quotationRequest
+    .then((res) => {
+      if (res.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: editId ? "Updated!" : "Saved!",
+          text: editId
+            ? "Quotation updated successfully"
+            : "Quotation saved successfully",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+        resetForm();
+        fetchData();
+      } else if (res.data.status === "Alert")  {
+        // Handle backend "Failure" response
+        Swal.fire({
+          icon: "warning",
+          title: "Already Exists",
+          text: res.data.message || "This service already exists",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+           resetForm();
+        fetchData();
+      }
+      
+    })
     .catch((err) => {
       console.error("Save error:", err);
-      Swal.fire("Error", "Something went wrong while saving.", "error");
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          err.response?.data?.message ||
+          "Failed to save quotation. Please try again.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
     })
     .finally(() => {
       setLoading(false);
     });
 };
+
 
 
 
@@ -492,6 +509,7 @@ const handleSave = () => {
       setLoading(false);
     }
   };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -660,8 +678,11 @@ const handleSaveNotes = async () => {
               showConfirmButton: false,
         timer: 2000,
         timerProgressBar: true,
-      });
-    getAllPlanNotes();
+        
+      }
+      
+    );
+       getAllPlanNotes();
       setManualNote("");
       setPredefinedNotes([]);
       setSelectedNotes([]);
@@ -688,6 +709,7 @@ const handleSaveNotes = async () => {
     });
   }
 };
+
 
   const handleDeleteClientNote = async (noteId) => {
     const confirm = await Swal.fire({
@@ -755,7 +777,7 @@ const handleSaveNotes = async () => {
       const result = res.data;
 
       if (result.status === "Success") {
-        setDiscountData((prev) => prev.filter((item) => item.id !== disId));
+        
 
         Swal.fire({
           icon: "success",
@@ -767,6 +789,7 @@ const handleSaveNotes = async () => {
 
         fetchDiscount();
         setSelecteddiscount("");
+        setDiscountData("")
       }
     } catch (error) {
       console.error("Error deleting discount:", error);
@@ -814,37 +837,37 @@ const handleSaveNotes = async () => {
       }
     }
   };
-  const getAllPlanNotes = async () => {
-    try {
-      const response = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${proposalId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+    const getAllPlanNotes = async () => {
+      try {
+        const response = await axios.get(
+          `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${proposalId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const notes = response.data.data;
+
+        setAllClientNote(notes);
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          Swal.fire({
+            title: "Session Expired",
+            text: "Please login again.",
+            icon: "warning",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          }).then(() => {
+            dispatch(clearUser());
+            localStorage.removeItem("token");
+            navigate("/");
+          });
         }
-      );
-
-      const notes = response.data.data;
-
-      setAllClientNote(notes);
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        Swal.fire({
-          title: "Session Expired",
-          text: "Please login again.",
-          icon: "warning",
-          showConfirmButton: false,
-          timer: 2000,
-          timerProgressBar: true,
-        }).then(() => {
-          dispatch(clearUser());
-          localStorage.removeItem("token");
-          navigate("/");
-        });
       }
-    }
-  };
+    };
 
   useEffect(() => {
     fetchData();
@@ -918,6 +941,28 @@ const handleSaveNotes = async () => {
       ? grandTotal - (grandTotal * parseFloat(selecteddiscount)) / 100
       : grandTotal;
 
+  const handleSelect = (note) => {
+    handleAddPredefinedNote(note);
+     setSelectedNote(null);      
+    setIsOpen(false);
+  
+  };
+
+    useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  const uniquePredefinedNotes = predefinedNotes.filter(
+  (p) => !allClientNote.some((c) => c.note_name === p.note_text)
+);
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white p-6">
@@ -1162,7 +1207,7 @@ const handleSaveNotes = async () => {
                 >
                   {loading ? "Save..." : "Calculate & Save"}
                 </button>
-                   <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                 <button
                   onClick={handleShow}
                   className={`px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition ${discountData ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -1177,7 +1222,7 @@ const handleSaveNotes = async () => {
                   Reset Form
                 </button>
                 </div>
-              {discountData ? (
+                {discountData ? (
  <div className="space-y-4">
                 
                     <div
@@ -1225,6 +1270,7 @@ const handleSaveNotes = async () => {
                 ) : (
                   null
                 )}
+               
 
                 <div className="text-xl font-semibold text-center text-green-300 mt-4">
                   Total Amount: ₹{grandTotal.toLocaleString()}
@@ -1308,24 +1354,55 @@ const handleSaveNotes = async () => {
 
                 <div className="space-y-4">
                   {/* Dropdown for predefined notes */}
-               <div className="relative">
-  <select
-    className="w-full p-2 rounded-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-purple-500 max-h-60 overflow-y-auto"
-    onChange={(e) => {
-      const note = predefinedNotes.find(
-        (n) => n.id === parseInt(e.target.value)
-      );
-      if (note) handleAddPredefinedNote(note);
-    }}
-  >
-    <option value="">-- Select Predefined Note --</option>
-    {predefinedNotes.map((note) => (
-      <option key={note.id} value={note.id}>
-        {note.note_text}
-      </option>
-    ))}
-  </select>
-</div>
+           {/* <select
+  className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none text-black focus:ring-2 focus:ring-purple-500"
+  onChange={(e) => {
+    const note = predefinedNotes.find(
+      (n) => n.id === parseInt(e.target.value)
+    );
+    if (note) handleAddPredefinedNote(note);
+  }}
+>
+  <option value="">-- Select Predefined Note --</option>
+  {predefinedNotes.map((note) => (
+    <option key={note.id} value={note.id} title={note.note_text}>
+      {note.note_text.length > 50
+        ? note.note_text.slice(0, 50) + "..."
+        : note.note_text}
+    </option>
+  ))}
+</select> */}
+<div className="relative w-full" ref={dropdownRef}>
+      {/* Button to open dropdown */}
+      <div
+        className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-gray-300 text-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="truncate">
+          {selectedNote ? selectedNote.note_text : "-- Select Predefined Note --"}
+        </span>
+        {isOpen ? (
+          <ChevronUp className="w-5 h-5 text-gray-500" />
+        ) : (
+          <ChevronDown className="w-5 h-5 text-gray-500" />
+        )}
+      </div>
+
+      {/* Dropdown menu */}
+      {isOpen && (
+        <div className="absolute z-10 bg-white w-full mt-1 max-h-60 overflow-auto border rounded-lg text-black focus:ring-2 focus:ring-purple-500">
+          {uniquePredefinedNotes.map((note) => (
+            <div
+              key={note.id}
+              onClick={() => handleSelect(note)}
+              className="p-2 m-1 border rounded-lg bg-gray-100 hover:bg-purple-100 cursor-pointer break-words"
+            >
+              {note.note_text}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
 
 
                   {/* Manual Note Input */}
@@ -1333,9 +1410,10 @@ const handleSaveNotes = async () => {
                     <textarea
                       type="text"
                       value={manualNote}
-                        rows={1}
                       onChange={(e) => setManualNote(e.target.value)}
                       placeholder="Enter custom note"
+                      rows={1}
+              
                       className="flex-1 p-2 rounded-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                     <button
@@ -1351,18 +1429,19 @@ const handleSaveNotes = async () => {
                     {selectedNotes.map((note) => (
                       <div
                         key={note.id}
-                        className="p-3 bg-gray-100 rounded-lg flex justify-between items-center border border-gray-300"
+                        className="p-3 bg-gray-100 rounded-lg gap-5 flex justify-between items-center border border-gray-300"
                       >
                         <span className="text-gray-800 font-medium">
                           {note.note_name}
                         </span>
+                        <div className="">
                         <button
                           onClick={() => handleRemoveNote(note.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold transition"
+                          className="bg-red-500 mx-2 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold transition"
                           title="Remove"
                         >
                           ×
-                        </button>
+                        </button></div>
                       </div>
                     ))}
                   </div>
@@ -1496,7 +1575,7 @@ const handleSaveNotes = async () => {
                   </div>
                 )}
                 {showModalDis && (
-                  <div className="fixed inset-0 z-50 flex  justify-center p-4">
+                  <div className="fixed inset-0 z-50 flex  justify-center  p-4">
                     {/* Backdrop */}
                     <div
                       className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
@@ -1625,4 +1704,5 @@ const handleSaveNotes = async () => {
     </>
   );
 };
+
 export default CalculatorBD;

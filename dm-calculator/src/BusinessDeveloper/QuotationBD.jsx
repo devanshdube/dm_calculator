@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -57,6 +57,8 @@ export default function QuotationBD() {
   const [manualNote, setManualNote] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
+  const dropdownRef = useRef(null);
+
 
   const fetchServices = async () => {
     try {
@@ -645,6 +647,22 @@ const fetchClientReceived = async () => {
      setSelectedNote(null);      
     setIsOpen(false);
   };
+
+    useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  const uniquePredefinedNotes = predefinedNotes.filter(
+  (p) => !notesData.some((c) => c.note_name === p.note_text)
+);
   return (
     <Wrapper>
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
@@ -1053,13 +1071,13 @@ const fetchClientReceived = async () => {
 
 
                     {/* Grand Total Section */}
-                    <section className="text-right border-t pt-3 mb-6">
-                      <p className="text-xl text-gray-700">
+                    <section className="text-right border-t pt-1 mb-1">
+                      <p className="text-sm text-gray-700">
                         Subtotal: ₹{grandTotal.toLocaleString()}
                       </p>
 
                       {selecteddiscount > 0 && (
-                        <p className="text-lg text-red-600 mt-1">
+                        <p className="text-sm text-red-600">
                           Discount ({selecteddiscount}%): -₹
                           {discountAmount.toFixed(2).toLocaleString()}
                         </p>
@@ -1067,15 +1085,15 @@ const fetchClientReceived = async () => {
 
                       {isGST ? (
                         <>
-                          <p className="text-lg text-gray-600 mt-1">
+                          <p className="text-md text-gray-600 ">
                             GST (18%): ₹{gstAmount.toLocaleString()}
                           </p>
-                          <p className="text-2xl font-bold text-indigo-700 mt-2">
+                          <p className="text-md font-bold text-indigo-700 ">
                             Total with GST: ₹{finalTotal.toLocaleString()}
                           </p>
                         </>
                       ) : (
-                        <p className="text-2xl font-bold text-indigo-700 mt-2">
+                        <p className="text-md font-bold text-indigo-700 ">
                           Grand Total: ₹
                           {totalAfterDiscount.toFixed(2).toLocaleString()}
                         </p>
@@ -1090,7 +1108,7 @@ const fetchClientReceived = async () => {
 
                 <div className="space-y-4">
                  
- <div className="relative w-full">
+ <div className="relative w-full" ref={dropdownRef}>
       {/* Button to open dropdown */}
        <div
         className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-gray-300 text-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -1108,7 +1126,7 @@ const fetchClientReceived = async () => {
       {/* Dropdown menu */}
       {isOpen && (
         <div className="absolute z-10 bg-white w-full mt-1 max-h-60 overflow-auto border rounded-lg text-black focus:ring-2 focus:ring-purple-500">
-          {predefinedNotes.map((note) => (
+          {uniquePredefinedNotes.map((note) => (
             <div
               key={note.id}
               onClick={() => handleSelect(note)}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useParams } from "react-router-dom";
@@ -64,6 +64,7 @@ const InoviceComplmentary = () => {
   const [selectedNotes, setSelectedNotes] = useState([]); // selected + manual
   const [manualNote, setManualNote] = useState("");
     const [isOpen, setIsOpen] = useState(false);
+      const dropdownRef = useRef(null);
 
   useEffect(() => {
     axios
@@ -669,6 +670,22 @@ const handleSelect = (note) => {
      setSelectedNote(null);      
     setIsOpen(false);
   };
+
+    useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  const uniquePredefinedNotes = predefinedNotes.filter(
+  (p) => !allClientNote.some((c) => c.note_name === p.note_text)
+);
   return (
     <>
       <div className="w-full max-w-2xl backdrop-blur rounded-xl px-10 py-8 space-y-6 shadow-2xl">
@@ -900,7 +917,7 @@ const handleSelect = (note) => {
 
                 <div className="space-y-4">
                 
-                   <div className="relative w-full">
+                   <div className="relative w-full" ref={dropdownRef}>
       {/* Button to open dropdown */}
        <div
         className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-gray-300 text-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -918,7 +935,7 @@ const handleSelect = (note) => {
       {/* Dropdown menu */}
       {isOpen && (
         <div className="absolute z-10 bg-white w-full mt-1 max-h-60 overflow-auto border rounded-lg text-black focus:ring-2 focus:ring-purple-500">
-          {predefinedNotes.map((note) => (
+          {uniquePredefinedNotes.map((note) => (
             <div
               key={note.id}
               onClick={() => handleSelect(note)}

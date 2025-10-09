@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -15,9 +15,11 @@ import {
   Timer,
   Calendar1,
   Trash,
-  RefreshCcw,  Package, 
+  RefreshCcw,
+  Package,
   StickyNote,
-  Notebook,  ChevronUp,
+  Notebook,
+  ChevronUp,
   ChevronDown,
 } from "lucide-react";
 import axios from "axios";
@@ -100,10 +102,21 @@ export default function AdminInvoice() {
   const [manualNote, setManualNote] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
-  
-  
-  
-  
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const fetchServices = async () => {
     try {
       const res = await axios.get(
@@ -237,26 +250,22 @@ export default function AdminInvoice() {
       console.error(error);
     }
   };
-   const fetchPredefinedNotes = async () => {
-        try {
-          const { data } = await axios.get(
-            `${baseURL}/auth/api/calculator/getInvoiceNoteData`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          setPredefinedNotes(data.data || []);
-        } catch (error) {
-          console.error(error);
+  const fetchPredefinedNotes = async () => {
+    try {
+      const { data } = await axios.get(
+        `${baseURL}/auth/api/calculator/getInvoiceNoteData`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      };
-  
-      useEffect(() => {
-          fetchPredefinedNotes();
-        
-        }, []);
+      );
+      setPredefinedNotes(data.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   // const fetchPredefinedNotes = async () => {
   //   try {
   //     const { data } = await axios.get(
@@ -343,6 +352,7 @@ export default function AdminInvoice() {
     fetchDiscount();
     fetchAdditionservice();
     fetchRemainingAmount();
+    fetchPredefinedNotes();
   }, [id, txn_id]);
 
   const handleEdit = (entry) => {
@@ -384,7 +394,7 @@ export default function AdminInvoice() {
     setIsEditingRemaining(false);
     setShowModalRemaining(true);
   };
-    const handleChangeNote = (e) => {
+  const handleChangeNote = (e) => {
     const { name, value } = e.target;
 
     setFormDataNote((prev) => ({
@@ -392,14 +402,13 @@ export default function AdminInvoice() {
       [name]: value,
     }));
   };
-const handleCloseNote = () => {
+  const handleCloseNote = () => {
     setShowModal(false);
     setFormDataNote({
       note_name: "",
       plan: "",
     });
   };
-  
 
   useEffect(() => {
     if (!Array.isArray(serviceData) || serviceData.length === 0) return;
@@ -433,6 +442,7 @@ const handleCloseNote = () => {
     });
 
     setGraphicData(groupedGraphic);
+
     setAdsData(adsRaw);
     setLoading(false);
   }, [serviceData]);
@@ -711,120 +721,118 @@ const handleCloseNote = () => {
       });
   };
   console.log(graphicData);
- const handleSubmit = async (e) => {
-      e.preventDefault();
-  
-    
-  
-      try {
-        console.log("Submitting form data:", formDataNote);
-        let response;
-  
-        if (isEditing && selectedNotesId) {
-          response = await axios.put(
-            `${baseURL}/auth/api/calculator/updateInvoiceClientNoteDataById/${selectedNotesId.id}`,
-            formDataNote,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          console.log(response.data);
-        } else {
-          response = await axios.post(
-            `${baseURL}/auth/api/calculator/addNotebyplan`,
-            formDataNote,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          console.log(response.data);
-        }
-  
-        console.log("API response:", response.data);
-  
-        if (response.data.status === "Success") {
-          Swal.fire({
-            icon: "success",
-            title: "Success",
-            text: isEditing
-              ? "Note updated successfully!"
-              : "Note added successfully!",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-          }).then(() => {
-            setShowModal(false);
-             fetchClientNotes();
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text:
-              response.data.message || "Failed to save Note. Please try again.",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-          });
-        }
-      } catch (error) {
-        console.error("Error saving Note:", error);
-        if (error.response) {
-          console.error("Response data:", error.response.data);
-          console.error("Status:", error.response.status);
-          Swal.fire({
-            icon: "error",
-            title: `Error ${error.response.status}`,
-            text:
-              error.response.data.message ||
-              "Failed to save note. Please try again.",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Failed to save note. Please try again.",
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-          });
-        }
-      } finally {
-        setLoading(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      console.log("Submitting form data:", formDataNote);
+      let response;
+
+      if (isEditing && selectedNotesId) {
+        response = await axios.put(
+          `${baseURL}/auth/api/calculator/updateInvoiceClientNoteDataById/${selectedNotesId.id}`,
+          formDataNote,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data);
+      } else {
+        response = await axios.post(
+          `${baseURL}/auth/api/calculator/addNotebyplan`,
+          formDataNote,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data);
       }
-    };
-    const handleAddPredefinedNote = (note) => {
-      if (!selectedNotes.find((n) => n.id === note.id)) {
-        setSelectedNotes([
-          ...selectedNotes,
-          { id: note.id, note_name: note.note_text, type: "predefined" },
-        ]);
+
+      console.log("API response:", response.data);
+
+      if (response.data.status === "Success") {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: isEditing
+            ? "Note updated successfully!"
+            : "Note added successfully!",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        }).then(() => {
+          setShowModal(false);
+          fetchClientNotes();
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text:
+            response.data.message || "Failed to save Note. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
       }
-    };
-    const handleAddManualNote = () => {
-      if (manualNote.trim() !== "") {
-        setSelectedNotes([
-          ...selectedNotes,
-          { id: Date.now(), note_name: manualNote, type: "manual" },
-        ]);
-        setManualNote("");
+    } catch (error) {
+      console.error("Error saving Note:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Status:", error.response.status);
+        Swal.fire({
+          icon: "error",
+          title: `Error ${error.response.status}`,
+          text:
+            error.response.data.message ||
+            "Failed to save note. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to save note. Please try again.",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+        });
       }
-    };
-  
-    const handleRemoveNote = (id) => {
-      setSelectedNotes(selectedNotes.filter((note) => note.id !== id));
-    };
-  
-   const handleSaveNotes = async () => {
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleAddPredefinedNote = (note) => {
+    if (!selectedNotes.find((n) => n.id === note.id)) {
+      setSelectedNotes([
+        ...selectedNotes,
+        { id: note.id, note_name: note.note_text, type: "predefined" },
+      ]);
+    }
+  };
+  const handleAddManualNote = () => {
+    if (manualNote.trim() !== "") {
+      setSelectedNotes([
+        ...selectedNotes,
+        { id: Date.now(), note_name: manualNote, type: "manual" },
+      ]);
+      setManualNote("");
+    }
+  };
+
+  const handleRemoveNote = (id) => {
+    setSelectedNotes(selectedNotes.filter((note) => note.id !== id));
+  };
+
+  const handleSaveNotes = async () => {
     if (selectedNotes.length === 0) {
       Swal.fire({
         icon: "warning",
@@ -836,18 +844,18 @@ const handleCloseNote = () => {
       });
       return;
     }
-  
+
     try {
       const planNotes = selectedNotes.map((item) => ({
         note_name: item.note_name,
       }));
-  
+
       const payload = {
         txn_id: txn_id,
         client_id: id,
         planNotes,
       };
-  
+
       const response = await axios.post(
         `${baseURL}/auth/api/calculator/saveInvoiceClientIdwiseNotes`,
         payload,
@@ -855,7 +863,7 @@ const handleCloseNote = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       if (response.data.status === "Alert") {
         Swal.fire({
           icon: "warning",
@@ -865,14 +873,14 @@ const handleCloseNote = () => {
           timer: 2000,
           timerProgressBar: true,
         });
-                  fetchClientNotes();
-      setManualNote("");
-      setPredefinedNotes([]);
-      setSelectedNotes([]);
-      fetchPredefinedNotes();
+        fetchClientNotes();
+        setManualNote("");
+        setPredefinedNotes([]);
+        setSelectedNotes([]);
+        fetchPredefinedNotes();
         return; // stop execution here
       }
-  
+
       Swal.fire({
         icon: "success",
         title: "Notes Created",
@@ -881,8 +889,8 @@ const handleCloseNote = () => {
         timer: 2000,
         timerProgressBar: true,
       });
-  
-                fetchClientNotes();
+
+      fetchClientNotes();
       setManualNote("");
       setPredefinedNotes([]);
       setSelectedNotes([]);
@@ -899,53 +907,52 @@ const handleCloseNote = () => {
       });
     }
   };
-  
-  
-    const handleDeleteClientNote = async (noteId) => {
-      const confirm = await Swal.fire({
-        title: "Are you sure?",
-        text: "Do you really want to delete this note ?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#e11d48", // red
-        cancelButtonColor: "#6b7280", // gray
-        confirmButtonText: "Yes, delete it!",
-      });
-  
-      if (!confirm.isConfirmed) return;
-  
-      try {
-        const res = await axios.delete(
-          `${baseURL}/auth/api/calculator/deleteInvoiceClientNotes/${noteId}`
-        );
-  
-        const result = res.data;
-  
-        if (result.status === "Success") {
-          setNotesData((prev) => prev.filter((item) => item.id !== noteId));
-  
-          Swal.fire({
-            icon: "success",
-            title: "Deleted!",
-            text: "note has been deleted.",
-            timer: 2000,
-            showConfirmButton: false,
-          });
-  
-          fetchClientNotes();
-        }
-      } catch (error) {
-        console.error("Error deleting note:", error);
+
+  const handleDeleteClientNote = async (noteId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this note ?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48", // red
+      cancelButtonColor: "#6b7280", // gray
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await axios.delete(
+        `${baseURL}/auth/api/calculator/deleteInvoiceClientNotes/${noteId}`
+      );
+
+      const result = res.data;
+
+      if (result.status === "Success") {
+        setNotesData((prev) => prev.filter((item) => item.id !== noteId));
+
         Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "An error occurred while deleting entry.",
-          showConfirmButton: false,
+          icon: "success",
+          title: "Deleted!",
+          text: "note has been deleted.",
           timer: 2000,
-          timerProgressBar: true,
+          showConfirmButton: false,
         });
+
+        fetchClientNotes();
       }
-    };
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "An error occurred while deleting entry.",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+    }
+  };
 
   const graphicTotal = graphicData.reduce(
     (sum, service) =>
@@ -1179,9 +1186,13 @@ const handleCloseNote = () => {
   };
   const handleSelect = (note) => {
     handleAddPredefinedNote(note);
-     setSelectedNote(null);      
+    setSelectedNote(null);
     setIsOpen(false);
   };
+
+  const uniquePredefinedNotes = predefinedNotes.filter(
+    (p) => !notesData.some((c) => c.note_name === p.note_text)
+  );
   return (
     <Wrapper>
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
@@ -1227,13 +1238,13 @@ const handleCloseNote = () => {
                     <img
                       src={img1}
                       alt="Header"
-                      className="w-full h-full object-cover mb-4" // use object-cover for full width fitting
+                      className="w-full h-full object-cover " // use object-cover for full width fitting
                     />
                   ) : (
                     <img
                       src={img5}
                       alt="Header"
-                      className="w-full h-full object-cover mb-4" // use object-cover for full width fitting
+                      className="w-full h-full object-cover" // use object-cover for full width fitting
                     />
                   )}
                 </div>
@@ -1247,7 +1258,7 @@ const handleCloseNote = () => {
           <tbody className="print:table-row-group">
             <tr>
               <td className="p-0 m-0 align-top">
-                <div className="flex flex-col justify-between h-full px-6 py-4 print:px-4 ">
+                <div className="flex flex-col justify-between h-full px-6 py-1 print:px-4 ">
                   {clientData.tag_received_amt === "received" ? null : (
                     <div className=" text-end print:hidden">
                       <button
@@ -1260,241 +1271,604 @@ const handleCloseNote = () => {
                   )}
                   <div className="flex-grow">
                     {/* Client Details */}
-                    <div className=" flex justify-between">
-                      <div className="">
+                    <div className="flex justify-between text-xs mb-1">
+                      <div className="space-y-1">
                         <p>
-                          <strong>Payment Mode : </strong>{" "}
+                          <strong>Payment Mode:</strong>{" "}
                           {clientData?.payment_mode}
                         </p>
                         <p>
-                          <strong>Service From : </strong>
+                          <strong>Service From:</strong>{" "}
                           {moment(clientData?.duration_start_date).format(
                             "DD/MM/YYYY"
                           )}{" "}
                           to{" "}
                           {moment(clientData?.duration_end_date).format(
                             "DD/MM/YYYY"
-                          )}{" "}
+                          )}
                         </p>
                       </div>
 
-                      <div className="">
-                        <p className=" ">
-                          <strong>Invoice No : </strong>
-                          {clientData.id}
+                      <div className="space-y-1 text-xs">
+                        <p>
+                          <strong>Invoice No:</strong> {clientData.id}
                         </p>
-                        <p className="mb-1">
-                          <strong>Date :</strong>{" "}
+                        <p>
+                          <strong>Date:</strong>{" "}
                           {moment(clientData.created_at).format("DD/MM/YYYY")}
                         </p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-6 mb-6">
+
+                    <div className="grid grid-cols-2 gap-2 mb-2 text-xs">
                       {/* Client Info */}
-                      <div className="border p-4 rounded-lg">
-                        <h3 className="text-sm font-bold mb-2">BILL TO</h3>
-                        <p>
-                          <strong>Name :</strong> {clientData?.client_name}
+                      <div className="border p-2 rounded-lg">
+                        <p className=" font-bold">
+                          BILL TO: {clientData.client_organization}{" "}
                         </p>
-                        {clientData.client_organization ? (
-                          <>
-                            <p>
-                              <strong>Organization :</strong>{" "}
-                              {clientData?.client_organization}
-                            </p>
-                          </>
-                        ) : null}
                         <p>
-                          <strong>Contact :</strong> {clientData?.phone}
+                          <strong>Name:</strong> {clientData?.client_name}
                         </p>
 
-                        {clientData.client_gst_no ? (
-                          <>
-                            <p>
-                              <strong>Gst No :</strong>{" "}
-                              {clientData?.client_gst_no}
-                            </p>
-                          </>
-                        ) : null}
-                        {clientData.client_pan_no ? (
-                          <>
-                            <p>
-                              <strong>Pan No :</strong>{" "}
-                              {clientData?.client_pan_no}
-                            </p>
-                          </>
-                        ) : null}
-                        {clientData.address ? (
-                          <>
-                            <p>
-                              <strong>Address :</strong> {clientData?.address}
-                            </p>
-                          </>
-                        ) : null}
+                        <p>
+                          <strong>Contact:</strong> {clientData?.phone}
+                        </p>
+                        {clientData.client_gst_no && (
+                          <p>
+                            <strong>GST No:</strong> {clientData.client_gst_no}
+                          </p>
+                        )}
+                        {clientData.client_pan_no && (
+                          <p>
+                            <strong>PAN No:</strong> {clientData.client_pan_no}
+                          </p>
+                        )}
+                        {clientData.address && (
+                          <p>
+                            <strong>Address:</strong> {clientData.address}
+                          </p>
+                        )}
                       </div>
 
                       {/* Company Info */}
-                      <div className="border p-4 rounded-lg">
-                        <h3 className="text-sm font-bold mb-2">FROM</h3>
-                        <p>
-                          <strong>Company :</strong> DOAGuru Infosystems
-                        </p>
-                        <p>
-                          <strong>Email :</strong> info@doaguru.com
+                      <div className="border p-2 rounded-lg">
+                        <p className="font-bold">
+                          FROM: DOAGuru Infosystems
                         </p>
 
                         <p>
-                          <strong>Phone :</strong> +91 74409 92424
+                          <strong>Email:</strong> info@doaguru.com
                         </p>
                         <p>
-                          <strong>GST No :</strong> 23AGLPP2890G1Z7
+                          <strong>Phone:</strong> +91 74409 92424
                         </p>
                         <p>
-                          <strong>Address :</strong> 1815, Wright Town, Jabalpur
+                          <strong>GST No:</strong> 23AGLPP2890G1Z7
+                        </p>
+                        <p>
+                          <strong>Address:</strong> 1815, Wright Town, Jabalpur
                         </p>
                       </div>
                     </div>
-                    {/* Graphic Services */}
-                    {graphicData.length > 0 && (
-                      <section className="mb-2">
-                        <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
-                          Graphic Services
-                        </h3>
 
-                        {graphicData.map((service, idx) => (
-                          <div key={idx} className="mb-6">
-                            <h4 className="font-semibold text-lg mb-2">
-                              {service.service}
-                            </h4>
+                    {/* ==================== COMBINED SERVICES TABLE ==================== */}
+                    {(graphicData.length > 0 ||
+                      complimentaryData.length > 0 ||
+                      additionalServiceData.length > 0 ||
+                      remainingAmountData.length > 0) && (
+                      <section className="mb-2 text-sm">
+                        <table className="w-full border text-xs">
+                          <thead className="bg-indigo-100">
+                            <tr>
+                              <th className="border w-[10rem] px-2 py-1 text-left">
+                                DM Service
+                              </th>
+                              <th className="border w-[20rem] px-2 py-1 text-left">
+                                Service Type
+                              </th>
+                              <th className="border px-2 py-1 text-right">
+                                Quantity
+                              </th>
+                              <th className="border px-2 py-1 text-right">
+                                Price (₹)
+                              </th>
+                              <th className="border px-2 py-1 text-right">
+                                Total (₹)
+                              </th>
+                              {clientData.tag_received_amt !== "received" && (
+                                <th className="border px-2 py-1 text-right print:hidden">
+                                  Action
+                                </th>
+                              )}
+                            </tr>
+                          </thead>
 
-                            <table className="w-full border text-sm">
-                              <thead className="bg-indigo-100">
-                                <tr>
-                                  <th className="border px-3 py-2 text-left">
-                                    Category
-                                  </th>
-                                  <th className="border px-3 py-2 text-left">
-                                    Creative Type
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Quantity
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Price (₹)
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Total (₹)
-                                  </th>
+                          <tbody>
+                            {/* ================= GRAPHIC SERVICES (Grouped by Service) ================= */}
+                            {graphicData.map((service, idx) =>
+                              service.editingTypes.map((edit, eidx) => {
+                                const qty = Number(edit.quantity);
+                                const base = Number(edit.price);
+                                const totalBase = base * qty;
+
+                                return (
+                                  <tr
+                                    key={`graphic-${idx}-${eidx}`}
+                                    className="bg-white"
+                                  >
+                                    {/* Show DM Service name only once using rowspan */}
+                                    {eidx === 0 ? (
+                                      <td
+                                        className="border px-2 py-1 align-center"
+                                        rowSpan={service.editingTypes.length}
+                                      >
+                                        {service.service}
+                                      </td>
+                                    ) : null}
+
+                                    <td className="border px-2 py-1">
+                                      {service.service === "Video Services"
+                                        ? `${edit.category} With ${edit.type}`
+                                        : edit.type}
+                                    </td>
+                                    <td className="border px-2 py-1 text-right">
+                                      {qty}
+                                    </td>
+                                    <td className="border px-2 py-1 text-right">
+                                      ₹{base}
+                                    </td>
+                                    <td className="border px-2 py-1 text-right">
+                                      ₹{totalBase}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+
+                            {/* ================= THUMBNAIL CREATION TOTAL ================= */}
+                            {(() => {
+                              const thumbEdits = graphicData.flatMap(
+                                (service) =>
+                                  service.editingTypes.filter(
+                                    (edit) =>
+                                      Number(edit.include_thumbnail_creation) >
+                                      0
+                                  )
+                              );
+                              if (thumbEdits.length === 0) return null;
+
+                              const totalThumbQty = thumbEdits.reduce(
+                                (sum, edit) => sum + Number(edit.quantity),
+                                0
+                              );
+                              const pricePerThumb =
+                                thumbEdits[0]?.include_thumbnail_creation || 0;
+                              const totalThumbAmount = thumbEdits.reduce(
+                                (sum, edit) =>
+                                  sum +
+                                  Number(edit.include_thumbnail_creation) *
+                                    Number(edit.quantity),
+                                0
+                              );
+
+                              return (
+                                <tr className="bg-gray-50">
+                                  <td className="border px-2 py-1" colSpan={2}>
+                                    Thumbnail Creation Total
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    {totalThumbQty}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{pricePerThumb}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{totalThumbAmount}
+                                  </td>
                                 </tr>
-                              </thead>
-                              <tbody>
-                                {service.editingTypes.map((edit, eidx) => {
-                                  const qty = edit.quantity;
-                                  const base = edit.price;
-                                  const thumb = edit.include_thumbnail_creation;
-                                  const posting = edit.include_content_posting;
+                              );
+                            })()}
 
-                                  const totalBase = base * qty;
-                                  const totalThumb = thumb * qty;
-                                  const totalPost = posting * qty;
+                            {/* ================= CONTENT POSTING TOTAL ================= */}
+                            {(() => {
+                              const postEdits = graphicData.flatMap((service) =>
+                                service.editingTypes.filter(
+                                  (edit) =>
+                                    Number(edit.include_content_posting) > 0
+                                )
+                              );
+                              if (postEdits.length === 0) return null;
 
+                              const totalPostQty = postEdits.reduce(
+                                (sum, edit) => sum + Number(edit.quantity),
+                                0
+                              );
+                              const pricePerPost =
+                                postEdits[0]?.include_content_posting || 0;
+                              const totalPostAmount = postEdits.reduce(
+                                (sum, edit) =>
+                                  sum +
+                                  Number(edit.include_content_posting) *
+                                    Number(edit.quantity),
+                                0
+                              );
+
+                              return (
+                                <tr className="bg-gray-50">
+                                  <td className="border px-2 py-1" colSpan={2}>
+                                    Content Posting Total
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    {totalPostQty}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{pricePerPost}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{totalPostAmount}
+                                  </td>
+                                </tr>
+                              );
+                            })()}
+
+                            {/* ================= ADDITIONAL SERVICES ================= */}
+                            {additionalServiceData.map((edit, eidx) => {
+                              const qty = Number(edit.quantity);
+                              const base = Number(edit.editing_type_amount);
+                              const totalBase = base * qty;
+
+                              return (
+                                <tr key={`add-${eidx}`} className="bg-white">
+                                  {eidx === 0 ? (
+                                    <td
+                                      className="border px-2 py-1 align-top"
+                                      rowSpan={additionalServiceData.length}
+                                    >
+                                      Additional Service
+                                    </td>
+                                  ) : null}
+                                  <td className="border px-2 py-1">
+                                    {edit.editing_type_name}
+                                  </td>
+                                  <td className="border  py-1 text-right">
+                                    {qty}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{base}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{totalBase}
+                                  </td>
+                                  {clientData.tag_received_amt !==
+                                    "received" && (
+                                    <td className="border px-2 py-1 text-right print:hidden">
+                                     
+                                      <div className="flex gap-1">
+                                       
+                                        <button
+                                          onClick={() => handleEdit(edit)}
+                                          className="bg-blue-600 hover:bg-blue-700 text-white rounded w-6 h-6 flex items-center justify-center text-xs"
+                                          title="Edit"
+                                        >
+                                         
+                                          ✎{" "}
+                                        </button>{" "}
+                                        <button
+                                          onClick={() => handleDelete(edit.id)}
+                                          className="bg-red-600 hover:bg-red-700 text-white rounded w-6 h-6 flex items-center justify-center text-xs"
+                                          title="Delete"
+                                        >
+                                         
+                                          ×{" "}
+                                        </button>{" "}
+                                      </div>{" "}
+                                    </td>
+                                  )}
+                                </tr>
+                              );
+                            })}
+
+                            {/* ================= REMAINING AMOUNT ================= */}
+                            {remainingAmountData.map((edit, eidx) => (
+                              <tr key={`remain-${eidx}`} className="bg-gray-50">
+                                {eidx === 0 ? (
+                                  <td
+                                    className="border px-2 py-1 align-top"
+                                    rowSpan={remainingAmountData.length}
+                                  >
+                                    Remaining Amount
+                                  </td>
+                                ) : null}
+                                <td className="border px-2 py-1" colSpan={2}>
+                                  {edit.service_name}
+                                </td>
+                                <td className="border px-2 py-1 text-right">
+                                  ₹{edit.price}
+                                </td>
+                                <td className="border px-2 py-1 text-right">
+                                  ₹{edit.price}
+                                </td>
+                                {clientData.tag_received_amt !== "received" && (
+                                  <td className="border px-2 py-1 text-right print:hidden">
+                                   
+                                    <div className="flex gap-1">
+                                     
+                                      <button
+                                        onClick={() =>
+                                          handleEditRemaining(edit)
+                                        }
+                                        className="bg-blue-600 hover:bg-blue-700 text-white rounded w-6 h-6 flex items-center justify-center text-xs"
+                                        title="Edit"
+                                      >
+                                       
+                                        ✎{" "}
+                                      </button>{" "}
+                                      <button
+                                        onClick={() =>
+                                          handleRemainingDelete(edit.id)
+                                        }
+                                        className="bg-red-600 hover:bg-red-700 text-white rounded w-6 h-6 flex items-center justify-center text-xs"
+                                        title="Delete"
+                                      >
+                                       
+                                        ×{" "}
+                                      </button>{" "}
+                                    </div>{" "}
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+
+                            {/* ================= DM SERVICE TOTAL ================= */}
+                            {(() => {
+                              const graphicTotal = graphicData.reduce(
+                                (sum, service) =>
+                                  sum +
+                                  service.editingTypes.reduce(
+                                    (s, edit) =>
+                                      s +
+                                      Number(edit.price) *
+                                        Number(edit.quantity),
+                                    0
+                                  ),
+                                0
+                              );
+                              const thumbTotal = graphicData
+                                .flatMap((s) =>
+                                  s.editingTypes.filter(
+                                    (e) =>
+                                      Number(e.include_thumbnail_creation) > 0
+                                  )
+                                )
+                                .reduce(
+                                  (sum, e) =>
+                                    sum +
+                                    Number(e.include_thumbnail_creation) *
+                                      Number(e.quantity),
+                                  0
+                                );
+                              const postTotal = graphicData
+                                .flatMap((s) =>
+                                  s.editingTypes.filter(
+                                    (e) => Number(e.include_content_posting) > 0
+                                  )
+                                )
+                                .reduce(
+                                  (sum, e) =>
+                                    sum +
+                                    Number(e.include_content_posting) *
+                                      Number(e.quantity),
+                                  0
+                                );
+                              const addTotal = additionalServiceData.reduce(
+                                (sum, e) =>
+                                  sum +
+                                  Number(e.editing_type_amount) *
+                                    Number(e.quantity),
+                                0
+                              );
+                              const remainingTotal = remainingAmountData.reduce(
+                                (sum, e) => sum + Number(e.price || 0),
+                                0
+                              );
+
+                              const dmServiceTotal =
+                                graphicTotal +
+                                thumbTotal +
+                                postTotal +
+                                addTotal +
+                                remainingTotal;
+
+                              return (
+                                <tr className="bg-indigo-50 font-semibold">
+                                  <td
+                                    className="border px-2 py-1 text-right"
+                                    colSpan={4}
+                                  >
+                                    DM Service Total
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{dmServiceTotal.toLocaleString()}
+                                  </td>
+                                </tr>
+                              );
+                            })()}
+                            {/* ================= COMPLIMENTARY SERVICES ================= */}
+                            {complimentaryData.map((edit, eidx) => {
+                              const qty = Number(edit.quantity);
+                              const base = Number(edit.editing_type_amount);
+                              const totalBase = base * qty;
+
+                              // For the first complimentary service, show "Complimentary Service" once
+                              return (
+                                <tr
+                                  key={`compl-${eidx}`}
+                                  className="bg-gray-50"
+                                >
+                                  {eidx === 0 ? (
+                                    <td
+                                      className="border px-2 py-1 align-center"
+                                      rowSpan={complimentaryData.length}
+                                    >
+                                      Complimentary Service
+                                    </td>
+                                  ) : null}
+
+                                  <td className="border px-2 py-1">
+                                    {edit.editing_type_name}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    {qty}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{base}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{totalBase}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            <tr className=" font-semibold">
+                              <td
+                                className="border px-2 py-1 text-right"
+                                colSpan={4}
+                              >
+                                Total
+                              </td>
+                              <td className="border px-2 py-1 text-right">
+                                ₹{complimentaryTotal.toLocaleString()}
+                              </td>
+                            </tr>
+                            {/* ================= COMPLIMENTARY TOTAL ================= */}
+                            {(() => {
+                              const complimentaryTotal =
+                                complimentaryData.reduce(
+                                  (sum, e) =>
+                                    sum +
+                                    Number(e.editing_type_amount) *
+                                      Number(e.quantity),
+                                  0
+                                );
+
+                              return (
+                                <tr className="bg-indigo-50 font-semibold">
+                                  <td
+                                    className="border px-2 py-1 text-right"
+                                    colSpan={4}
+                                  >
+                                    Complimentary Total
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹0
+                                  </td>
+                                </tr>
+                              );
+                            })()}
+
+                            {/* ================= DM SERVICE TOTAL ================= */}
+                            {(() => {
+                              const graphicTotal = graphicData.reduce(
+                                (sum, service) => {
                                   return (
-                                    <React.Fragment key={eidx}>
-                                      {/* Base Editing */}
-                                      <tr className="bg-white">
-                                        <td className="border px-3 py-2">
-                                          {edit.category}
-                                        </td>
-                                        <td className="border px-3 py-2">
-                                          {edit.type}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right">
-                                          {qty}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right">
-                                          ₹{base}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right font-semibold">
-                                          ₹{totalBase}
-                                        </td>
-                                      </tr>
-
-                                      {/* Thumbnail */}
-                                      {thumb > 0 && (
-                                        <tr className="bg-gray-50">
-                                          <td className="border px-3 py-2">
-                                            {edit.category}
-                                          </td>
-                                          <td className="border px-3 py-2">
-                                            Thumbnail Creation
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            {qty}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            ₹{thumb}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right font-semibold">
-                                            ₹{totalThumb}
-                                          </td>
-                                        </tr>
-                                      )}
-
-                                      {/* Content Posting */}
-                                      {posting > 0 && (
-                                        <tr className="bg-gray-50">
-                                          <td className="border px-3 py-2">
-                                            {edit.category}
-                                          </td>
-                                          <td className="border px-3 py-2">
-                                            Content Posting
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            {qty}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            ₹{posting}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right font-semibold">
-                                            ₹{totalPost}
-                                          </td>
-                                        </tr>
-                                      )}
-                                    </React.Fragment>
+                                    sum +
+                                    service.editingTypes.reduce(
+                                      (s, edit) =>
+                                        s +
+                                        Number(edit.price) *
+                                          Number(edit.quantity),
+                                      0
+                                    )
                                   );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        ))}
+                                },
+                                0
+                              );
 
-                        <p className="text-right text-lg font-semibold">
-                          Graphic Total: ₹{graphicTotal.toLocaleString()}
-                        </p>
+                              const thumbTotal = graphicData
+                                .flatMap((s) =>
+                                  s.editingTypes.filter(
+                                    (e) =>
+                                      Number(e.include_thumbnail_creation) > 0
+                                  )
+                                )
+                                .reduce(
+                                  (sum, e) =>
+                                    sum +
+                                    Number(e.include_thumbnail_creation) *
+                                      Number(e.quantity),
+                                  0
+                                );
+
+                              const postTotal = graphicData
+                                .flatMap((s) =>
+                                  s.editingTypes.filter(
+                                    (e) => Number(e.include_content_posting) > 0
+                                  )
+                                )
+                                .reduce(
+                                  (sum, e) =>
+                                    sum +
+                                    Number(e.include_content_posting) *
+                                      Number(e.quantity),
+                                  0
+                                );
+
+                              const addTotal = additionalServiceData.reduce(
+                                (sum, e) =>
+                                  sum +
+                                  Number(e.editing_type_amount) *
+                                    Number(e.quantity),
+                                0
+                              );
+
+                              const remainingTotal = remainingAmountData.reduce(
+                                (sum, e) => sum + Number(e.price || 0),
+                                0
+                              );
+
+                              const dmServiceTotal =
+                                graphicTotal +
+                                thumbTotal +
+                                postTotal +
+                                addTotal +
+                                remainingTotal;
+
+                              return (
+                                <tr className="bg-indigo-50 font-semibold">
+                                  <td
+                                    className="border px-2 py-1 text-right"
+                                    colSpan={4}
+                                  >
+                                    Total Amount
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{dmServiceTotal.toLocaleString()}
+                                  </td>
+                                </tr>
+                              );
+                            })()}
+                          </tbody>
+                        </table>
                       </section>
                     )}
 
-                    {/* Ads Services */}
-                    {/* Ads Services */}
+                    {/* ==================== ADS SERVICES TABLE ==================== */}
                     {adsData.length > 0 && (
-                      <section className="mb-5">
-                        <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">
-                          Ads Services
-                        </h3>
-                        <table className="w-full border text-sm">
+                      <section className="mb-2 text-xs">
+                        <table className="w-full border text-xs">
                           <thead className="bg-indigo-100">
                             <tr>
-                              <th className="border px-3 py-2 text-left">
-                                Service
+                              <th className="border px-2 py-1 text-left">
+                               
+                                Ads Services
                               </th>
-                              <th className="border px-3 py-2 text-right">
+                              <th className="border px-2 py-1 text-right">
                                 Amount (₹)
                               </th>
-                              <th className="border px-3 py-2 text-right">
+                              <th className="border px-2 py-1 text-right">
                                 Percentage (%)
                               </th>
-
-                              <th className="border px-3 py-2 text-right">
+                              <th className="border px-2 py-1 text-right">
                                 Final Total (₹)
                               </th>
                             </tr>
@@ -1503,55 +1877,36 @@ const handleCloseNote = () => {
                             {adsData.map((ad, idx) => {
                               const amount = Number(ad.amount || 0);
                               const percent = Number(ad.percent || 0);
-                              const charge = Number(ad.charge || 0);
                               const totalBudget = Number(ad.charge || 0);
-
-                              // Static 18% GST row
-                              const gstPercent = 18;
-                              const gstCharge = (amount * gstPercent) / 100;
-                              const gstTotal = amount + gstCharge;
+                              const gstTotal = amount + (amount * 18) / 100;
 
                               return (
                                 <React.Fragment key={idx}>
-                                  {/* Row 1 - dynamic Ad Budget */}
-
-                                  <tr
-                                    className={
-                                      idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                                    }
-                                  >
-                                    <td className="border px-3 py-2">
+                                  <tr className="bg-white">
+                                    <td className="border px-2 py-1">
                                       {ad.category_name} Budget (GST)
                                     </td>
-                                    <td className="border px-3 py-2 text-right">
+                                    <td className="border px-2 py-1 text-right">
                                       {amount.toLocaleString()}
                                     </td>
-                                    <td className="border px-3 py-2 text-right">
-                                      {gstPercent}
+                                    <td className="border px-2 py-1 text-right">
+                                      18
                                     </td>
-
-                                    <td className="border px-3 py-2 text-right font-semibold">
+                                    <td className="border px-2 py-1 text-right">
                                       {gstTotal.toLocaleString()}
                                     </td>
                                   </tr>
-
-                                  {/* Row 2 - static Ads Charges (18%) */}
-                                  <tr
-                                    className={
-                                      idx % 2 === 0 ? "bg-gray-50" : "bg-white"
-                                    }
-                                  >
-                                    <td className="border px-3 py-2">
-                                      {ad.category_name} Charges{" "}
+                                  <tr className="bg-gray-50">
+                                    <td className="border px-2 py-1">
+                                      {ad.category_name} Charges
                                     </td>
-                                    <td className="border px-3 py-2 text-right">
+                                    <td className="border px-2 py-1 text-right">
                                       {amount.toLocaleString()}
                                     </td>
-                                    <td className="border px-3 py-2 text-right">
+                                    <td className="border px-2 py-1 text-right">
                                       {percent}
                                     </td>
-
-                                    <td className="border px-3 py-2 text-right font-semibold">
+                                    <td className="border px-2 py-1 text-right">
                                       {totalBudget.toLocaleString()}
                                     </td>
                                   </tr>
@@ -1561,9 +1916,8 @@ const handleCloseNote = () => {
                           </tbody>
                         </table>
 
-                        {/* Ads Total = budget total + gst total */}
-                        <p className="text-right text-lg font-semibold mt-1">
-                          Ads Total: ₹
+                        <p className="text-right text-xs mt-1">
+                          <span className="font-bold">Ads Total:</span> ₹
                           {adsData
                             .reduce((sum, ad) => {
                               const amount = Number(ad.amount || 0);
@@ -1575,367 +1929,30 @@ const handleCloseNote = () => {
                         </p>
                       </section>
                     )}
-                    {complimentaryData.length > 0 && (
-                      <section className="mb-2">
-                        <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
-                          Complimentary Services
-                        </h3>
-
-                        <table className="w-full border text-sm">
-                          <thead className="bg-indigo-100">
-                            <tr>
-                              <th className="border px-3 py-2 text-left">
-                                Category
-                              </th>
-                              <th className="border px-3 py-2 text-left">
-                                Creative Type
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Quantity
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Price (₹)
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Total (₹)
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {complimentaryData.map((edit, eidx) => {
-                              const qty = Number(edit.quantity);
-                              const base = Number(edit.editing_type_amount);
-                              const thumb = Number(
-                                edit.include_thumbnail_creation
-                              );
-                              const posting = Number(
-                                edit.include_content_posting
-                              );
-
-                              const totalBase = base * qty;
-                              const totalThumb = thumb * qty;
-                              const totalPost = posting * qty;
-
-                              return (
-                                <React.Fragment key={eidx}>
-                                  {/* Base Editing */}
-                                  <tr className="bg-white">
-                                    <td className="border px-3 py-2">
-                                      {edit.category_name}
-                                    </td>
-                                    <td className="border px-3 py-2">
-                                      {edit.editing_type_name}
-                                    </td>
-                                    <td className="border px-3 py-2 text-right">
-                                      {qty}
-                                    </td>
-                                    <td className="border px-3 py-2 text-right">
-                                      ₹{base}
-                                    </td>
-                                    <td className="border px-3 py-2 text-right font-semibold">
-                                      ₹{totalBase}
-                                    </td>
-                                  </tr>
-
-                                  {/* Thumbnail */}
-                                  {thumb > 0 && (
-                                    <tr className="bg-gray-50">
-                                      <td className="border px-3 py-2">
-                                        {edit.category_name}
-                                      </td>
-                                      <td className="border px-3 py-2">
-                                        Thumbnail Creation
-                                      </td>
-                                      <td className="border px-3 py-2 text-right">
-                                        {qty}
-                                      </td>
-                                      <td className="border px-3 py-2 text-right">
-                                        ₹{thumb}
-                                      </td>
-                                      <td className="border px-3 py-2 text-right font-semibold">
-                                        ₹{totalThumb}
-                                      </td>
-                                    </tr>
-                                  )}
-
-                                  {/* Content Posting */}
-                                  {posting > 0 && (
-                                    <tr className="bg-gray-50">
-                                      <td className="border px-3 py-2">
-                                        {edit.category_name}
-                                      </td>
-                                      <td className="border px-3 py-2">
-                                        Content Posting
-                                      </td>
-                                      <td className="border px-3 py-2 text-right">
-                                        {qty}
-                                      </td>
-                                      <td className="border px-3 py-2 text-right">
-                                        ₹{posting}
-                                      </td>
-                                      <td className="border px-3 py-2 text-right font-semibold">
-                                        ₹{totalPost}
-                                      </td>
-                                    </tr>
-                                  )}
-                                </React.Fragment>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-
-                        <p className="text-right text-lg font-semibold">
-                          Total: ₹{complimentaryTotal.toLocaleString()}
-                        </p>
-                        <p className="text-right text-lg font-semibold">
-                          Complimentary Total: ₹0
-                        </p>
-                      </section>
-                    )}
-                    {clientData.tag_received_amt === "received" ? null : (
-                      <>
+                    {clientData.tag_received_amt !== "received" && (
+                      <div className="mt-1">
                         <button
                           onClick={handleShow}
-                          className="px-4 py-2 print:hidden mb-2 print:mb-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+                          className="px-2 py-1 print:hidden mb-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs"
                         >
                           + Additional Service
                         </button>
                         <button
                           onClick={handleRemainingShow}
-                          className="mx-2 px-4 py-2 print:hidden mb-2 print:mb-0 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition"
+                          className="px-2 py-1 mx-1 print:hidden mb-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
                         >
                           + Remaining Amount
                         </button>
-                      </>
+                      </div>
                     )}
 
-                    {additionalServiceData.length > 0 && (
-                      <section className="mb-2">
-                        <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
-                          Additional Services
-                        </h3>
-
-                        <table className="w-full border text-sm">
-                          <thead className="bg-indigo-100">
-                            <tr>
-                              <th className="border px-3 py-2 text-left">
-                                Category
-                              </th>
-                              <th className="border px-3 py-2 text-left">
-                                Creative Type
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Quantity
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Price (₹)
-                              </th>
-                              <th className="border px-3 py-2 text-right">
-                                Total (₹)
-                              </th>
-                              {clientData.tag_received_amt ===
-                              "received" ? null : (
-                                <th className="border px-3 py-2 text-right print:hidden">
-                                  Action
-                                </th>
-                              )}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {additionalServiceData.map((edit, eidx) => {
-                              const qty = Number(edit.quantity);
-                              const base = Number(edit.editing_type_amount);
-                              const thumb = Number(
-                                edit.include_thumbnail_creation
-                              );
-                              const posting = Number(
-                                edit.include_content_posting
-                              );
-
-                              const totalBase = base * qty;
-                              const totalThumb = thumb * qty;
-                              const totalPost = posting * qty;
-
-                              return (
-                                <React.Fragment key={eidx}>
-                                  {/* Base Editing */}
-                                  <tr className="bg-white">
-                                    <td className="border px-3 py-2">
-                                      {edit.category_name}
-                                    </td>
-                                    <td className="border px-3 py-2">
-                                      {edit.editing_type_name}
-                                    </td>
-                                    <td className="border px-3 py-2 text-right">
-                                      {qty}
-                                    </td>
-                                    <td className="border px-3 py-2 text-right">
-                                      ₹{base}
-                                    </td>
-                                    <td className="border px-3 py-2 text-right font-semibold">
-                                      ₹{totalBase}
-                                    </td>
-
-                                    {clientData.tag_received_amt ===
-                                    "received" ? null : (
-                                      <td className="border px-3 py-2 text-right font-semibold print:hidden">
-                                        <div className="flex gap-2">
-                                          <button
-                                            onClick={() => handleEdit(edit)}
-                                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                                            title="Edit"
-                                          >
-                                            ✎
-                                          </button>
-                                          <button
-                                            onClick={() =>
-                                              handleDelete(edit.id)
-                                            }
-                                            className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                                            title="Delete"
-                                          >
-                                            ×
-                                          </button>
-                                        </div>
-                                      </td>
-                                    )}
-                                  </tr>
-
-                                  {/* Thumbnail */}
-                                  {thumb > 0 && (
-                                    <tr className="bg-gray-50">
-                                      <td className="border px-3 py-2">
-                                        {edit.category_name}
-                                      </td>
-                                      <td className="border px-3 py-2">
-                                        Thumbnail Creation
-                                      </td>
-                                      <td className="border px-3 py-2 text-right">
-                                        {qty}
-                                      </td>
-                                      <td className="border px-3 py-2 text-right">
-                                        ₹{thumb}
-                                      </td>
-                                      <td className="border px-3 py-2 text-right font-semibold">
-                                        ₹{totalThumb}
-                                      </td>
-                                    </tr>
-                                  )}
-
-                                  {/* Content Posting */}
-                                  {posting > 0 && (
-                                    <tr className="bg-gray-50">
-                                      <td className="border px-3 py-2">
-                                        {edit.category_name}
-                                      </td>
-                                      <td className="border px-3 py-2">
-                                        Content Posting
-                                      </td>
-                                      <td className="border px-3 py-2 text-right">
-                                        {qty}
-                                      </td>
-                                      <td className="border px-3 py-2 text-right">
-                                        ₹{posting}
-                                      </td>
-                                      <td className="border px-3 py-2 text-right font-semibold">
-                                        ₹{totalPost}
-                                      </td>
-                                    </tr>
-                                  )}
-                                </React.Fragment>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-
-                        <p className="text-right text-lg font-semibold">
-                          Additional Total: ₹{additionalTotal.toLocaleString()}
-                        </p>
-                      </section>
-                    )}
-                    {remainingAmountData.length > 0 && (
-                      <section className="mb-2">
-                        <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
-                          Remaining Amount
-                        </h3>
-
-                        <table className="w-full border text-sm">
-                          <thead className="bg-indigo-100">
-                            <tr>
-                              <th className="border px-3 py-2 text-left">
-                                Service
-                              </th>
-
-                              <th className="border px-3 py-2 text-left">
-                                Price (₹)
-                              </th>
-                              {clientData.tag_received_amt ===
-                              "received" ? null : (
-                                <th className="border px-3 py-2 text-left print:hidden">
-                                  Action
-                                </th>
-                              )}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {remainingAmountData.map((edit, eidx) => {
-                              return (
-                                <React.Fragment key={eidx}>
-                                  {/* Base Editing */}
-                                  <tr className="bg-white">
-                                    <td className="border px-3 py-2">
-                                      {edit.service_name}
-                                    </td>
-                                    <td className="border px-3 py-2">
-                                      {edit.price}
-                                    </td>
-                                    {clientData.tag_received_amt ===
-                                    "received" ? null : (
-                                      <td className="border px-3 py-2 text-right font-semibold print:hidden">
-                                        <div className="flex gap-2">
-                                          <button
-                                            onClick={() =>
-                                              handleEditRemaining(edit)
-                                            }
-                                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                                            title="Edit"
-                                          >
-                                            ✎
-                                          </button>
-                                          <button
-                                            onClick={() =>
-                                              handleRemainingDelete(edit.id)
-                                            }
-                                            className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                                            title="Delete"
-                                          >
-                                            ×
-                                          </button>
-                                        </div>
-                                      </td>
-                                    )}
-                                  </tr>
-                                </React.Fragment>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-
-                        <p className="text-right text-lg font-semibold">
-                          Remaining Total: ₹
-                          {remainingTotalAmount.toLocaleString()}
-                        </p>
-                      </section>
-                    )}
-
-                    {/* Grand Total Section */}
-                    <section className="text-right border-t pt-3 mb-6">
-                      <p className="text-xl text-gray-700">
+                    <section className="text-right border-t pt-1 mb-1">
+                      <p className="text-sm text-gray-700">
                         Subtotal: ₹{grandTotal.toLocaleString()}
                       </p>
 
                       {selecteddiscount > 0 && (
-                        <p className="text-lg text-red-600 mt-1">
+                        <p className="text-sm text-red-600">
                           Discount ({selecteddiscount}%): -₹
                           {discountAmount.toFixed(2).toLocaleString()}
                         </p>
@@ -1943,30 +1960,30 @@ const handleCloseNote = () => {
 
                       {isGST ? (
                         <>
-                          <p className="text-lg text-gray-600 mt-1">
+                          <p className="text-md text-gray-600 ">
                             GST (18%): ₹{gstAmount.toLocaleString()}
                           </p>
-                          <p className="text-2xl font-bold text-indigo-700 mt-2">
+                          <p className="text-md font-bold text-indigo-700 ">
                             Total with GST: ₹{finalTotal.toLocaleString()}
                           </p>
                         </>
                       ) : (
-                        <p className="text-2xl font-bold text-indigo-700 mt-2">
+                        <p className="text-md font-bold text-indigo-700 ">
                           Grand Total: ₹
                           {totalAfterDiscount.toFixed(2).toLocaleString()}
                         </p>
                       )}
                     </section>
-  <div className=" print:hidden">
-    <h3 className="text-xl font-bold  mb-4 flex items-center gap-2">
+
+                    <div className=" print:hidden">
+                      {/* <h3 className="text-xl font-bold  mb-4 flex items-center gap-2">
                     <Package className="w-5 h-5" />
                     Notes Section
-                  </h3>
-  
-                  <div className="space-y-4">
-                   
-   <div className="relative w-full">
-        {/* Button to open dropdown */}
+                  </h3> */}
+
+                      <div className="space-y-4">
+                        {/* <div className="relative w-full" ref={dropdownRef}>
+
          <div
           className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-gray-300 text-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
           onClick={() => setIsOpen(!isOpen)}
@@ -1980,10 +1997,10 @@ const handleCloseNote = () => {
             <ChevronDown className="w-5 h-5 text-gray-500" />
           )}
         </div>
-        {/* Dropdown menu */}
+  
         {isOpen && (
           <div className="absolute z-10 bg-white w-full mt-1 max-h-60 overflow-auto border rounded-lg text-black focus:ring-2 focus:ring-purple-500">
-            {predefinedNotes.map((note) => (
+            {uniquePredefinedNotes.map((note) => (
               <div
                 key={note.id}
                 onClick={() => handleSelect(note)}
@@ -1994,11 +2011,10 @@ const handleCloseNote = () => {
             ))}
           </div>
         )}
-      </div>
-  
-  
-                    {/* Manual Note Input */}
-                    <div className="flex flex-wrap gap-2">
+      </div> */}
+
+                        {/* Manual Note Input */}
+                        {/* <div className="flex flex-wrap gap-2">
                       <textarea
                         type="text"
                         value={manualNote}
@@ -2014,10 +2030,10 @@ const handleCloseNote = () => {
                       >
                         + Add
                       </button>
-                    </div>
-  
-                    {/* Selected Notes List */}
-                    <div className="space-y-2">
+                    </div> */}
+
+                        {/* Selected Notes List */}
+                        {/* <div className="space-y-2">
                       {selectedNotes.map((note) => (
                         <div
                           key={note.id}
@@ -2036,96 +2052,97 @@ const handleCloseNote = () => {
                           </button></div>
                         </div>
                       ))}
-                    </div>
-  
-                    {/* Save Button */}
-                    <button
+                    </div> */}
+
+                        {/* Save Button */}
+                        {/* <button
                       onClick={handleSaveNotes}
                       className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition"
                     >
                       💾 Save Notes
-                    </button>
-                  </div>
-  
-        
-  
-                  {showModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                      {/* Backdrop */}
-                      <div
-                        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
-                        onClick={handleCloseNote}
-                      />
-  
-                      {/* Modal */}
-                      <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <StickyNote className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <h2 className="text-xl font-semibold text-gray-900">
-                              {isEditing ? "Edit Note" : "Add New Note"}
-                            </h2>
-                          </div>
-                          <button
-                            onClick={handleCloseNote}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        </div>
-  
-                        {/* Form */}
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                          {/* Note */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              <Notebook className="w-4 h-4 inline mr-2" />
-                              Note
-                            </label>
-                            <textarea
-                              name="note_name"
-                              value={formDataNote.note_name}
-                              onChange={handleChangeNote}
-                              className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
-                              placeholder="Enter note details"
-                              rows={4} // number of visible lines
-                              required
-                            ></textarea>
-                          </div>
-  
-                          {/* Buttons */}
-                          <div className="flex justify-end gap-3 pt-4">
-                            <button
-                              type="button"
-                              onClick={handleCloseNote}
-                              className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={loading}
-                              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-                            >
-                              {loading
-                                ? isEditing
-                                  ? "Updating..."
-                                  : "Saving..."
-                                : isEditing
-                                ? "Update Note"
-                                : "Save Note"}
-                            </button>
-                          </div>
-                        </form>
+                    </button> */}
                       </div>
+
+                      {showModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                          {/* Backdrop */}
+                          <div
+                            className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+                            onClick={handleCloseNote}
+                          />
+
+                          {/* Modal */}
+                          <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                  <StickyNote className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <h2 className="text-xl font-semibold text-gray-900">
+                                  {isEditing ? "Edit Note" : "Add New Note"}
+                                </h2>
+                              </div>
+                              <button
+                                onClick={handleCloseNote}
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
+                            </div>
+
+                            {/* Form */}
+                            <form
+                              onSubmit={handleSubmit}
+                              className="p-6 space-y-4"
+                            >
+                              {/* Note */}
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <Notebook className="w-4 h-4 inline mr-2" />
+                                  Note
+                                </label>
+                                <textarea
+                                  name="note_name"
+                                  value={formDataNote.note_name}
+                                  onChange={handleChangeNote}
+                                  className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                                  placeholder="Enter note details"
+                                  rows={4} // number of visible lines
+                                  required
+                                ></textarea>
+                              </div>
+
+                              {/* Buttons */}
+                              <div className="flex justify-end gap-3 pt-4">
+                                <button
+                                  type="button"
+                                  onClick={handleCloseNote}
+                                  className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="submit"
+                                  disabled={loading}
+                                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                                >
+                                  {loading
+                                    ? isEditing
+                                      ? "Updating..."
+                                      : "Saving..."
+                                    : isEditing
+                                    ? "Update Note"
+                                    : "Save Note"}
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                   </div> 
-                   
- {notesData.length > 0 ? (<>
+
+                    {/* {notesData.length > 0 ? (<>
 
                     <h2 className="text-lg mt-3 font-bold">Notes</h2>
                  
@@ -2175,53 +2192,49 @@ const handleCloseNote = () => {
                     
                     ) : (
                       <p className="text-gray-500 italic"></p>
-                    )}
+                    )} */}
                   </div>
                   {isGST ? (
-                    <>
-                      <div className=" flex justify-between">
-                        {/* Bank Details */}
-                        <div className="font-bold mt-2 ">
-                          <h6>Bank Details: -</h6>
-
-                          <ul className="space-y-1">
-                            <li>Name: DOAGuru InfoSystems</li>
-                            <li>IFSC Code: SBIN0004677</li>
-                            <li>Account No: 38666325192</li>
-                            <li>Bank: SBI Bank, Jabalpur</li>
-                          </ul>
-                        </div>
-
-                        {/* Signature */}
-                        <div className="">
-                          <img
-                            src={img4}
-                            alt="Authorized Signature"
-                            height={100}
-                            width={200}
-                            style={{ marginTop: "0rem" }}
-                          />
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className=" flex justify-between mt-7 print:mt-0">
-                      <div className="font-bold mt-16 print:mt-10 ">
-                        <h6>Bank Details For TDS Payment : - </h6>
-                        <ul>
-                          <li>Name : DOAGuru IT Solutions</li>
-                          <li>IFSC Code : HDFC0000224 </li>
-                          <li>Account No : 50200074931981</li>
-                          <li>Bank : HDFC Bank , Jabalpur</li>
+                    <div className="flex justify-between text-sm font-bold">
+                      {/* Bank Details */}
+                      <div>
+                        <h6 className="mb-1">Bank Details:</h6>
+                        <ul className="space-y-0.5">
+                          <li>Name: DOAGuru InfoSystems</li>
+                          <li>IFSC Code: SBIN0004677</li>
+                          <li>Account No: 38666325192</li>
+                          <li>Bank: SBI Bank, Jabalpur</li>
                         </ul>
                       </div>
-                      <div className="">
+
+                      {/* Signature */}
+                      <div>
+                        <img
+                          src={img4}
+                          alt="Authorized Signature"
+                          className="h-28 w-40 mt-0"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between text-xs font-bold">
+                      {/* Bank Details for TDS */}
+                      <div>
+                        <h6 className="mb-1">Bank Details For TDS Payment:</h6>
+                        <ul className="space-y-0.5">
+                          <li>Name: DOAGuru IT Solutions</li>
+                          <li>IFSC Code: HDFC0000224</li>
+                          <li>Account No: 50200074931981</li>
+                          <li>Bank: HDFC Bank, Jabalpur</li>
+                        </ul>
+                      </div>
+
+                      {/* Signature */}
+                      <div>
                         <img
                           src={img3}
                           alt="Authorized Signature"
-                          height={100}
-                          width={200}
-                          style={{ marginTop: "-1.5rem"  }}
+                          className="h-28 w-40 -mt-2"
                         />
                       </div>
                     </div>
@@ -2246,7 +2259,6 @@ const handleCloseNote = () => {
             </tr>
           </tfoot>
         </table>
-
 
         {showModalInvoiceClient && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

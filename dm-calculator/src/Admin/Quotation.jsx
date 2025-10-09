@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -57,6 +57,7 @@ export default function Quotation() {
   const [manualNote, setManualNote] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
+    const dropdownRef = useRef(null);
 
   const fetchServices = async () => {
     try {
@@ -645,6 +646,23 @@ const fetchClientReceived = async () => {
      setSelectedNote(null);      
     setIsOpen(false);
   };
+
+    useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const uniquePredefinedNotes = predefinedNotes.filter(
+  (p) => !notesData.some((c) => c.note_name === p.note_text)
+);
   return (
     <Wrapper>
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
@@ -701,7 +719,7 @@ const fetchClientReceived = async () => {
                   <img
                     src={img1}
                     alt="Header"
-                    className="w-full h-full object-cover mb-4" // use object-cover for full width fitting
+                    className="w-full h-full object-cover " // use object-cover for full width fitting
                   />
                 </div>
               </td>
@@ -714,12 +732,12 @@ const fetchClientReceived = async () => {
           <tbody className="print:table-row-group">
             <tr>
               <td className="p-0 m-0 align-top">
-                <div className="flex flex-col justify-between h-full px-6 py-4 print:px-4 ">
+                <div className="flex flex-col justify-between h-full px-6 py-1 print:px-4 ">
                   <div className="flex-grow">
                     {/* Client Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3 print:grid-cols-2">
-                      <div className="break-words">
-                        <h3 className="text-lg font-semibold mb-2">
+                      <div className="break-words text-xs">
+                        <h3 className="text-md font-bold">
                           Client Details
                         </h3>
                         <p className="break-words">
@@ -736,8 +754,8 @@ const fetchClientReceived = async () => {
                           <strong>Address:</strong> {clientData?.address}
                         </p>
                       </div>
-                      <div className="text-end">
-                        <h2 className="text-2xl font-bold">
+                      <div className="text-end text-xs">
+                        <h2 className="text-md font-bold">
                           {selectedplan} Plan
                         </h2>
                         <p>{moment().format("DD/MM/YYYY")}</p>
@@ -751,315 +769,474 @@ const fetchClientReceived = async () => {
                     </div>
 
                     {/* Graphic Services */}
-                    {graphicData.length > 0 && (
-                      <section className="mb-2">
-                        <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
-                          Graphic Services
-                        </h3>
-
-                        {graphicData.map((service, idx) => (
-                          <div key={idx} className="mb-6">
-                            <h4 className="font-semibold text-lg mb-2">
-                              {service.service}
-                            </h4>
-
-                            <table className="w-full border text-sm">
-                              <thead className="bg-indigo-100">
-                                <tr>
-                                  <th className="border px-3 py-2 text-left">
-                                    Category
-                                  </th>
-                                  <th className="border px-3 py-2 text-left">
-                                    Creative Type
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Quantity
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Price (₹)
-                                  </th>
-                                  <th className="border px-3 py-2 text-right">
-                                    Total (₹)
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {service.editingTypes.map((edit, eidx) => {
-                                  const qty = edit.quantity;
-                                  const base = edit.price;
-                                  const thumb = edit.include_thumbnail_creation;
-                                  const posting = edit.include_content_posting;
-
-                                  const totalBase = base * qty;
-                                  const totalThumb = thumb * qty;
-                                  const totalPost = posting * qty;
-
-                                  return (
-                                    <React.Fragment key={eidx}>
-                                      {/* Base Editing */}
-                                      <tr className="bg-white">
-                                        <td className="border px-3 py-2">
-                                          {edit.category}
-                                        </td>
-                                        <td className="border px-3 py-2">
-                                          {edit.type}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right">
-                                          {qty}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right">
-                                          ₹{base}
-                                        </td>
-                                        <td className="border px-3 py-2 text-right font-semibold">
-                                          ₹{totalBase}
-                                        </td>
-                                      </tr>
-
-                                      {/* Thumbnail */}
-                                      {thumb > 0 && (
-                                        <tr className="bg-gray-50">
-                                          <td className="border px-3 py-2">
-                                            {edit.category}
-                                          </td>
-                                          <td className="border px-3 py-2">
-                                            Thumbnail Creation
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            {qty}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            ₹{thumb}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right font-semibold">
-                                            ₹{totalThumb}
-                                          </td>
-                                        </tr>
-                                      )}
-
-                                      {/* Content Posting */}
-                                      {posting > 0 && (
-                                        <tr className="bg-gray-50">
-                                          <td className="border px-3 py-2">
-                                            {edit.category}
-                                          </td>
-                                          <td className="border px-3 py-2">
-                                            Content Posting
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            {qty}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right">
-                                            ₹{posting}
-                                          </td>
-                                          <td className="border px-3 py-2 text-right font-semibold">
-                                            ₹{totalPost}
-                                          </td>
-                                        </tr>
-                                      )}
-                                    </React.Fragment>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        ))}
-
-                        <p className="text-right text-lg font-semibold">
-                          Graphic Total: ₹{graphicTotal.toLocaleString()}
-                        </p>
-                      </section>
-                    )}
-
-                    {/* Ads Services */}
-                    {/* Ads Services */}
-                    {adsData.length > 0 && (
-                      <section className="mb-5">
-                        <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-indigo-700">
-                          Ads Services
-                        </h3>
-                        <table className="w-full border text-sm">
+                {(graphicData.length > 0) && (
+                      <section className="mb-2 text-sm">
+                        <table className="w-full border text-xs">
                           <thead className="bg-indigo-100">
                             <tr>
-                              <th className="border px-3 py-2 text-left">
-                                Service
+                              <th className="border w-[10rem] px-2 py-1 text-left">
+                                DM Service
                               </th>
-                              <th className="border px-3 py-2 text-right">
-                                Amount (₹)
+                              <th className="border w-[20rem] px-2 py-1 text-left">
+                                Service Type
                               </th>
-                              <th className="border px-3 py-2 text-right">
-                                Percentage (%)
+                              <th className="border px-2 py-1 text-right">
+                                Quantity
                               </th>
-
-                              <th className="border px-3 py-2 text-right">
-                                Final Total (₹)
+                              <th className="border px-2 py-1 text-right">
+                                Price (₹)
                               </th>
+                              <th className="border px-2 py-1 text-right">
+                                Total (₹)
+                              </th>
+                              
                             </tr>
                           </thead>
-                          <tbody>
-                            {adsData.map((ad, idx) => {
-                              const amount = Number(ad.amount || 0);
-                              const percent = Number(ad.percent || 0);
-                              const charge = Number(ad.charge || 0);
-                              const totalBudget = Number(ad.charge || 0);
 
-                              // Static 18% GST row
-                              const gstPercent = 18;
-                              const gstCharge = (amount * gstPercent) / 100;
-                              const gstTotal = amount + gstCharge;
+                          <tbody>
+                            {/* ================= GRAPHIC SERVICES (Grouped by Service) ================= */}
+                            {graphicData.map((service, idx) =>
+                              service.editingTypes.map((edit, eidx) => {
+                                const qty = Number(edit.quantity);
+                                const base = Number(edit.price);
+                                const totalBase = base * qty;
+
+                                return (
+                                  <tr
+                                    key={`graphic-${idx}-${eidx}`}
+                                    className="bg-white"
+                                  >
+                                    {/* Show DM Service name only once using rowspan */}
+                                    {eidx === 0 ? (
+                                      <td
+                                        className="border px-2 py-1 align-center"
+                                        rowSpan={service.editingTypes.length}
+                                      >
+                                        {service.service}
+                                      </td>
+                                    ) : null}
+
+                                    <td className="border px-2 py-1">
+                                      {service.service === "Video Services"
+                                        ? `${edit.category} With ${edit.type}`
+                                        : edit.type}
+                                    </td>
+                                    <td className="border px-2 py-1 text-right">
+                                      {qty}
+                                    </td>
+                                    <td className="border px-2 py-1 text-right">
+                                      ₹{base}
+                                    </td>
+                                    <td className="border px-2 py-1 text-right">
+                                      ₹{totalBase}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+
+                            {/* ================= THUMBNAIL CREATION TOTAL ================= */}
+                            {(() => {
+                              const thumbEdits = graphicData.flatMap(
+                                (service) =>
+                                  service.editingTypes.filter(
+                                    (edit) =>
+                                      Number(edit.include_thumbnail_creation) >
+                                      0
+                                  )
+                              );
+                              if (thumbEdits.length === 0) return null;
+
+                              const totalThumbQty = thumbEdits.reduce(
+                                (sum, edit) => sum + Number(edit.quantity),
+                                0
+                              );
+                              const pricePerThumb =
+                                thumbEdits[0]?.include_thumbnail_creation || 0;
+                              const totalThumbAmount = thumbEdits.reduce(
+                                (sum, edit) =>
+                                  sum +
+                                  Number(edit.include_thumbnail_creation) *
+                                    Number(edit.quantity),
+                                0
+                              );
 
                               return (
-                                <React.Fragment key={idx}>
-                                  {/* Row 1 - dynamic Ad Budget */}
-
-                                  <tr
-                                    className={
-                                      idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                                    }
-                                  >
-                                    <td className="border px-3 py-2">
-                                      {ad.category_name} Budget (GST)
-                                    </td>
-                                    <td className="border px-3 py-2 text-right">
-                                      {amount.toLocaleString()}
-                                    </td>
-                                    <td className="border px-3 py-2 text-right">
-                                      {gstPercent}
-                                    </td>
-
-                                    <td className="border px-3 py-2 text-right font-semibold">
-                                      {gstTotal.toLocaleString()}
-                                    </td>
-                                  </tr>
-
-                                  {/* Row 2 - static Ads Charges (18%) */}
-                                  <tr
-                                    className={
-                                      idx % 2 === 0 ? "bg-gray-50" : "bg-white"
-                                    }
-                                  >
-                                    <td className="border px-3 py-2">
-                                      {ad.category_name} Charges{" "}
-                                    </td>
-                                    <td className="border px-3 py-2 text-right">
-                                      {amount.toLocaleString()}
-                                    </td>
-                                    <td className="border px-3 py-2 text-right">
-                                      {percent}
-                                    </td>
-
-                                    <td className="border px-3 py-2 text-right font-semibold">
-                                      {totalBudget.toLocaleString()}
-                                    </td>
-                                  </tr>
-                                </React.Fragment>
+                                <tr className="bg-gray-50">
+                                  <td className="border px-2 py-1" colSpan={2}>
+                                    Thumbnail Creation Total
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    {totalThumbQty}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{pricePerThumb}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{totalThumbAmount}
+                                  </td>
+                                </tr>
                               );
-                            })}
+                            })()}
+
+                            {/* ================= CONTENT POSTING TOTAL ================= */}
+                            {(() => {
+                              const postEdits = graphicData.flatMap((service) =>
+                                service.editingTypes.filter(
+                                  (edit) =>
+                                    Number(edit.include_content_posting) > 0
+                                )
+                              );
+                              if (postEdits.length === 0) return null;
+
+                              const totalPostQty = postEdits.reduce(
+                                (sum, edit) => sum + Number(edit.quantity),
+                                0
+                              );
+                              const pricePerPost =
+                                postEdits[0]?.include_content_posting || 0;
+                              const totalPostAmount = postEdits.reduce(
+                                (sum, edit) =>
+                                  sum +
+                                  Number(edit.include_content_posting) *
+                                    Number(edit.quantity),
+                                0
+                              );
+
+                              return (
+                                <tr className="bg-gray-50">
+                                  <td className="border px-2 py-1" colSpan={2}>
+                                    Content Posting Total
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    {totalPostQty}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{pricePerPost}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{totalPostAmount}
+                                  </td>
+                                </tr>
+                              );
+                            })()}
+
+                         
+
+                            {/* ================= DM SERVICE TOTAL ================= */}
+                            {(() => {
+                              const graphicTotal = graphicData.reduce(
+                                (sum, service) =>
+                                  sum +
+                                  service.editingTypes.reduce(
+                                    (s, edit) =>
+                                      s +
+                                      Number(edit.price) *
+                                        Number(edit.quantity),
+                                    0
+                                  ),
+                                0
+                              );
+                              const thumbTotal = graphicData
+                                .flatMap((s) =>
+                                  s.editingTypes.filter(
+                                    (e) =>
+                                      Number(e.include_thumbnail_creation) > 0
+                                  )
+                                )
+                                .reduce(
+                                  (sum, e) =>
+                                    sum +
+                                    Number(e.include_thumbnail_creation) *
+                                      Number(e.quantity),
+                                  0
+                                );
+                              const postTotal = graphicData
+                                .flatMap((s) =>
+                                  s.editingTypes.filter(
+                                    (e) => Number(e.include_content_posting) > 0
+                                  )
+                                )
+                                .reduce(
+                                  (sum, e) =>
+                                    sum +
+                                    Number(e.include_content_posting) *
+                                      Number(e.quantity),
+                                  0
+                                );
+                              
+                              const dmServiceTotal =
+                                graphicTotal +
+                                thumbTotal +
+                                postTotal;
+                               
+
+                              return (
+                                <tr className="bg-indigo-50 font-semibold">
+                                  <td
+                                    className="border px-2 py-1 text-right"
+                                    colSpan={4}
+                                  >
+                                    DM Service Total
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{dmServiceTotal.toLocaleString()}
+                                  </td>
+                                </tr>
+                              );
+                            })()}
+                          
+
+                            {/* ================= DM SERVICE TOTAL ================= */}
+                            {(() => {
+                              const graphicTotal = graphicData.reduce(
+                                (sum, service) => {
+                                  return (
+                                    sum +
+                                    service.editingTypes.reduce(
+                                      (s, edit) =>
+                                        s +
+                                        Number(edit.price) *
+                                          Number(edit.quantity),
+                                      0
+                                    )
+                                  );
+                                },
+                                0
+                              );
+
+                              const thumbTotal = graphicData
+                                .flatMap((s) =>
+                                  s.editingTypes.filter(
+                                    (e) =>
+                                      Number(e.include_thumbnail_creation) > 0
+                                  )
+                                )
+                                .reduce(
+                                  (sum, e) =>
+                                    sum +
+                                    Number(e.include_thumbnail_creation) *
+                                      Number(e.quantity),
+                                  0
+                                );
+
+                              const postTotal = graphicData
+                                .flatMap((s) =>
+                                  s.editingTypes.filter(
+                                    (e) => Number(e.include_content_posting) > 0
+                                  )
+                                )
+                                .reduce(
+                                  (sum, e) =>
+                                    sum +
+                                    Number(e.include_content_posting) *
+                                      Number(e.quantity),
+                                  0
+                                );
+
+                             
+
+                              const dmServiceTotal =
+                                graphicTotal +
+                                thumbTotal +
+                                postTotal;
+
+                              return (
+                                <tr className="bg-indigo-50 font-semibold">
+                                  <td
+                                    className="border px-2 py-1 text-right"
+                                    colSpan={4}
+                                  >
+                                    Total Amount
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{dmServiceTotal.toLocaleString()}
+                                  </td>
+                                </tr>
+                              );
+                            })()}
                           </tbody>
                         </table>
-
-                        {/* Ads Total = budget total + gst total */}
-                        <p className="text-right text-lg font-semibold mt-1">
-                          Ads Total: ₹
-                          {adsData
-                            .reduce((sum, ad) => {
-                              const amount = Number(ad.amount || 0);
-                              const totalBudget = Number(ad.total_amount || 0);
-                              const gstTotal = (amount * 18) / 100;
-                              return sum + totalBudget + gstTotal;
-                            }, 0)
-                            .toLocaleString()}
-                        </p>
                       </section>
                     )}
-                 {complimentaryData.length > 0 && (
-  <section className="mb-2">
-    <h3 className="text-xl font-semibold mb-3 border-b pb-2 text-indigo-700">
-      Complimentary Services
-    </h3>
+                    {/* Ads Services */}
 
-    <table className="w-full border text-sm">
-      <thead className="bg-indigo-100">
-        <tr>
-          <th className="border px-3 py-2 text-left">Category</th>
-          <th className="border px-3 py-2 text-left">Creative Type</th>
-          <th className="border px-3 py-2 text-right">Quantity</th>
-          <th className="border px-3 py-2 text-right">Price (₹)</th>
-          <th className="border px-3 py-2 text-right">Total (₹)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {complimentaryData.map((edit, eidx) => {
-          const qty = Number(edit.quantity);
-          const base = Number(edit.editing_type_amount);
-          const thumb = Number(edit.include_thumbnail_creation);
-          const posting = Number(edit.include_content_posting);
+                        {/* ==================== ADS SERVICES TABLE ==================== */}
+                                        {adsData.length > 0 && (
+                                          <section className="mb-2 text-xs">
+                                            <table className="w-full border text-xs">
+                                              <thead className="bg-indigo-100">
+                                                <tr>
+                                                  <th className="border px-2 py-1 text-left">
+                                                   
+                                                    Ads Services
+                                                  </th>
+                                                  <th className="border px-2 py-1 text-right">
+                                                    Amount (₹)
+                                                  </th>
+                                                  <th className="border px-2 py-1 text-right">
+                                                    Percentage (%)
+                                                  </th>
+                                                  <th className="border px-2 py-1 text-right">
+                                                    Final Total (₹)
+                                                  </th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                {adsData.map((ad, idx) => {
+                                                  const amount = Number(ad.amount || 0);
+                                                  const percent = Number(ad.percent || 0);
+                                                  const totalBudget = Number(ad.charge || 0);
+                                                  const gstTotal = amount + (amount * 18) / 100;
+                    
+                                                  return (
+                                                    <React.Fragment key={idx}>
+                                                      <tr className="bg-white">
+                                                        <td className="border px-2 py-1">
+                                                          {ad.category_name} Budget (GST)
+                                                        </td>
+                                                        <td className="border px-2 py-1 text-right">
+                                                          {amount.toLocaleString()}
+                                                        </td>
+                                                        <td className="border px-2 py-1 text-right">
+                                                          18
+                                                        </td>
+                                                        <td className="border px-2 py-1 text-right">
+                                                          {gstTotal.toLocaleString()}
+                                                        </td>
+                                                      </tr>
+                                                      <tr className="bg-gray-50">
+                                                        <td className="border px-2 py-1">
+                                                          {ad.category_name} Charges
+                                                        </td>
+                                                        <td className="border px-2 py-1 text-right">
+                                                          {amount.toLocaleString()}
+                                                        </td>
+                                                        <td className="border px-2 py-1 text-right">
+                                                          {percent}
+                                                        </td>
+                                                        <td className="border px-2 py-1 text-right">
+                                                          {totalBudget.toLocaleString()}
+                                                        </td>
+                                                      </tr>
+                                                    </React.Fragment>
+                                                  );
+                                                })}
+                                              </tbody>
+                                            </table>
+                    
+                                            <p className="text-right text-xs mt-1">
+                                              <span className="font-bold">Ads Total:</span> ₹
+                                              {adsData
+                                                .reduce((sum, ad) => {
+                                                  const amount = Number(ad.amount || 0);
+                                                  const totalBudget = Number(ad.total_amount || 0);
+                                                  const gstTotal = (amount * 18) / 100;
+                                                  return sum + totalBudget + gstTotal;
+                                                }, 0)
+                                                .toLocaleString()}
+                                            </p>
+                                          </section>
+                                        )}
+       
+<section className="mb-2 text-sm">
+                        <table className="w-full border text-xs">
+                          <thead className="bg-indigo-100">
+                            <tr>
+                              <th className="border w-[10rem] px-2 py-1 text-left">
+                               Complimentary Service
+                              </th>
+                              <th className="border w-[20rem] px-2 py-1 text-left">
+                                Service Type
+                              </th>
+                              <th className="border px-2 py-1 text-right">
+                                Quantity
+                              </th>
+                              <th className="border px-2 py-1 text-right">
+                                Price (₹)
+                              </th>
+                              <th className="border px-2 py-1 text-right">
+                                Total (₹)
+                              </th>
+                             
+                            </tr>
+                          </thead>
 
-          const totalBase = base * qty;
-          const totalThumb = thumb * qty;
-          const totalPost = posting * qty;
+                          <tbody>
+                             {/* ================= COMPLIMENTARY SERVICES ================= */}
+                            {complimentaryData.map((edit, eidx) => {
+                              const qty = Number(edit.quantity);
+                              const base = Number(edit.editing_type_amount);
+                              const totalBase = base * qty;
 
-          return (
-            <React.Fragment key={eidx}>
-              {/* Base Editing */}
-              <tr className="bg-white">
-                <td className="border px-3 py-2">{edit.category_name}</td>
-                <td className="border px-3 py-2">{edit.editing_type_name}</td>
-                <td className="border px-3 py-2 text-right">{qty}</td>
-                <td className="border px-3 py-2 text-right">₹{base}</td>
-                <td className="border px-3 py-2 text-right font-semibold">
-                  ₹{totalBase}
-                </td>
-              </tr>
+                              // For the first complimentary service, show "Complimentary Service" once
+                              return (
+                                <tr
+                                  key={`compl-${eidx}`}
+                                  className="bg-gray-50"
+                                >
+                                 
 
-              {/* Thumbnail */}
-              {thumb > 0 && (
-                <tr className="bg-gray-50">
-                  <td className="border px-3 py-2">{edit.category_name}</td>
-                  <td className="border px-3 py-2">Thumbnail Creation</td>
-                  <td className="border px-3 py-2 text-right">{qty}</td>
-                  <td className="border px-3 py-2 text-right">₹{thumb}</td>
-                  <td className="border px-3 py-2 text-right font-semibold">
-                    ₹{totalThumb}
-                  </td>
-                </tr>
-              )}
+                                  <td className="border px-2 py-1">
+                                    {edit.category_name}
+                                  </td>
+                                  <td className="border px-2 py-1">
+                                    {edit.editing_type_name}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    {qty}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{base}
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹{totalBase}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            <tr className=" font-semibold">
+                              <td
+                                className="border px-2 py-1 text-right"
+                                colSpan={4}
+                              >
+                                Total
+                              </td>
+                              <td className="border px-2 py-1 text-right">
+                                ₹{complimentaryTotal.toLocaleString()}
+                              </td>
+                            </tr>
+                            {/* ================= COMPLIMENTARY TOTAL ================= */}
+                            {(() => {
+                              
 
-              {/* Content Posting */}
-              {posting > 0 && (
-                <tr className="bg-gray-50">
-                  <td className="border px-3 py-2">{edit.category_name}</td>
-                  <td className="border px-3 py-2">Content Posting</td>
-                  <td className="border px-3 py-2 text-right">{qty}</td>
-                  <td className="border px-3 py-2 text-right">₹{posting}</td>
-                  <td className="border px-3 py-2 text-right font-semibold">
-                    ₹{totalPost}
-                  </td>
-                </tr>
-              )}
-            </React.Fragment>
-          );
-        })}
-      </tbody>
-    </table>
-
-    <p className="text-right text-lg font-semibold">
-      Total: ₹{complimentaryTotal.toLocaleString()}
-    </p>
-    <p className="text-right text-lg font-semibold">
-      Complimentary Total: ₹0
-    </p>
-  </section>
-)}
+                              return (
+                                <tr className="bg-indigo-50 font-semibold">
+                                  <td
+                                    className="border px-2 py-1 text-right"
+                                    colSpan={4}
+                                  >
+                                    Complimentary Total
+                                  </td>
+                                  <td className="border px-2 py-1 text-right">
+                                    ₹0
+                                  </td>
+                                </tr>
+                              );
+                            })()}
+                          </tbody>
+                        </table>
+                      </section>
 
 
                     {/* Grand Total Section */}
-                    <section className="text-right border-t pt-3 mb-6">
-                      <p className="text-xl text-gray-700">
+                    <section className="text-right border-t pt-1 mb-1">
+                      <p className="text-sm text-gray-700">
                         Subtotal: ₹{grandTotal.toLocaleString()}
                       </p>
 
                       {selecteddiscount > 0 && (
-                        <p className="text-lg text-red-600 mt-1">
+                        <p className="text-sm text-red-600">
                           Discount ({selecteddiscount}%): -₹
                           {discountAmount.toFixed(2).toLocaleString()}
                         </p>
@@ -1067,15 +1244,15 @@ const fetchClientReceived = async () => {
 
                       {isGST ? (
                         <>
-                          <p className="text-lg text-gray-600 mt-1">
+                          <p className="text-md text-gray-600 ">
                             GST (18%): ₹{gstAmount.toLocaleString()}
                           </p>
-                          <p className="text-2xl font-bold text-indigo-700 mt-2">
+                          <p className="text-md font-bold text-indigo-700 ">
                             Total with GST: ₹{finalTotal.toLocaleString()}
                           </p>
                         </>
                       ) : (
-                        <p className="text-2xl font-bold text-indigo-700 mt-2">
+                        <p className="text-md font-bold text-indigo-700 ">
                           Grand Total: ₹
                           {totalAfterDiscount.toFixed(2).toLocaleString()}
                         </p>
@@ -1090,7 +1267,7 @@ const fetchClientReceived = async () => {
 
                 <div className="space-y-4">
                  
- <div className="relative w-full">
+ <div className="relative w-full" ref={dropdownRef}>
       {/* Button to open dropdown */}
        <div
         className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-gray-300 text-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -1108,7 +1285,7 @@ const fetchClientReceived = async () => {
       {/* Dropdown menu */}
       {isOpen && (
         <div className="absolute z-10 bg-white w-full mt-1 max-h-60 overflow-auto border rounded-lg text-black focus:ring-2 focus:ring-purple-500">
-          {predefinedNotes.map((note) => (
+          {uniquePredefinedNotes.map((note) => (
             <div
               key={note.id}
               onClick={() => handleSelect(note)}
@@ -1251,7 +1428,7 @@ const fetchClientReceived = async () => {
                  </div>  
                    {notesData.length > 0 ? (<>
 
-                    <h2 className="text-lg mt-3 font-bold">Notes</h2>
+                    <p className="text-sm  font-bold">Notes</p>
                  
                       <ul className="list-disc pl-5">
                         {notesData.map((note) => (
@@ -1259,7 +1436,7 @@ const fetchClientReceived = async () => {
                               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
                           <li
                             key={note.id}
-                            className="text-sm text-gray-700 font-bold"
+                            className="text-xs text-gray-700 font-bold"
                           >
                             {note.note_name}
                           </li>

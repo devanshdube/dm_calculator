@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useLocation, useParams } from "react-router-dom";
@@ -79,6 +79,7 @@ const AdminCalculator = () => {
   const [predefinedNotes, setPredefinedNotes] = useState([]); // fetched from API
   const [selectedNotes, setSelectedNotes] = useState([]); // selected + manual
   const [manualNote, setManualNote] = useState("");
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     if (location.state?.servicetype) {
@@ -835,37 +836,37 @@ const handleSaveNotes = async () => {
       }
     }
   };
-  const getAllPlanNotes = async () => {
-    try {
-      const response = await axios.get(
-        `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${proposalId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+    const getAllPlanNotes = async () => {
+      try {
+        const response = await axios.get(
+          `${baseURL}/auth/api/calculator/getClientNotesbyId/${id}/${proposalId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const notes = response.data.data;
+
+        setAllClientNote(notes);
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          Swal.fire({
+            title: "Session Expired",
+            text: "Please login again.",
+            icon: "warning",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          }).then(() => {
+            dispatch(clearUser());
+            localStorage.removeItem("token");
+            navigate("/");
+          });
         }
-      );
-
-      const notes = response.data.data;
-
-      setAllClientNote(notes);
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        Swal.fire({
-          title: "Session Expired",
-          text: "Please login again.",
-          icon: "warning",
-          showConfirmButton: false,
-          timer: 2000,
-          timerProgressBar: true,
-        }).then(() => {
-          dispatch(clearUser());
-          localStorage.removeItem("token");
-          navigate("/");
-        });
       }
-    }
-  };
+    };
 
   useEffect(() => {
     fetchData();
@@ -943,7 +944,24 @@ const handleSaveNotes = async () => {
     handleAddPredefinedNote(note);
      setSelectedNote(null);      
     setIsOpen(false);
+  
   };
+
+    useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  const uniquePredefinedNotes = predefinedNotes.filter(
+  (p) => !allClientNote.some((c) => c.note_name === p.note_text)
+);
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white p-6">
@@ -1353,9 +1371,9 @@ const handleSaveNotes = async () => {
     </option>
   ))}
 </select> */}
- <div className="relative w-full">
+<div className="relative w-full" ref={dropdownRef}>
       {/* Button to open dropdown */}
-       <div
+      <div
         className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-gray-300 text-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -1368,10 +1386,11 @@ const handleSaveNotes = async () => {
           <ChevronDown className="w-5 h-5 text-gray-500" />
         )}
       </div>
+
       {/* Dropdown menu */}
       {isOpen && (
         <div className="absolute z-10 bg-white w-full mt-1 max-h-60 overflow-auto border rounded-lg text-black focus:ring-2 focus:ring-purple-500">
-          {predefinedNotes.map((note) => (
+          {uniquePredefinedNotes.map((note) => (
             <div
               key={note.id}
               onClick={() => handleSelect(note)}
