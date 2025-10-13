@@ -707,19 +707,19 @@ exports.updateClientNoteDataById = (req, res) => {
 };
 exports.updateDiscountDataById = (req, res) => {
   const { id } = req.params;
-  const { discount_per } = req.body;
+  const { discount_type,discount_per,discount_amt, } = req.body;
 
   const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
   const query = `
     UPDATE discount
     SET
-      discount_per = ?,
+      discount_type = ?,discount_per = ?,discount_amt= ?,
       created_at = ?
     WHERE id = ?
   `;
 
-  const values = [discount_per, updatedAt, id];
+  const values = [discount_type,discount_per,discount_amt, updatedAt, id];
 
   db.query(query, values, (err, result) => {
     if (err) {
@@ -1306,6 +1306,34 @@ exports.updateSeoKeyword = (req, res) => {
       .status(500)
       .json({ status: "Failure", message: "Internal Server Error" });
   }
+};
+exports.updateDiscountSettingDataById = (req, res) => {
+  const { id } = req.params;
+  const { discount_per,discount_amt } = req.body;
+
+  const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    UPDATE discount_settings
+    SET
+      discount_per = ?,discount_amt = ?,
+      created_at = ?
+    WHERE id = ?
+  `;
+
+  const values = [discount_per,discount_amt, updatedAt, id];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Update Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      message: "Entry updated of Discount Setting successfully",
+    });
+  });
 };
 
 // working code

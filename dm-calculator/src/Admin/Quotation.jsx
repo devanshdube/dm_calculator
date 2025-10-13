@@ -193,7 +193,7 @@ setSelectedPlan(res.data.data[0].plan_name || "Customise");
         }
       );
 
-      setSelecteddiscount(data.data[0].discount_per);
+      setSelecteddiscount(data.data[0]);
     } catch (error) {
       console.error(error);
     }
@@ -558,22 +558,24 @@ const fetchClientReceived = async () => {
   const grandTotalAds = graphicTotal + adsTotal - adsTotalBudget;
 
   const grandTotal = graphicTotal + adsTotal;
+// Compute discounted amount based on type
+const discountAmount = selecteddiscount
+  ? selecteddiscount.discount_type === "percent"
+    ? (grandTotalAds * Number(selecteddiscount.discount_per)) / 100
+    : selecteddiscount.discount_type === "amount"
+    ? Number(selecteddiscount.discount_amt)
+    : 0
+  : 0;
 
-  // Apply discount percentage only for display
-  const discountAmount = selecteddiscount
-    ? (grandTotalAds * Number(selecteddiscount)) / 100
-    : 0;
+// Grand total after discount
+const totalAfterDiscount = grandTotal - discountAmount;
 
-  const gstexculidingAdsgst = grandTotalAds - discountAmount;
-  console.log(gstexculidingAdsgst);
+// GST on discounted total if applicable
+const gstAmount = isGST ? (grandTotalAds - discountAmount) * 0.18 : 0;
 
-  const totalAfterDiscount = grandTotal - discountAmount;
+// Final total including GST
+const finalTotal = totalAfterDiscount + gstAmount;
 
-  // If GST applies on discounted total
-  const gstAmount = isGST ? gstexculidingAdsgst * 0.18 : 0;
-  console.log(gstAmount);
-
-  const finalTotal = totalAfterDiscount + gstAmount;
 
 
   // if (loading) {
@@ -972,7 +974,7 @@ const fetchClientReceived = async () => {
                                
 
                               return (
-                                <tr className="bg-indigo-50 font-semibold">
+                                <tr className=" font-semibold">
                                   <td
                                     className="border px-2 py-1 text-right"
                                     colSpan={4}
@@ -988,73 +990,7 @@ const fetchClientReceived = async () => {
                           
 
                             {/* ================= DM SERVICE TOTAL ================= */}
-                            {(() => {
-                              const graphicTotal = graphicData.reduce(
-                                (sum, service) => {
-                                  return (
-                                    sum +
-                                    service.editingTypes.reduce(
-                                      (s, edit) =>
-                                        s +
-                                        Number(edit.price) *
-                                          Number(edit.quantity),
-                                      0
-                                    )
-                                  );
-                                },
-                                0
-                              );
-
-                              const thumbTotal = graphicData
-                                .flatMap((s) =>
-                                  s.editingTypes.filter(
-                                    (e) =>
-                                      Number(e.include_thumbnail_creation) > 0
-                                  )
-                                )
-                                .reduce(
-                                  (sum, e) =>
-                                    sum +
-                                    Number(e.include_thumbnail_creation) *
-                                      Number(e.quantity),
-                                  0
-                                );
-
-                              const postTotal = graphicData
-                                .flatMap((s) =>
-                                  s.editingTypes.filter(
-                                    (e) => Number(e.include_content_posting) > 0
-                                  )
-                                )
-                                .reduce(
-                                  (sum, e) =>
-                                    sum +
-                                    Number(e.include_content_posting) *
-                                      Number(e.quantity),
-                                  0
-                                );
-
-                             
-
-                              const dmServiceTotal =
-                                graphicTotal +
-                                thumbTotal +
-                                postTotal;
-
-                              return (
-                                <tr className="bg-indigo-50 font-semibold">
-                                  <td
-                                    className="border px-2 py-1 text-right"
-                                    colSpan={4}
-                                  >
-                                    Total Amount
-                                  </td>
-                                  <td className="border px-2 py-1 text-right">
-                                    ₹{dmServiceTotal.toLocaleString()}
-                                  </td>
-                                </tr>
-                              );
-                            })()}
+                       
                           </tbody>
                         </table>
                       </section>
@@ -1139,7 +1075,8 @@ const fetchClientReceived = async () => {
                                           </section>
                                         )}
        
-<section className="mb-2 text-sm">
+ {complimentaryData.length > 0 && (
+<section className="mb-2 mt-4 text-sm">
                         <table className="w-full border text-xs">
                           <thead className="bg-indigo-100">
                             <tr>
@@ -1211,7 +1148,7 @@ const fetchClientReceived = async () => {
                               
 
                               return (
-                                <tr className="bg-indigo-50 font-semibold">
+                                <tr className=" font-semibold">
                                   <td
                                     className="border px-2 py-1 text-right"
                                     colSpan={4}
@@ -1227,37 +1164,44 @@ const fetchClientReceived = async () => {
                           </tbody>
                         </table>
                       </section>
-
+   )}
 
                     {/* Grand Total Section */}
-                    <section className="text-right border-t pt-1 mb-1">
-                      <p className="text-sm text-gray-700">
-                        Subtotal: ₹{grandTotal.toLocaleString()}
-                      </p>
+           <section className="text-right border-t pt-1 mb-1">
+  {/* Subtotal */}
+  <p className="text-sm text-gray-700">
+    Subtotal: ₹{grandTotal.toLocaleString()}
+  </p>
 
-                      {selecteddiscount > 0 && (
-                        <p className="text-sm text-red-600">
-                          Discount ({selecteddiscount}%): -₹
-                          {discountAmount.toFixed(2).toLocaleString()}
-                        </p>
-                      )}
+  {/* Discount */}
+  {selecteddiscount && (
+    <p className="text-sm text-red-600">
+      Discount (
+      {selecteddiscount.discount_type === "percent"
+        ? `${selecteddiscount.discount_per}%`
+        : `₹${selecteddiscount.discount_amt}`}
+      ): -₹
+      {discountAmount.toFixed(2).toLocaleString()}
+    </p>
+  )}
 
-                      {isGST ? (
-                        <>
-                          <p className="text-md text-gray-600 ">
-                            GST (18%): ₹{gstAmount.toLocaleString()}
-                          </p>
-                          <p className="text-md font-bold text-indigo-700 ">
-                            Total with GST: ₹{finalTotal.toLocaleString()}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-md font-bold text-indigo-700 ">
-                          Grand Total: ₹
-                          {totalAfterDiscount.toFixed(2).toLocaleString()}
-                        </p>
-                      )}
-                    </section>
+  {/* GST & Total */}
+  {isGST ? (
+    <>
+      <p className="text-md text-gray-600">
+        GST (18%): ₹{gstAmount.toLocaleString()}
+      </p>
+      <p className="text-md font-bold text-indigo-700">
+        Total with GST: ₹{finalTotal.toLocaleString()}
+      </p>
+    </>
+  ) : (
+    <p className="text-md font-bold text-indigo-700">
+      Grand Total: ₹{totalAfterDiscount.toFixed(2).toLocaleString()}
+    </p>
+  )}
+</section>
+
 
 <div className=" print:hidden">
   <h3 className="text-xl font-bold  mb-4 flex items-center gap-2">

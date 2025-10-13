@@ -1546,3 +1546,37 @@ exports.deleteSeoKeyword = (req, res) => {
       .json({ status: "Failure", message: "Internal Server Error" });
   }
 };
+
+exports.deleteDiscountSettingById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    db.query("DELETE FROM discount_settings WHERE id = ?", [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while deleting entry",
+          error: err,
+        });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No Note entry found to delete",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        message: "Note entry deleted successfully",
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};

@@ -13,6 +13,7 @@ import InvoiceCalculation from "../Admin/InvoiceCalculation";
 import InvoiceAds from "../Admin/InvoiceAds";
 import InvoiceNoteSection from "../Admin/InvoiceNoteSection";
 import InvoiceHistory from "../Admin/InvoiceHistory";
+import DiscountSetting from "../Admin/DiscountSetting";
 
 const AdminDashboard = lazy(() => import("../Admin/AdminDashboard"));
 const AdminCalculator = lazy(() => import("../Admin/AdminCalculator"));
@@ -84,6 +85,10 @@ const AdminRouter = () => {
             <Route
               path="Invoice-history"
               element={<InvoiceHistory />}
+            />
+            <Route
+              path="discount-setting/:id/:txn_id"
+              element={<DiscountSetting />}
             />
             <Route path="/review/:linkId" element={<ReviewRequirements />} />
           </Routes>

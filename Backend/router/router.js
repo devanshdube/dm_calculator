@@ -48,6 +48,7 @@ const {
   saveRemainingAmountData,
   seoClientsDetails,
   seoWebsiteKeyword,
+  saveDiscountSetting,
 } = require("../controller/controller");
 const {
   getAddServices,
@@ -100,6 +101,7 @@ const {
   getAdditionByIdData,
   getRemainingAmountByIdData,
   getSeoClientsWithKeywords,
+  getDiscountSetting,
 } = require("../controller/getController");
 const {
   deleteService,
@@ -133,6 +135,7 @@ const {
   deleteRemainingAmountById,
   deleteSeoClient,
   deleteSeoKeyword,
+  deleteDiscountSettingById,
 } = require("../controller/deleteController");
 const {
   updateService,
@@ -157,6 +160,7 @@ const {
   updateRemainingDataById,
   updateSeoClient,
   updateSeoKeyword,
+  updateDiscountSettingDataById,
   // reassignQuotation,
 } = require("../controller/updateController");
 
@@ -215,6 +219,8 @@ router.post("/saveRemainingAmountData", saveRemainingAmountData);
 router.post("/saveCalculatorDataofplanDetail", saveCalculatorDataOfPlanDetail);
 router.post("/seoClientsDetails", seoClientsDetails);
 router.post("/seoWebsiteKeyword/:client_id", seoWebsiteKeyword);
+router.post("/saveDiscountSetting", saveDiscountSetting);
+
 
 // ---->  Get all routes START <----
 router.get("/getAddServices", authenticateToken, getAddServices);
@@ -351,6 +357,7 @@ router.get(
   getRemainingAmountByIdData
 );
 router.get("/getSeoClientsWithKeywords",authenticateToken, getSeoClientsWithKeywords);
+router.get("/getDiscountSetting",authenticateToken, getDiscountSetting);
 
 // ---->  Get all routes END <----
 
@@ -409,6 +416,7 @@ router.delete(
 );
 router.delete("/deleteAdditionalById/:id", deleteAdditionalById);
 router.delete("/deleteRemainingAmountById/:id", deleteRemainingAmountById);
+router.delete("/deleteDiscountSettingById/:id", deleteDiscountSettingById);
 
 router.delete("/deleteRequirementsBundle/:linkId", deleteRequirementsBundle);
 router.delete("/deleteSeoClient/:clientId", deleteSeoClient);
@@ -444,6 +452,7 @@ router.put(
 router.put("/updateInvoiceClientDataById/:id", updateInvoiceClientDataById);
 router.put("/updateAdditionalDataById/:id", updateAdditionalDataById);
 router.put("/updateRemainingDataById/:id", updateRemainingDataById);
+router.put("/updateDiscountSettingDataById/:id", updateDiscountSettingDataById);
 // router.put("/reassignQuotation", reassignQuotation);
 router.put("/updateSeoClient/:clientId", updateSeoClient);
 router.put("/updateSeoKeyword/:keywordId", updateSeoKeyword);

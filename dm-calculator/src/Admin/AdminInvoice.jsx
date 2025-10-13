@@ -245,7 +245,7 @@ export default function AdminInvoice() {
         }
       );
 
-      setSelecteddiscount(data.data[0].discount_per);
+      setSelecteddiscount(data.data[0]);
     } catch (error) {
       console.error(error);
     }
@@ -1008,20 +1008,24 @@ export default function AdminInvoice() {
     graphicTotal + adsTotal + additionalTotal + remainingTotalAmount;
 
   // Apply discount percentage only for display
-  const discountAmount = selecteddiscount
-    ? (grandTotalAds * Number(selecteddiscount)) / 100
-    : 0;
+ // Compute discounted amount based on type
+const discountAmount = selecteddiscount
+  ? selecteddiscount.discount_type === "percent"
+    ? (grandTotalAds * Number(selecteddiscount.discount_per)) / 100
+    : selecteddiscount.discount_type === "amount"
+    ? Number(selecteddiscount.discount_amt)
+    : 0
+  : 0;
 
-  const gstexculidingAdsgst = grandTotalAds - discountAmount;
-  console.log(gstexculidingAdsgst);
+// Grand total after discount
+const totalAfterDiscount = grandTotal - discountAmount;
 
-  const totalAfterDiscount = grandTotal - discountAmount;
+// GST on discounted total if applicable
+const gstAmount = isGST ? (grandTotalAds - discountAmount) * 0.18 : 0;
 
-  // If GST applies on discounted total
-  const gstAmount = isGST ? gstexculidingAdsgst * 0.18 : 0;
-  console.log(gstAmount);
+// Final total including GST
+const finalTotal = totalAfterDiscount + gstAmount;
 
-  const finalTotal = totalAfterDiscount + gstAmount;
 
   if (loading) {
     return (
@@ -1680,7 +1684,7 @@ export default function AdminInvoice() {
                                 remainingTotal;
 
                               return (
-                                <tr className="bg-indigo-50 font-semibold">
+                                <tr className=" font-semibold">
                                   <td
                                     className="border px-2 py-1 text-right"
                                     colSpan={4}
@@ -1752,7 +1756,7 @@ export default function AdminInvoice() {
                                 );
 
                               return (
-                                <tr className="bg-indigo-50 font-semibold">
+                                <tr className=" font-semibold">
                                   <td
                                     className="border px-2 py-1 text-right"
                                     colSpan={4}
@@ -1946,34 +1950,41 @@ export default function AdminInvoice() {
                       </div>
                     )}
 
-                    <section className="text-right border-t pt-1 mb-1">
-                      <p className="text-sm text-gray-700">
-                        Subtotal: ₹{grandTotal.toLocaleString()}
-                      </p>
+                <section className="text-right border-t pt-1 mb-1">
+  {/* Subtotal */}
+  <p className="text-sm text-gray-700">
+    Subtotal: ₹{grandTotal.toLocaleString()}
+  </p>
 
-                      {selecteddiscount > 0 && (
-                        <p className="text-sm text-red-600">
-                          Discount ({selecteddiscount}%): -₹
-                          {discountAmount.toFixed(2).toLocaleString()}
-                        </p>
-                      )}
+  {/* Discount */}
+  {selecteddiscount && (
+    <p className="text-sm text-red-600">
+      Discount (
+      {selecteddiscount.discount_type === "percent"
+        ? `${selecteddiscount.discount_per}%`
+        : `₹${selecteddiscount.discount_amt}`}
+      ): -₹
+      {discountAmount.toFixed(2).toLocaleString()}
+    </p>
+  )}
 
-                      {isGST ? (
-                        <>
-                          <p className="text-md text-gray-600 ">
-                            GST (18%): ₹{gstAmount.toLocaleString()}
-                          </p>
-                          <p className="text-md font-bold text-indigo-700 ">
-                            Total with GST: ₹{finalTotal.toLocaleString()}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-md font-bold text-indigo-700 ">
-                          Grand Total: ₹
-                          {totalAfterDiscount.toFixed(2).toLocaleString()}
-                        </p>
-                      )}
-                    </section>
+  {/* GST & Total */}
+  {isGST ? (
+    <>
+      <p className="text-md text-gray-600">
+        GST (18%): ₹{gstAmount.toLocaleString()}
+      </p>
+      <p className="text-md font-bold text-indigo-700">
+        Total with GST: ₹{finalTotal.toLocaleString()}
+      </p>
+    </>
+  ) : (
+    <p className="text-md font-bold text-indigo-700">
+      Grand Total: ₹{totalAfterDiscount.toFixed(2).toLocaleString()}
+    </p>
+  )}
+</section>
+
 
                     <div className=" print:hidden">
                       {/* <h3 className="text-xl font-bold  mb-4 flex items-center gap-2">

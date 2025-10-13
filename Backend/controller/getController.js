@@ -2411,3 +2411,35 @@ exports.getSeoClientsWithKeywords = (req, res) => {
     });
   }
 };
+
+exports.getDiscountSetting = async (req, res) => {
+  try {
+    db.query("SELECT * FROM discount_settings", (err, results) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error",
+          error: err,
+        });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({
+          status: "Failure",
+          message: "No plan found",
+        });
+      }
+
+      res.status(200).json({
+        status: "Success",
+        data: results,
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
+  }
+};

@@ -23,6 +23,7 @@ import {
   PercentDiamond,
   ChevronUp,
   ChevronDown,
+  IndianRupee,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
@@ -61,21 +62,30 @@ const AdminCalculator = () => {
   const [editId, setEditId] = useState(null);
   const [allClientNote, setAllClientNote] = useState([]);
   const [discountData, setDiscountData] = useState("");
+  const [discountDataSet, setDiscountDataSet] = useState("");
   const [formData, setFormData] = useState({
     note_name: "",
     plan: "Customise",
   });
   const [formDataDis, setFormDataDis] = useState({
-    discount_per: "",
+  discount_type: "percent", 
+  discount_per: "",
+  discount_amt: "",
     client_id: id,
     txn_id: proposalId,
   });
+
   const [selectedNotesId, setSelectedNotesId] = useState(null);
   const [selectedDiscountId, setSelectedDiscountId] = useState(null);
+
   const [showModal, setShowModal] = useState(false);
   const [showModalDis, setShowModalDis] = useState(false);
+  const [showModalDisSet, setShowModalDisSet] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingDis, setIsEditingDis] = useState(false);
+
+
+  const [isEditingDisSet, setIsEditingDisSet] = useState(false);
   const [predefinedNotes, setPredefinedNotes] = useState([]); // fetched from API
   const [selectedNotes, setSelectedNotes] = useState([]); // selected + manual
   const [manualNote, setManualNote] = useState("");
@@ -175,10 +185,27 @@ const AdminCalculator = () => {
       console.error(error);
     }
   };
+  const fetchDiscountSetting = async () => {
+    try {
+      const { data } = await axios.get(
+        `${baseURL}/auth/api/calculator/getDiscountSetting`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setDiscountDataSet(data.data[0]);
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
     fetchPredefinedNotes();
     fetchDiscount();
+    fetchDiscountSetting();
   }, []);
 
   const getOptionalAddonAmount = (serviceName, editingTypeName) => {
@@ -383,11 +410,14 @@ const handleSave = () => {
   const handleCloseDis = () => {
     setShowModalDis(false);
     setFormDataDis({
-      discount_per: "",
+        discount_type: "percent", // default selection
+  discount_per: "",
+  discount_amt: "",
       client_id: id,
       txn_id: proposalId,
     });
   };
+
 
   const handleShow = () => {
     setFormDataDis({
@@ -398,6 +428,7 @@ const handleSave = () => {
     setIsEditingDis(false);
     setShowModalDis(true);
   };
+ 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -415,6 +446,7 @@ const handleSave = () => {
       [name]: value,
     }));
   };
+ 
 
   const handleSubmitDis = async (e) => {
     e.preventDefault();
@@ -508,6 +540,7 @@ const handleSave = () => {
       setLoading(false);
     }
   };
+
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -935,10 +968,18 @@ const handleSaveNotes = async () => {
   );
 
   // Discounted total (if discount exists)
-  const discountedTotal =
-    selecteddiscount && !isNaN(selecteddiscount)
-      ? grandTotal - (grandTotal * parseFloat(selecteddiscount)) / 100
-      : grandTotal;
+const discountedTotal = () => {
+  if (!selecteddiscount || !discountData) return grandTotal;
+
+  if (discountData.discount_type === "percent") {
+    return grandTotal - (grandTotal * parseFloat(discountData.discount_per)) / 100;
+  } else if (discountData.discount_type === "amount") {
+    return grandTotal - parseFloat(discountData.discount_amt);
+  } else {
+    return grandTotal;
+  }
+};
+
 
   const handleSelect = (note) => {
     handleAddPredefinedNote(note);
@@ -1214,6 +1255,7 @@ const handleSaveNotes = async () => {
                 >
                   + Discount
                 </button>
+               
                 <button
                   className=" px-4 py-2 float-end bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
                   onClick={resetForm}
@@ -1230,11 +1272,19 @@ const handleSaveNotes = async () => {
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
                         {/* Left Section: Info */}
+                         {discountData.discount_type === "percent" ? (
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 font-semibold text-lg">
                             <span>{discountData.discount_per} %</span>
                           </div>
                         </div>
+                         ) :
+                        (<div className="space-y-1">
+                          <div className="flex items-center gap-2 font-semibold text-lg">
+                            <span>{discountData.discount_amt} ₹</span>
+                          </div>
+                        </div>
+)}
 
                         {/* Right Section: Amount + Delete */}
                         <div className="flex items-center gap-2 sm:gap-4">
@@ -1243,7 +1293,12 @@ const handleSaveNotes = async () => {
                               e.stopPropagation(); // prevent card onClick
                               setSelectedDiscountId(discountData);
                               setFormDataDis({
+                                
+                                discount_type: discountData.discount_type,
                                 discount_per: discountData.discount_per,
+                                discount_amt: discountData.discount_amt,
+
+
                               });
                               setIsEditingDis(true);
                               setShowModalDis(true);
@@ -1271,15 +1326,23 @@ const handleSaveNotes = async () => {
                 )}
                
 
-                <div className="text-xl font-semibold text-center text-green-300 mt-4">
-                  Total Amount: ₹{grandTotal.toLocaleString()}
-                  {selecteddiscount ? (
-                    <p>
-                      After {selecteddiscount}% Discount: ₹
-                      {discountedTotal.toFixed(2)}
-                    </p>
-                  ) : null}
-                </div>
+               <div className="text-xl font-semibold text-center text-green-300 mt-4">
+  Total Amount: ₹{grandTotal.toLocaleString()}
+  {discountData ? (
+    discountData.discount_type === "percent" ? (
+      <p>
+        After {discountData.discount_per}% Discount: ₹
+        {discountedTotal().toFixed(2)}
+      </p>
+    ) : discountData.discount_type === "amount" ? (
+      <p>
+        After ₹{discountData.discount_amt} Discount: ₹
+        {discountedTotal().toFixed(2)}
+      </p>
+    ) : null
+  ) : null}
+</div>
+
 
                 {/* Client Orders */}
 
@@ -1573,7 +1636,7 @@ const handleSaveNotes = async () => {
                     </div>
                   </div>
                 )}
-                {showModalDis && (
+                   {showModalDis && (
                   <div className="fixed inset-0 z-50 flex  justify-center  p-4">
                     {/* Backdrop */}
                     <div
@@ -1582,7 +1645,7 @@ const handleSaveNotes = async () => {
                     />
 
                     {/* Modal */}
-                    <div className="relative h-80 bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                    <div className="relative h-96 bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
                       {/* Header */}
                       <div className="flex items-center justify-between p-6 border-b border-gray-100">
                         <div className="flex items-center gap-3">
@@ -1609,21 +1672,55 @@ const handleSaveNotes = async () => {
                         className="p-6 space-y-4"
                       >
                         {/* Note */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <Percent className="w-4 h-4 inline mr-2" />
-                            Discount
-                          </label>
-                          <input
-                            name="discount_per"
-                            type="number"
-                            value={formDataDis.discount_per}
-                            onChange={handleChangeDis}
-                            className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
-                            placeholder="Enter discount percent"
-                            required
-                          ></input>
-                        </div>
+                  <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Select Discount Type
+  </label>
+  <select
+    name="discount_type"
+    value={formDataDis.discount_type}
+    onChange={handleChangeDis}
+    className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+  >
+    <option value="">Select Discount Type</option>
+    <option value="percent">Percentage (%)</option>
+    <option value="amount">Amount (₹)</option>
+  </select>
+</div>
+{formDataDis.discount_type === "percent" ? (
+ <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      <Percent className="w-4 h-4 inline mr-2" /> Discount Percent (%)
+    </label>
+    <input
+      name="discount_per"
+      type="number"
+      value={formDataDis.discount_per}
+      onChange={handleChangeDis}
+      max={discountDataSet?.discount_per || 100} // dynamic max
+      className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+      placeholder={`Enter discount percent (max ${discountDataSet?.discount_per || 100}%)`}
+      required
+    />
+  </div>
+) : formDataDis.discount_type === "amount" ?  (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      <IndianRupee className="w-4 h-4 inline mr-2" /> Discount Amount (₹)
+    </label>
+    <input
+      name="discount_amt"
+      type="number"
+      value={formDataDis.discount_amt}
+      onChange={handleChangeDis}
+      max={discountDataSet?.discount_amt || 999999} // dynamic max
+      className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+      placeholder={`Enter discount amount (max ₹${discountDataSet?.discount_amt || 999999})`}
+      required
+    />
+  </div>
+): null}
+
 
                         {/* Buttons */}
                         <div className="flex justify-end gap-3 pt-4">
@@ -1652,6 +1749,8 @@ const handleSaveNotes = async () => {
                     </div>
                   </div>
                 )}
+            
+             
                 {/* <div className="space-y-3">
             {getData.map((order) => (
               <div

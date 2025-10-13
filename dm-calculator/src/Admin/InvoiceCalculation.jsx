@@ -3,7 +3,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { useLocation, useParams } from "react-router-dom";
 import {
-  Palette,
+Palette,
   Megaphone,
   Search,
   ArrowRight,
@@ -23,6 +23,7 @@ import {
   PercentDiamond,
   ChevronUp,
   ChevronDown,
+  IndianRupee,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../redux/user/userSlice";
@@ -66,11 +67,15 @@ const InvoiceCalculation = () => {
     note_name: "",
     plan: "Customise",
   });
-  const [formDataDis, setFormDataDis] = useState({
-    discount_per: "",
+const [formDataDis, setFormDataDis] = useState({
+  discount_type: "percent", 
+  discount_per: "",
+  discount_amt: "",
     client_id: id,
     txn_id: proposalId,
   });
+    const [discountDataSet, setDiscountDataSet] = useState("");
+  
   const [selectedNotesId, setSelectedNotesId] = useState(null);
   const [selectedDiscountId, setSelectedDiscountId] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -177,10 +182,27 @@ const InvoiceCalculation = () => {
       console.error(error);
     }
   };
+  const fetchDiscountSetting = async () => {
+    try {
+      const { data } = await axios.get(
+        `${baseURL}/auth/api/calculator/getDiscountSetting`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setDiscountDataSet(data.data[0]);
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
     fetchPredefinedNotes();
     fetchDiscount();
+    fetchDiscountSetting();
   }, []);
 
   const getOptionalAddonAmount = (serviceName, editingTypeName) => {
@@ -372,11 +394,14 @@ const handleSave = () => {
   const handleCloseDis = () => {
     setShowModalDis(false);
     setFormDataDis({
-      discount_per: "",
+        discount_type: "percent", // default selection
+  discount_per: "",
+  discount_amt: "",
       client_id: id,
       txn_id: proposalId,
     });
   };
+
 
   const handleShow = () => {
     setFormDataDis({
@@ -754,7 +779,7 @@ const handleSave = () => {
       const result = res.data;
 
       if (result.status === "Success") {
-        setDiscountData((prev) => prev.filter((item) => item.id !== disId));
+        
 
         Swal.fire({
           icon: "success",
@@ -766,6 +791,7 @@ const handleSave = () => {
 
         fetchDiscount();
         setSelecteddiscount("");
+        setDiscountData("")
       }
     } catch (error) {
       console.error("Error deleting discount:", error);
@@ -912,10 +938,18 @@ const handleSave = () => {
   );
 
   // Discounted total (if discount exists)
-  const discountedTotal =
-    selecteddiscount && !isNaN(selecteddiscount)
-      ? grandTotal - (grandTotal * parseFloat(selecteddiscount)) / 100
-      : grandTotal;
+const discountedTotal = () => {
+  if (!selecteddiscount || !discountData) return grandTotal;
+
+  if (discountData.discount_type === "percent") {
+    return grandTotal - (grandTotal * parseFloat(discountData.discount_per)) / 100;
+  } else if (discountData.discount_type === "amount") {
+    return grandTotal - parseFloat(discountData.discount_amt);
+  } else {
+    return grandTotal;
+  }
+};
+
 
     const handleSelect = (note) => {
     handleAddPredefinedNote(note);
@@ -1198,7 +1232,7 @@ const handleSave = () => {
                   Reset Form
                 </button>
                 </div>
-            {discountData ? (
+          {discountData ? (
  <div className="space-y-4">
                 
                     <div
@@ -1207,11 +1241,19 @@ const handleSave = () => {
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
                         {/* Left Section: Info */}
+                         {discountData.discount_type === "percent" ? (
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 font-semibold text-lg">
                             <span>{discountData.discount_per} %</span>
                           </div>
                         </div>
+                         ) :
+                        (<div className="space-y-1">
+                          <div className="flex items-center gap-2 font-semibold text-lg">
+                            <span>{discountData.discount_amt} ₹</span>
+                          </div>
+                        </div>
+)}
 
                         {/* Right Section: Amount + Delete */}
                         <div className="flex items-center gap-2 sm:gap-4">
@@ -1220,7 +1262,12 @@ const handleSave = () => {
                               e.stopPropagation(); // prevent card onClick
                               setSelectedDiscountId(discountData);
                               setFormDataDis({
+                                
+                                discount_type: discountData.discount_type,
                                 discount_per: discountData.discount_per,
+                                discount_amt: discountData.discount_amt,
+
+
                               });
                               setIsEditingDis(true);
                               setShowModalDis(true);
@@ -1247,15 +1294,22 @@ const handleSave = () => {
                   null
                 )}
 
-                <div className="text-xl font-semibold text-center text-green-300 mt-4">
-                  Total Amount: ₹{grandTotal.toLocaleString()}
-                  {selecteddiscount ? (
-                    <p>
-                      After {selecteddiscount}% Discount: ₹
-                      {discountedTotal.toFixed(2)}
-                    </p>
-                  ) : null}
-                </div>
+              <div className="text-xl font-semibold text-center text-green-300 mt-4">
+  Total Amount: ₹{grandTotal.toLocaleString()}
+  {discountData ? (
+    discountData.discount_type === "percent" ? (
+      <p>
+        After {discountData.discount_per}% Discount: ₹
+        {discountedTotal().toFixed(2)}
+      </p>
+    ) : discountData.discount_type === "amount" ? (
+      <p>
+        After ₹{discountData.discount_amt} Discount: ₹
+        {discountedTotal().toFixed(2)}
+      </p>
+    ) : null
+  ) : null}
+</div>
 
                 {/* Client Orders */}
 
@@ -1546,84 +1600,118 @@ const handleSave = () => {
                   </div>
                 )}
                     {showModalDis && (
-                                <div className="fixed inset-0 z-50 flex  justify-center  p-4">
-                                  {/* Backdrop */}
-                                  <div
-                                    className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
-                                    onClick={handleCloseDis}
-                                  />
-              
-                                  {/* Modal */}
-                                  <div className="relative h-80 bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
-                                    {/* Header */}
-                                    <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                          <PercentDiamond className="w-5 h-5 text-blue-600" />
-                                        </div>
-                                        <h2 className="text-xl font-semibold text-gray-900">
-                                          {isEditingDis
-                                            ? "Edit Discount"
-                                            : "Add New Discount"}
-                                        </h2>
-                                      </div>
-                                      <button
-                                        onClick={handleCloseDis}
-                                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                                      >
-                                        <X className="w-5 h-5" />
-                                      </button>
-                                    </div>
-              
-                                    {/* Form */}
-                                    <form
-                                      onSubmit={handleSubmitDis}
-                                      className="p-6 space-y-4"
-                                    >
-                                      {/* Note */}
-                                      <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                          <Percent className="w-4 h-4 inline mr-2" />
-                                          Discount
-                                        </label>
-                                        <input
-                                          name="discount_per"
-                                          type="number"
-                                          value={formDataDis.discount_per}
-                                          onChange={handleChangeDis}
-                                          className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
-                                          placeholder="Enter discount percent"
-                                          required
-                                        ></input>
-                                      </div>
-              
-                                      {/* Buttons */}
-                                      <div className="flex justify-end gap-3 pt-4">
-                                        <button
-                                          type="button"
-                                          onClick={handleCloseDis}
-                                          className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                                        >
-                                          Cancel
-                                        </button>
-                                        <button
-                                          type="submit"
-                                          disabled={loading}
-                                          className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-                                        >
-                                          {loading
-                                            ? isEditing
-                                              ? "Updating..."
-                                              : "Saving..."
-                                            : isEditing
-                                            ? "Update Discount"
-                                            : "Save Discount"}
-                                        </button>
-                                      </div>
-                                    </form>
-                                  </div>
-                                </div>
-                              )}
+                  <div className="fixed inset-0 z-50 flex  justify-center  p-4">
+                    {/* Backdrop */}
+                    <div
+                      className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+                      onClick={handleCloseDis}
+                    />
+
+                    {/* Modal */}
+                    <div className="relative h-96 bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                      {/* Header */}
+                      <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <PercentDiamond className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <h2 className="text-xl font-semibold text-gray-900">
+                            {isEditingDis
+                              ? "Edit Discount"
+                              : "Add New Discount"}
+                          </h2>
+                        </div>
+                        <button
+                          onClick={handleCloseDis}
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      {/* Form */}
+                      <form
+                        onSubmit={handleSubmitDis}
+                        className="p-6 space-y-4"
+                      >
+                        {/* Note */}
+                  <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Select Discount Type
+  </label>
+  <select
+    name="discount_type"
+    value={formDataDis.discount_type}
+    onChange={handleChangeDis}
+    className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+  >
+    <option value="">Select Discount Type</option>
+    <option value="percent">Percentage (%)</option>
+    <option value="amount">Amount (₹)</option>
+  </select>
+</div>
+{formDataDis.discount_type === "percent" ? (
+ <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      <Percent className="w-4 h-4 inline mr-2" /> Discount Percent (%)
+    </label>
+    <input
+      name="discount_per"
+      type="number"
+      value={formDataDis.discount_per}
+      onChange={handleChangeDis}
+      max={discountDataSet?.discount_per || 100} // dynamic max
+      className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+      placeholder={`Enter discount percent (max ${discountDataSet?.discount_per || 100}%)`}
+      required
+    />
+  </div>
+) : formDataDis.discount_type === "amount" ?  (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      <IndianRupee className="w-4 h-4 inline mr-2" /> Discount Amount (₹)
+    </label>
+    <input
+      name="discount_amt"
+      type="number"
+      value={formDataDis.discount_amt}
+      onChange={handleChangeDis}
+      max={discountDataSet?.discount_amt || 999999} // dynamic max
+      className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+      placeholder={`Enter discount amount (max ₹${discountDataSet?.discount_amt || 999999})`}
+      required
+    />
+  </div>
+): null}
+
+
+                        {/* Buttons */}
+                        <div className="flex justify-end gap-3 pt-4">
+                          <button
+                            type="button"
+                            onClick={handleCloseDis}
+                            className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                          >
+                            {loading
+                              ? isEditing
+                                ? "Updating..."
+                                : "Saving..."
+                              : isEditing
+                              ? "Update Discount"
+                              : "Save Discount"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
                 {/* <div className="space-y-3">
             {getData.map((order) => (
               <div

@@ -3343,18 +3343,18 @@ exports.saveNotesData = (req, res) => {
   });
 };
 exports.saveDiscountData = (req, res) => {
-  const { client_id, txn_id, discount_per } = req.body;
+  const { client_id, txn_id, discount_type,discount_per ,discount_amt,} = req.body;
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
   const query = `
     INSERT INTO discount (
-    client_id,txn_id,discount_per,
+    client_id,txn_id,discount_type,discount_per,discount_amt,
       created_at
-    ) VALUES (?, ?,?,?)
+    ) VALUES (?, ?,?,?,?,?)
   `;
 
-  const values = [client_id, txn_id, discount_per, createdAt];
+  const values = [client_id, txn_id, discount_type,discount_per,discount_amt, createdAt];
 
   db.query(query, values, (err, result) => {
     if (err) {
@@ -4207,4 +4207,29 @@ exports.seoWebsiteKeyword = (req, res) => {
       message: "Internal Server Error",
     });
   }
+};
+exports.saveDiscountSetting = (req, res) => {
+  const { discount_per,discount_amt } = req.body;
+
+  const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
+  const query = `
+    INSERT INTO discount_settings (
+   discount_per,discount_amt,
+      created_at
+    ) VALUES (?, ?,?)
+  `;
+
+  const values = [discount_per,discount_amt, createdAt];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Insert Error:", err);
+      return res.status(500).json({ status: "Failure", message: "DB error" });
+    }
+
+    res
+      .status(200)
+      .json({ status: "Success", message: "Saved Discount Setting successfully" });
+  });
 };

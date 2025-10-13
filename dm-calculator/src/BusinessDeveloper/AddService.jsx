@@ -1355,45 +1355,7 @@ export default function AddService() {
               </tbody>
             </table>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full table-auto text-left text-sm text-white">
-              <thead className="text-white/70 border-b border-white/20">
-                <tr>
-                  <th className="p-3">Plan Client Note</th>
-
-                  <th className="p-3">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {notesData.map((note, index) => (
-                  <tr
-                    key={note.id}
-                    className="hover:bg-white/10 border-b border-white/10 transition-colors"
-                  >
-                    <td className="p-3">{note.note_name}</td>
-
-                    <td className="p-3">
-                      <button
-                        className="inline-block px-2 py-2 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/25 mt-1"
-                        onClick={() =>
-                          navigate(`/BD/calculator/${id}/${proposalId}`)
-                        }
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClientNote(note.id)}
-                        className="inline-block px-2 py-2 mx-1 rounded-full text-sm font-semibold transform hover:scale-105 transition-all duration-200 bg-gradient-to-b from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25 mt-1"
-                        title="Delete"
-                      >
-                        Delete
-                      </button>{" "}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+    
         </div>
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
