@@ -40,18 +40,21 @@ const [clientDataReceived, setClientDataReceived] = useState({});
   const [assignModal, setAssignModal] = useState(false);
     const userName = currentUser?.name;
   const [formData, setFormData] = useState({
-      client_name: "",
-      client_organization: "",
-      email: "",
-      phone: "",
-      address: "",
-      dg_employee: userName,
-      duration_start_date: "",
-      duration_end_date:"",
-      payment_mode:"",
-      client_gst_no:"",
-      client_pan_no:"",
-    });
+        client_name: "",
+        client_organization: "",
+        email: "",
+        phone: "",
+        address: "",
+        dg_employee: userName,
+        duration_start_date: "",
+        duration_end_date:"",
+        payment_mode:"",
+        client_gst_no:"",
+        client_pan_no:"",
+        bill_type: "NON_GST",
+      });
+  const [invoiceData, setInvoiceData] = useState("");
+  
 
 
   const fetchAllClientServices = async () => {
@@ -257,6 +260,7 @@ const fetchClientReceived = async (txnId) => {
     );
 
     if (res.data.status === "Success") {
+            setInvoiceData(res.data.data)
       setClientDataReceived((prev) => ({
         ...prev,
         [txnId]: res.data.data, // store result under txnId
@@ -404,6 +408,7 @@ console.log(data);
       payment_mode:formData?.payment_mode ,
       client_gst_no:formData?.client_gst_no ,
       client_pan_no:formData?.client_pan_no,
+             bill_type: formData.bill_type, 
       };
 
     // ✅ Step 1: Normal Invoices
@@ -640,6 +645,12 @@ setCreatedInvoices((prev) => {
 
     
   };
+  const handleNavigateInovice = (selectedTxn) =>{
+    const isGST = invoiceData.bill_type === "GST";
+    navigate(
+      `/admin/invoice/${id}/${selectedTxn}?gst=${isGST ? 1 : 0}`
+    );
+}
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -808,8 +819,7 @@ setCreatedInvoices((prev) => {
         // ✅ Only Preview if received
         <button
           onClick={() => {
-            setShowModalInvoice(true);
-            setSelectedTxn(item.txn_id);
+           handleNavigateInovice(item.txn_id)
           }}
           className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
         >
@@ -820,8 +830,7 @@ setCreatedInvoices((prev) => {
         <>
           <button
             onClick={() => {
-              setShowModalInvoice(true);
-              setSelectedTxn(item.txn_id);
+              handleNavigateInovice(item.txn_id)
             }}
             className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
           >

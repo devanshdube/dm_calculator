@@ -56,8 +56,9 @@ const [clientDataReceived, setClientDataReceived] = useState({});
       payment_mode:"",
       client_gst_no:"",
       client_pan_no:"",
+      bill_type: "NON_GST",
     });
-
+const [invoiceData, setInvoiceData] = useState("");
 
   const fetchAllClientServices = async () => {
     try {
@@ -118,6 +119,7 @@ const fetchAllInvoiceServices = async (txnID) => {
     );
 
     if (res.data.status === "Success") {
+    
       const hasInvoices = res.data.data && res.data.data.length > 0;
 
       setCreatedInvoices((prev) => ({
@@ -263,6 +265,7 @@ const fetchClientReceived = async (txnId) => {
     );
 
     if (res.data.status === "Success") {
+      setInvoiceData(res.data.data)
       setClientDataReceived((prev) => ({
         ...prev,
         [txnId]: res.data.data, // store result under txnId
@@ -410,6 +413,7 @@ console.log(data);
       payment_mode:formData?.payment_mode ,
       client_gst_no:formData?.client_gst_no ,
       client_pan_no:formData?.client_pan_no,
+       bill_type: formData.bill_type, 
       };
 
     // ✅ Step 1: Normal Invoices
@@ -642,10 +646,19 @@ setCreatedInvoices((prev) => {
       payment_mode:"",
       client_gst_no:"",
       client_pan_no:"",
+     
     })
+
 
     
   };
+const handleNavigateInovice = (selectedTxn) =>{
+    const isGST = invoiceData.bill_type === "GST";
+    navigate(
+      `/admin/invoice/${id}/${selectedTxn}?gst=${isGST ? 1 : 0}`
+    );
+}
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -838,8 +851,7 @@ setCreatedInvoices((prev) => {
         // ✅ Only Preview if received
         <button
           onClick={() => {
-            setShowModalInvoice(true);
-            setSelectedTxn(item.txn_id);
+            handleNavigateInovice(item.txn_id)
           }}
           className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
         >
@@ -850,8 +862,7 @@ setCreatedInvoices((prev) => {
         <>
           <button
             onClick={() => {
-              setShowModalInvoice(true);
-              setSelectedTxn(item.txn_id);
+             handleNavigateInovice(item.txn_id)
             }}
             className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
           >
@@ -1031,46 +1042,7 @@ setCreatedInvoices((prev) => {
             </div>
           </div>
         )}
-        {showModalInvoice && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
-              <button
-                onClick={() => setShowModalInvoice(false)}
-                className="absolute top-2 right-3 text-red-600 hover:text-gray-500 text-xl font-bold"
-                aria-label="Close"
-              >
-                ×
-              </button>
-              <h2 className="text-lg font-semibold mb-4 text-center">
-                Select Invoice Type
-              </h2>
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={() => {
-                    navigate(
-                      `/admin/invoice/${id}/${selectedTxn}?gst=1`
-                    );
-                    setShowModalInvoice(false);
-                  }}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  With GST (18%)
-                </button>
-                <button
-                  onClick={() => {
-                    navigate(
-                      `/admin/invoice/${id}/${selectedTxn}?gst=0`
-                    );
-                    setShowModalInvoice(false);
-                  }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                >
-                  Without GST
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+   
            {showModalInvoiceClient && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
@@ -1101,7 +1073,22 @@ setCreatedInvoices((prev) => {
 
               {/* Form */}
               <form onSubmit={handleCreateInvoice} className="p-6 space-y-4">
-              
+              <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Bill Type
+  </label>
+  <select
+    name="bill_type"
+    value={formData.bill_type}
+    onChange={handleChange}
+    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+    required
+  >
+    <option value="NON_GST">Non-GST Bill</option>
+    <option value="GST">GST Bill</option>
+  </select>
+</div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Calendar1 className="w-4 h-4 inline mr-2" />
@@ -1158,21 +1145,26 @@ setCreatedInvoices((prev) => {
 
                 </div>
               
-               
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Mail className="w-4 h-4 inline mr-2" />
-                   GST Number (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="client_gst_no"
-                    value={formData.client_gst_no}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="Enter GST Number"
-                  />
-                </div>
+              {formData.bill_type === "GST" && (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      <Mail className="w-4 h-4 inline mr-2" />
+      GST Number (Required for GST Bill)
+    </label>
+    <input
+      type="text"
+      name="client_gst_no"
+      value={formData.client_gst_no}
+      onChange={handleChange}
+      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+      placeholder="Enter GST Number"
+      required={formData.bill_type === "GST"} // make required only for GST
+      maxLength={15}
+    />
+  </div>
+)}
+
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Mail className="w-4 h-4 inline mr-2" />

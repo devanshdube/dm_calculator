@@ -24,9 +24,8 @@ const [openDropdown, setOpenDropdown] = useState(null); // track which row is op
   const clientPerPage = 5;
   console.log(id);
   console.log(currentUser);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedClient, setSelectedClient] = useState(null);
-  const [selectedTxn, setSelectedTxn] = useState(null);
+  const [filterType, setFilterType] = useState("All");
+
 
   const fetchAllClientServices = async () => {
     try {
@@ -72,16 +71,22 @@ const [openDropdown, setOpenDropdown] = useState(null); // track which row is op
   }, []);
 
   const filteredItems = fetchServices.filter((row) => {
-    if (!keyword.trim()) return true;
+  // ✅ Bill type filter
+  if (filterType !== "All" && row.bill_type !== filterType) {
+    return false;
+  }
 
-    const searchTerm = keyword.trim().toLowerCase();
-    return (
-      (row?.txn_id && row.txn_id.toLowerCase().includes(searchTerm)) ||
-      (row?.client_name && row.client_name.toLowerCase().includes(searchTerm))
-    );
-  });
+  // ✅ Keyword search filter
+  if (!keyword.trim()) return true;
 
-  console.log("Filtered:", filteredItems.length, filteredItems);
+  const searchTerm = keyword.trim().toLowerCase();
+  return (
+    (row?.txn_id && row.txn_id.toLowerCase().includes(searchTerm)) ||
+    (row?.client_name && row.client_name.toLowerCase().includes(searchTerm))
+  );
+});
+
+
 
   const totalPages = Math.ceil(filteredItems.length / clientPerPage);
 
@@ -90,6 +95,8 @@ const [openDropdown, setOpenDropdown] = useState(null); // track which row is op
     const endIndex = startIndex + clientPerPage;
     return filteredItems?.slice(startIndex, endIndex);
   };
+
+
 
   const handlePageChange = ({ selected }) => {
     setCurrentPage(selected);
@@ -212,7 +219,12 @@ const handleCopyInvoice = async (txnId) => {
     });
   }
 };
-
+const handleNavigateInovice = (selectedTxn,selectedClient,billType) =>{
+    const isGST = billType === "GST";
+     navigate(
+                      `/admin/invoice/${selectedClient}/${selectedTxn}?gst=${isGST ? 1 : 0}`
+                    );
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -248,19 +260,39 @@ const handleCopyInvoice = async (txnId) => {
                 <option>Active</option>
               </select>
             </div> */}
-            <div className="relative group">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-hover:text-cyan-400 transition-colors" />
-              <input
-                type="text"
-                value={keyword}
-                placeholder="Search history..."
-                className="w-full sm:w-auto pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 backdrop-blur-sm hover:bg-gray-700/50 transition-all text-sm"
-                onChange={(e) => {
-                  setKeyword(e.target.value);
-                  setCurrentPage(0);
-                }}
-              />
-            </div>
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+  {/* Bill Type Filter */}
+  <div className="relative group">
+    <select
+      value={filterType}
+      onChange={(e) => {
+        setFilterType(e.target.value);
+        setCurrentPage(0);
+      }}
+      className="w-full sm:w-auto px-4 pr-8 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 backdrop-blur-sm hover:bg-gray-700/50 transition-all text-sm"
+    >
+      <option value="All">All</option>
+      <option value="GST">GST</option>
+      <option value="NON_GST">Non-GST</option>
+    </select>
+  </div>
+
+  {/* Search Box */}
+  <div className="relative group">
+    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-hover:text-cyan-400 transition-colors" />
+    <input
+      type="text"
+      value={keyword}
+      placeholder="Search history..."
+      className="w-full sm:w-auto pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 backdrop-blur-sm hover:bg-gray-700/50 transition-all text-sm"
+      onChange={(e) => {
+        setKeyword(e.target.value);
+        setCurrentPage(0);
+      }}
+    />
+  </div>
+</div>
+
           </div>
         </div>
 
@@ -283,6 +315,10 @@ const handleCopyInvoice = async (txnId) => {
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       TXN ID
                     </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
+  Bill Number
+</th>
+
                     {/* <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       Service
                     </th>
@@ -328,7 +364,18 @@ const handleCopyInvoice = async (txnId) => {
                             {item.txn_id ? item.txn_id : "N/A"}
                           </div>
                         </td>
-                 
+                 <td className="py-5 px-6">
+  <div
+    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+      item.bill_type === "GST"
+        ? "bg-green-500/20 text-green-400"
+        : "bg-gray-500/20 text-gray-300"
+    }`}
+  >
+    {item.bill_number || "N/A"}
+  </div>
+</td>
+
        
 
         {/* Actions Dropdown */}
@@ -348,8 +395,8 @@ const handleCopyInvoice = async (txnId) => {
                 <li>
                   <button
                     onClick={() => {
-                      setSelectedClient(item.client_id);
-                      setSelectedTxn(item.txn_id);
+                       handleNavigateInovice(item.txn_id,item.client_id,item.bill_type)
+                
                       setShowModal(true);
                       setOpenDropdown(null);
                     }}
@@ -419,46 +466,7 @@ const handleCopyInvoice = async (txnId) => {
             </div>
           </div>
         </div>
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
-              <button
-                onClick={() => setShowModal(false)}
-                className="absolute top-2 right-3 text-red-600 hover:text-gray-500 text-xl font-bold"
-                aria-label="Close"
-              >
-                ×
-              </button>
-              <h2 className="text-lg font-semibold mb-4 text-center">
-                Select Invoice Type
-              </h2>
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={() => {
-                    navigate(
-                      `/admin/invoice/${selectedClient}/${selectedTxn}?gst=1`
-                    );
-                    setShowModal(false);
-                  }}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  With GST (18%)
-                </button>
-                <button
-                  onClick={() => {
-                    navigate(
-                      `/admin/invoice/${selectedClient}/${selectedTxn}?gst=0`
-                    );
-                    setShowModal(false);
-                  }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                >
-                  Without GST
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+
 
         <PaginationContainer>
           <ReactPaginate

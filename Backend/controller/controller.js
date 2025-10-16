@@ -3444,9 +3444,10 @@ exports.saveInvoiceGD = (req, res) => {
     client_gst_no,
     client_pan_no,
     invoices,
+    bill_type, // expect 'GST' or 'NON_GST' from frontend
   } = req.body;
 
-  if (!txn_id || !client_id || !invoices) {
+  if (!txn_id || !client_id || !invoices || !bill_type) {
     return res
       .status(400)
       .json({ status: "Failure", message: "Missing required data" });
@@ -3454,76 +3455,111 @@ exports.saveInvoiceGD = (req, res) => {
 
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  // ✅ Step 1: Save client info in `invoice` table
-  const clientQuery = `
-    INSERT INTO invoice 
-    (txn_id,client_id,client_name, client_organization, email, phone, address, dg_employee,duration_start_date,duration_end_date,payment_mode,client_gst_no,client_pan_no,created_at) 
-    VALUES (?)
+  // ✅ Step 1: Get latest bill number for the selected type
+  const getLastBillQuery = `
+    SELECT bill_number FROM invoice WHERE bill_type = ? ORDER BY id DESC LIMIT 1
   `;
 
-  const clientValues = [
-    txn_id,
-    client_id,
-    client_name,
-    client_organization || null,
-    email || null,
-    phone,
-    address || null,
-    dg_employee,
-    duration_start_date,
-    duration_end_date,
-    payment_mode,
-    client_gst_no || null,
-    client_pan_no || null,
-    createdAt,
-  ];
-
-  db.query(clientQuery, [clientValues], (err) => {
+  db.query(getLastBillQuery, [bill_type], (err, results) => {
     if (err) {
+      console.error("Error fetching last bill number:", err);
       return res.status(500).json({
         status: "Failure",
-        message: "Error saving client info",
+        message: "Error fetching last bill number",
         error: err,
       });
     }
 
-    // ✅ Step 2: Insert invoices in `invoice_graphic`
-    const invoiceQuery = `
-      INSERT INTO invoice_graphic 
-      (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at) 
-      VALUES ?
+    let newBillNumber;
+
+    if (results.length > 0 && results[0].bill_number) {
+      const lastBill = results[0].bill_number;
+      const lastNumber = parseInt(lastBill.split("-").pop());
+      const nextNumber = lastNumber + 1;
+      newBillNumber =
+        bill_type === "GST"
+          ? `GST-${nextNumber.toString().padStart(3, "0")}`
+          : `N-GST-${nextNumber.toString().padStart(3, "0")}`;
+    } else {
+      newBillNumber = bill_type === "GST" ? "GST-001" : "N-GST-001";
+    }
+
+    // ✅ Step 2: Insert into invoice table
+    const clientQuery = `
+      INSERT INTO invoice 
+      (bill_type, bill_number, txn_id, client_id, client_name, client_organization, email, phone, address, dg_employee, duration_start_date, duration_end_date, payment_mode, client_gst_no, client_pan_no, created_at) 
+      VALUES (?)
     `;
 
-    const invoiceValues = invoices.map((p) => [
+    const clientValues = [
+      bill_type,
+      newBillNumber,
       txn_id,
       client_id,
-      p.service_name,
-      p.category_name,
-      p.editing_type_name,
-      p.editing_type_amount,
-      p.quantity,
-      p.include_content_posting,
-      p.include_thumbnail_creation,
-      p.total_amount,
-      p.employee,
-      p.plan_name && p.plan_name.trim() !== "" ? p.plan_name : "Customise",
+      client_name,
+      client_organization || null,
+      email || null,
+      phone,
+      address || null,
+      dg_employee,
+      duration_start_date,
+      duration_end_date,
+      payment_mode,
+      client_gst_no || null,
+      client_pan_no || null,
       createdAt,
-    ]);
+    ];
 
-    db.query(invoiceQuery, [invoiceValues], (err2) => {
+    db.query(clientQuery, [clientValues], (err2) => {
       if (err2) {
-        console.error("Error saving invoices:", err2);
+        console.error("Error saving invoice:", err2);
         return res.status(500).json({
           status: "Failure",
-          message: "Error saving invoices",
+          message: "Error saving invoice",
           error: err2,
         });
       }
 
-      // ✅ Final response
-      return res.status(200).json({
-        status: "Success",
-        message: "Invoices saved successfully",
+      // ✅ Step 3: Insert invoice line items into invoice_graphic
+      const invoiceQuery = `
+        INSERT INTO invoice_graphic 
+        (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at) 
+        VALUES ?
+      `;
+
+      const invoiceValues = invoices.map((p) => [
+        txn_id,
+        client_id,
+        p.service_name,
+        p.category_name,
+        p.editing_type_name,
+        p.editing_type_amount,
+        p.quantity,
+        p.include_content_posting,
+        p.include_thumbnail_creation,
+        p.total_amount,
+        p.employee,
+        p.plan_name && p.plan_name.trim() !== "" ? p.plan_name : "Customise",
+        createdAt,
+      ]);
+
+      db.query(invoiceQuery, [invoiceValues], (err3) => {
+        if (err3) {
+          console.error("Error saving invoice items:", err3);
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error saving invoice items",
+            error: err3,
+          });
+        }
+
+        // ✅ Final Success Response
+        return res.status(200).json({
+          status: "Success",
+          message: "Invoice saved successfully",
+          billNumber: newBillNumber,
+          billType: bill_type,
+        });
       });
     });
   });
