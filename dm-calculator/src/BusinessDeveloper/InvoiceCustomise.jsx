@@ -829,7 +829,12 @@ export default function InvoiceCustomise() {
       });
     }
   };
-
+  const handleNavigateInovice = (selectedClient,selectedTxn,billType) =>{
+    const isGST = billType === "GST";
+     navigate(
+                      `/BD/invoice/${selectedClient}/${selectedTxn}?gst=${isGST ? 1 : 0}`
+                    );
+}
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -915,7 +920,7 @@ export default function InvoiceCustomise() {
               {finalLength ? (
                 <button
                   onClick={() => {
-                    setShowModal(true);
+                  handleNavigateInovice(clientData.client_id,clientData.txn_id,clientData.bill_type)
                   }}
                   className="w-full text-left"
                 >
@@ -1286,42 +1291,7 @@ export default function InvoiceCustomise() {
             </table>
           </div>
         </div>
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
-              <button
-                onClick={() => setShowModal(false)}
-                className="absolute top-2 right-3 text-red-600 hover:text-gray-500 text-xl font-bold"
-                aria-label="Close"
-              >
-                ×
-              </button>
-              <h2 className="text-lg font-semibold mb-4 text-center">
-                Select Quotation Type
-              </h2>
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={() => {
-                    navigate(`/BD/invoice/${id}/${txn_id}?gst=1`);
-                    setShowModal(false);
-                  }}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  With GST (18%)
-                </button>
-                <button
-                  onClick={() => {
-                    navigate(`/BD/invoice/${id}/${txn_id}?gst=0`);
-                    setShowModal(false);
-                  }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                >
-                  Without GST
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+     
       </div>
     </div>
   );

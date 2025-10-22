@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import numberToWords from "number-to-words";
 import {
   Calendar,
   Search,
@@ -21,6 +22,7 @@ import {
   Notebook,
   ChevronUp,
   ChevronDown,
+  IndianRupeeIcon,
 } from "lucide-react";
 import axios from "axios";
 import moment from "moment";
@@ -84,6 +86,9 @@ export default function BDInvoice() {
     client_gst_no: "",
     client_pan_no: "",
     tag_received_amt: "",
+    received_amt: "",
+    current_amt:"",
+    previous_amt:"",
   });
   const [formDataRemaining, setFormDataRemaining] = useState({
     service_name: "",
@@ -601,6 +606,7 @@ export default function BDInvoice() {
       duration_end_date: clientData?.duration_end_date,
       payment_mode: clientData?.payment_mode,
       client_gst_no: clientData?.client_gst_no,
+      tag_received_amt: clientData?.tag_received_amt,
       client_pan_no: clientData?.client_pan_no,
     });
     setShowModalInvoiceClient(true);
@@ -615,13 +621,29 @@ export default function BDInvoice() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  setFormData((prev) => {
+    let updated = { ...prev, [name]: value };
+
+    // Auto-update tag_received_amt when received_amt changes
+    if (name === "received_amt") {
+      const amt = Number(value);
+      const total = currentTotalAmount;
+
+      if (amt >= total) {
+        updated.tag_received_amt = "received";
+      } else if (amt > 0 && amt < total) {
+        updated.tag_received_amt = "partial";
+      } else {
+        updated.tag_received_amt = "";
+      }
+    }
+
+    return updated;
+  });
+};
+
   const handleChangeRemaining = (e) => {
     const { name, value } = e.target;
 
@@ -630,6 +652,7 @@ export default function BDInvoice() {
       [name]: value,
     }));
   };
+
   const handleEditInvoice = async (e) => {
     e.preventDefault();
     try {
@@ -643,6 +666,9 @@ export default function BDInvoice() {
         client_gst_no: formData?.client_gst_no,
         client_pan_no: formData?.client_pan_no,
         tag_received_amt: formData?.tag_received_amt,
+        received_amt: formData?.received_amt,
+        current_amt: PreviousAmt,
+    
       };
 
       const payload = { ...clientDetail };
@@ -1005,10 +1031,11 @@ export default function BDInvoice() {
     graphicTotal + adsTotal + additionalTotal - adsTotalBudget;
 
   const grandTotal =
-    graphicTotal + adsTotal + additionalTotal + remainingTotalAmount;
+    graphicTotal + adsTotal + additionalTotal;
 
   // Apply discount percentage only for display
-  const discountAmount = selecteddiscount
+ // Compute discounted amount based on type
+const discountAmount = selecteddiscount
   ? selecteddiscount.discount_type === "percent"
     ? (grandTotalAds * Number(selecteddiscount.discount_per)) / 100
     : selecteddiscount.discount_type === "amount"
@@ -1016,15 +1043,26 @@ export default function BDInvoice() {
     : 0
   : 0;
 
+
 // Grand total after discount
 const totalAfterDiscount = grandTotal - discountAmount;
 
 // GST on discounted total if applicable
 const gstAmount = isGST ? (grandTotalAds - discountAmount) * 0.18 : 0;
 
-// Final total including GST
-const finalTotal = totalAfterDiscount + gstAmount;
 
+const currentAmtPreviousAmt = gstAmount + totalAfterDiscount;
+console.log(currentAmtPreviousAmt);
+
+
+
+const totalgstamount =  gstAmount + totalAfterDiscount;
+
+const currentTotalAmount = totalgstamount + Number(clientData.previous_amt || 0);
+
+
+const amountInWords = numberToWords.toWords(totalgstamount).replace(/\b\w/g, (c) => c.toUpperCase()) + " Rupees"
+  
   if (loading) {
     return (
       <div className="text-center p-10 font-semibold text-gray-700">
@@ -1032,7 +1070,22 @@ const finalTotal = totalAfterDiscount + gstAmount;
       </div>
     );
   }
-  const handleDelete = async (entryId) => {
+
+    const previousBalance = Number(clientData.previous_amt || 0);
+const receivedAmount = Number(formData.received_amt || 0);
+const currentInvoiceTotal = totalgstamount;
+
+
+
+// ✅ Calculate Current Amount (Outstanding)
+const PreviousAmt = clientData.previous_amt > 0
+  ? (currentTotalAmount - receivedAmount)
+  : currentInvoiceTotal - receivedAmount;
+console.log(`${currentTotalAmount} - ${receivedAmount}`);
+
+  console.log(PreviousAmt);
+  
+    const handleDelete = async (entryId) => {
     const confirm = await Swal.fire({
       title: "Are you sure?",
       text: "Do you really want to delete this entry?",
@@ -1152,6 +1205,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
       client_gst_no: "",
       client_pan_no: "",
       tag_received_amt: "",
+       received_amt: "",
     });
   };
   const handleClosesetRemaining = () => {
@@ -1200,8 +1254,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
         {/* Hidden on print - Action Buttons */}
 
-     
-         <div className="print:hidden flex justify-end gap-3 my-4">
+   <div className="print:hidden flex justify-end gap-3 my-4">
           <button
             onClick={handlePrintPage}
             className="bg-blue-600 text-white rounded-full px-4 py-2"
@@ -1296,7 +1349,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
 
                       <div className="space-y-1 text-xs">
                         <p>
-                          <strong>Invoice No:</strong> {clientData.id}
+                          <strong>Invoice No: </strong> {clientData?.bill_number}
                         </p>
                         <p>
                           <strong>Date:</strong>{" "}
@@ -1308,8 +1361,9 @@ const finalTotal = totalAfterDiscount + gstAmount;
                     <div className="grid grid-cols-2 gap-2 mb-2 text-xs">
                       {/* Client Info */}
                       <div className="border p-2 rounded-lg">
-                         <p className=" font-bold">
-                          BILL TO: {clientData.client_organization}{" "}
+                       
+                        <p>
+                          <strong>BILL TO:</strong> {clientData.client_organization}
                         </p>
                         <p>
                           <strong>Name:</strong> {clientData?.client_name}
@@ -1337,10 +1391,11 @@ const finalTotal = totalAfterDiscount + gstAmount;
 
                       {/* Company Info */}
                       <div className="border p-2 rounded-lg">
-                        <p className="font-bold">
-                          FROM: DOAGuru Infosystems
-                        </p>
+                       
 
+                        <p>
+                          <strong> FROM:</strong> {isGST ? "DOAGuru InfoSystems" : "DOAGuru IT Solutions"}
+                        </p>
                         <p>
                           <strong>Email:</strong> info@doaguru.com
                         </p>
@@ -1359,8 +1414,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
                     {/* ==================== COMBINED SERVICES TABLE ==================== */}
                     {(graphicData.length > 0 ||
                       complimentaryData.length > 0 ||
-                      additionalServiceData.length > 0 ||
-                      remainingAmountData.length > 0) && (
+                      additionalServiceData.length > 0) && (
                       <section className="mb-2 text-sm">
                         <table className="w-full border text-xs">
                           <thead className="bg-indigo-100">
@@ -1574,7 +1628,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
                             })}
 
                             {/* ================= REMAINING AMOUNT ================= */}
-                            {remainingAmountData.map((edit, eidx) => (
+                            {/* {remainingAmountData.map((edit, eidx) => (
                               <tr key={`remain-${eidx}`} className="bg-gray-50">
                                 {eidx === 0 ? (
                                   <td
@@ -1622,7 +1676,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
                                   </td>
                                 )}
                               </tr>
-                            ))}
+                            ))} */}
 
                             {/* ================= DM SERVICE TOTAL ================= */}
                             {(() => {
@@ -1672,17 +1726,17 @@ const finalTotal = totalAfterDiscount + gstAmount;
                                     Number(e.quantity),
                                 0
                               );
-                              const remainingTotal = remainingAmountData.reduce(
-                                (sum, e) => sum + Number(e.price || 0),
-                                0
-                              );
+                              // const remainingTotal = remainingAmountData.reduce(
+                              //   (sum, e) => sum + Number(e.price || 0),
+                              //   0
+                              // );
 
                               const dmServiceTotal =
                                 graphicTotal +
                                 thumbTotal +
                                 postTotal +
-                                addTotal +
-                                remainingTotal;
+                                addTotal;
+                                // remainingTotal;
 
                               return (
                                 <tr className=" font-semibold">
@@ -1826,25 +1880,25 @@ const finalTotal = totalAfterDiscount + gstAmount;
                                 0
                               );
 
-                              const remainingTotal = remainingAmountData.reduce(
-                                (sum, e) => sum + Number(e.price || 0),
-                                0
-                              );
+                              // const remainingTotal = remainingAmountData.reduce(
+                              //   (sum, e) => sum + Number(e.price || 0),
+                              //   0
+                              // );
 
                               const dmServiceTotal =
                                 graphicTotal +
                                 thumbTotal +
                                 postTotal +
-                                addTotal +
-                                remainingTotal;
+                                addTotal;
+                                // remainingTotal;
 
                               return (
-                                <tr className=" font-semibold">
+                                <tr className="bg-indigo-50 font-semibold">
                                   <td
                                     className="border px-2 py-1 text-right"
                                     colSpan={4}
                                   >
-                                    Total Amount
+                                    SubTotal
                                   </td>
                                   <td className="border px-2 py-1 text-right">
                                     ₹{dmServiceTotal.toLocaleString()}
@@ -1942,315 +1996,141 @@ const finalTotal = totalAfterDiscount + gstAmount;
                         >
                           + Additional Service
                         </button>
-                        <button
+                        {/* <button
                           onClick={handleRemainingShow}
                           className="px-2 py-1 mx-1 print:hidden mb-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
                         >
                           + Remaining Amount
-                        </button>
+                        </button> */}
                       </div>
                     )}
 
-            <section className="text-right border-t pt-1 mb-1">
-  {/* Subtotal */}
-  <p className="text-sm text-gray-700">
-    Subtotal: ₹{grandTotal.toLocaleString()}
-  </p>
+              
 
-  {/* Discount */}
-  {selecteddiscount && (
-    <p className="text-sm text-red-600">
-      Discount (
-      {selecteddiscount.discount_type === "percent"
-        ? `${selecteddiscount.discount_per}%`
-        : `₹${selecteddiscount.discount_amt}`}
-      ): -₹
-      {discountAmount.toFixed(2).toLocaleString()}
-    </p>
-  )}
 
-  {/* GST & Total */}
-  {isGST ? (
-    <>
-      <p className="text-md text-gray-600">
-        GST (18%): ₹{gstAmount.toLocaleString()}
-      </p>
-      <p className="text-md font-bold text-indigo-700">
-        Total with GST: ₹{finalTotal.toLocaleString()}
-      </p>
-    </>
-  ) : (
-    <p className="text-md font-bold text-indigo-700">
-      Grand Total: ₹{totalAfterDiscount.toFixed(2).toLocaleString()}
-    </p>
-  )}
-</section>
-
-                    <div className=" print:hidden">
-                      {/* <h3 className="text-xl font-bold  mb-4 flex items-center gap-2">
-                    <Package className="w-5 h-5" />
-                    Notes Section
-                  </h3> */}
-
-                      <div className="space-y-4">
-                        {/* <div className="relative w-full" ref={dropdownRef}>
-
-         <div
-          className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-gray-300 text-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <span className="truncate">
-            {selectedNote ? selectedNote.note_text : "-- Select Predefined Note --"}
-          </span>
-          {isOpen ? (
-            <ChevronUp className="w-5 h-5 text-gray-500" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-500" />
-          )}
-        </div>
-  
-        {isOpen && (
-          <div className="absolute z-10 bg-white w-full mt-1 max-h-60 overflow-auto border rounded-lg text-black focus:ring-2 focus:ring-purple-500">
-            {uniquePredefinedNotes.map((note) => (
-              <div
-                key={note.id}
-                onClick={() => handleSelect(note)}
-                className="p-2 m-1 border rounded-lg bg-gray-100 hover:bg-purple-100 cursor-pointer break-words"
-              >
-                {note.note_text}
-              </div>
-            ))}
-          </div>
-        )}
-      </div> */}
-
-                        {/* Manual Note Input */}
-                        {/* <div className="flex flex-wrap gap-2">
-                      <textarea
-                        type="text"
-                        value={manualNote}
-                        onChange={(e) => setManualNote(e.target.value)}
-                        placeholder="Enter custom note"
-                        rows={1}
-                
-                        className="flex-1 p-2 rounded-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                      <button
-                        onClick={handleAddManualNote}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
-                      >
-                        + Add
-                      </button>
-                    </div> */}
-
-                        {/* Selected Notes List */}
-                        {/* <div className="space-y-2">
-                      {selectedNotes.map((note) => (
-                        <div
-                          key={note.id}
-                          className="p-3 bg-gray-100 rounded-lg gap-5 flex justify-between items-center border border-gray-300"
-                        >
-                          <span className="text-gray-800 font-medium">
-                            {note.note_name}
-                          </span>
-                          <div className="">
-                          <button
-                            onClick={() => handleRemoveNote(note.id)}
-                            className="bg-red-500 mx-2 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold transition"
-                            title="Remove"
-                          >
-                            ×
-                          </button></div>
-                        </div>
-                      ))}
-                    </div> */}
-
-                        {/* Save Button */}
-                        {/* <button
-                      onClick={handleSaveNotes}
-                      className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition"
-                    >
-                      💾 Save Notes
-                    </button> */}
-                      </div>
-
-                      {showModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                          {/* Backdrop */}
-                          <div
-                            className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
-                            onClick={handleCloseNote}
-                          />
-
-                          {/* Modal */}
-                          <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
-                            {/* Header */}
-                            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                  <StickyNote className="w-5 h-5 text-blue-600" />
-                                </div>
-                                <h2 className="text-xl font-semibold text-gray-900">
-                                  {isEditing ? "Edit Note" : "Add New Note"}
-                                </h2>
-                              </div>
-                              <button
-                                onClick={handleCloseNote}
-                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                              >
-                                <X className="w-5 h-5" />
-                              </button>
-                            </div>
-
-                            {/* Form */}
-                            <form
-                              onSubmit={handleSubmit}
-                              className="p-6 space-y-4"
-                            >
-                              {/* Note */}
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  <Notebook className="w-4 h-4 inline mr-2" />
-                                  Note
-                                </label>
-                                <textarea
-                                  name="note_name"
-                                  value={formDataNote.note_name}
-                                  onChange={handleChangeNote}
-                                  className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
-                                  placeholder="Enter note details"
-                                  rows={4} // number of visible lines
-                                  required
-                                ></textarea>
-                              </div>
-
-                              {/* Buttons */}
-                              <div className="flex justify-end gap-3 pt-4">
-                                <button
-                                  type="button"
-                                  onClick={handleCloseNote}
-                                  className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  type="submit"
-                                  disabled={loading}
-                                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-                                >
-                                  {loading
-                                    ? isEditing
-                                      ? "Updating..."
-                                      : "Saving..."
-                                    : isEditing
-                                    ? "Update Note"
-                                    : "Save Note"}
-                                </button>
-                              </div>
-                            </form>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* {notesData.length > 0 ? (<>
-
-                    <h2 className="text-lg mt-3 font-bold">Notes</h2>
-                 
-                      <ul className="list-disc pl-5">
-                        {notesData.map((note) => (
-                          <>
-                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
-                          <li
-                            key={note.id}
-                            className="text-sm text-gray-700 font-bold"
-                          >
-                            {note.note_name}
-                          </li>
-                           <div className="flex print:hidden items-center gap-2 sm:gap-4">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation(); // prevent card onClick
-                              setSelectedNotesId(note);
-                              setFormDataNote({
-                                note_name: note.note_name,
-                                plan: note.plan,
-                              });
-                              setIsEditing(true);
-                              setShowModal(true);
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                            title="Edit"
-                          >
-                            ✎
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClientNote(note.id)}
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
-                            title="Delete"
-                          >
-                            ×
-                          </button>
-                          </div>
-                          </div>
-                          </>
-                          
-                          
-                        ))}
-                      </ul>
-                       
-                    </>
-                    
-                    ) : (
-                      <p className="text-gray-500 italic"></p>
-                    )} */}
                   </div>
-                  {isGST ? (
-                    <div className="flex justify-between text-sm font-bold">
-                      {/* Bank Details */}
-                      <div>
-                        <h6 className="mb-1">Bank Details:</h6>
-                        <ul className="space-y-0.5">
-                          <li>Name: DOAGuru InfoSystems</li>
-                          <li>IFSC Code: SBIN0004677</li>
-                          <li>Account No: 38666325192</li>
-                          <li>Bank: SBI Bank, Jabalpur</li>
-                        </ul>
-                      </div>
-
-                      {/* Signature */}
-                      <div>
-                        <img
-                          src={img4}
-                          alt="Authorized Signature"
-                          className="h-28 w-40 mt-0"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex justify-between text-xs font-bold">
-                      {/* Bank Details for TDS */}
-                      <div>
-                        <h6 className="mb-1">Bank Details For TDS Payment:</h6>
-                        <ul className="space-y-0.5">
-                          <li>Name: DOAGuru IT Solutions</li>
-                          <li>IFSC Code: HDFC0000224</li>
-                          <li>Account No: 50200074931981</li>
-                          <li>Bank: HDFC Bank, Jabalpur</li>
-                        </ul>
-                      </div>
-
-                      {/* Signature */}
-                      <div>
-                        <img
-                          src={img3}
-                          alt="Authorized Signature"
-                          className="h-28 w-40 -mt-2"
-                        />
-                      </div>
-                    </div>
-                  )}
+               
                 </div>
+              <section className="flex justify-between border-t pt-4  text-sm text-gray-800">
+  {/* LEFT SECTION - Terms & Conditions & Bank Details */}
+  <div className="w-1/2 pr-4 border-r border-gray-300">
+
+    {notesData?.length > 0 ? (
+      <>
+       <h2 className="font-bold mb-2 text-gray-800">Terms & Conditions</h2>
+      <ul className="list-decimal ml-5 space-y-1 text-gray-700">
+        {notesData.map((note) => (
+          <li key={note.id} className="leading-snug">
+            {note.note_name}
+          </li>
+        ))}
+      </ul>
+      </>
+   
+    ) : (
+      null
+    )}
+
+    {/* Bank Details */}
+    <div className="mt-4">
+      <h2 className="font-bold mb-1 text-gray-800">Bank Details:</h2>
+      {isGST ? (
+        <ul className="space-y-0.5 text-gray-700">
+          <li><span className="font-semibold">Name:</span> DOAGuru InfoSystems</li>
+          <li><span className="font-semibold">IFSC:</span> SBIN0004677</li>
+          <li><span className="font-semibold">Account No:</span> 38666325192</li>
+          <li><span className="font-semibold">Bank:</span> SBI Bank, Jabalpur</li>
+        </ul>
+      ) : (
+        <ul className="space-y-0.5 text-gray-700">
+          <li><span className="font-semibold">Name:</span> DOAGuru IT Solutions</li>
+          <li><span className="font-semibold">IFSC:</span> HDFC0000224</li>
+          <li><span className="font-semibold">Account No:</span> 50200074931981</li>
+          <li><span className="font-semibold">Bank:</span> HDFC Bank, Jabalpur</li>
+        </ul>
+      )}
+    </div>
+  </div>
+
+  {/* RIGHT SECTION - Totals, GST, Signature */}
+  <div className="w-1/2 pl-6 text-right">
+    {/* Discount */}
+    {selecteddiscount && (
+      <p className="text-sm text-red-600 mb-1">
+        Discount (
+        {selecteddiscount.discount_type === "percent"
+          ? `${selecteddiscount.discount_per}%`
+          : `₹${selecteddiscount.discount_amt}`}
+        ): -₹{discountAmount.toFixed(2).toLocaleString()}
+      </p>
+    )}
+
+    {/* GST Breakdown (only for GST invoice) */}
+    {isGST && (
+      <div className="space-y-1 text-gray-700">
+        <p>Taxable Amount ₹ {totalAfterDiscount.toLocaleString()}</p>
+        <p>CGST @9% ₹ {(gstAmount / 2).toFixed(2)}</p>
+        <p>SGST @9% ₹ {(gstAmount / 2).toFixed(2)}</p>
+      </div>
+    )}
+
+    {/* Totals (always visible) */}
+    <div className="mt-1 border-t space-y-1 text-gray-800 font-medium">
+      <p>
+        <span className="font-semibold ">Total Amount</span> ₹ {(currentAmtPreviousAmt).toLocaleString()}
+      </p>
+      {/* <p className="border-t">Previous Balance ₹ {remainingTotal.toLocaleString()}</p> */}
+   {/* When amount is received but not fully (partial or other status) */}
+{clientData.received_amt && clientData.tag_received_amt !== "received" && (
+  <>
+      {clientData.previous_amt > 0 ? <p>Previous Amount ₹ {Number(clientData.previous_amt || 0).toLocaleString()}</p>:null}
+    <p>Received Amount ₹ {Number(clientData.received_amt || 0).toLocaleString()}</p>
+    <p>Current Balance ₹ {Number(clientData.current_amt || 0).toLocaleString()}</p>
+  </>
+)}
+
+{/* When amount is fully received */}
+{clientData.received_amt && clientData.tag_received_amt === "received" && (
+  <>
+   {clientData.previous_amt > 0 ? <p>Previous Amount ₹ {Number(clientData.previous_amt || 0).toLocaleString()}</p>:null}
+
+    <p>Received Amount ₹ {Number(clientData.received_amt || 0).toLocaleString()}</p>
+    <p>Current Balance ₹ {Number(clientData.current_amt || 0).toLocaleString()}</p>
+  </>
+)}
+
+{/* When previous amount exists and status is partial received */}
+{clientData.tag_received_amt === "pending" && (
+  <>
+ {clientData.previous_amt > 0 ? <p>Previous Amount ₹ {Number(clientData.previous_amt || 0).toLocaleString()}</p>:null}
+
+       <p>Current Balance ₹ {currentTotalAmount.toLocaleString()}</p>
+  </>
+)}
+
+      </div>
+
+    {/* Total in Words */}
+    <p className="mt-1 italic border-t text-gray-700 text-sm leading-snug">
+      Total Amount (in words): <br />
+      <span className="font-medium capitalize">{amountInWords}</span>
+    </p>
+
+    {/* Signature */}
+    <div className="mt-6 text-center border border-black-400 rounded-md p-2 inline-block ml-auto ">
+      <img
+        src={isGST ? img4 : img3}
+        alt="Authorized Signature"
+        className="h-20 w-40 mx-auto mb-1"
+      />
+      <p className="text-sm font-semibold text-gray-800">Signature</p>
+      <p className="text-sm text-gray-700">{isGST ? "DOAGuru InfoSystems" : "DOAGuru IT Solutions"}</p>
+    </div>
+  </div>
+</section>
+    <div className="border-t mt-1"></div>
+
+
                 <div className="h-[50rem]"></div>
               </td>
             </tr>
@@ -2280,7 +2160,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
             />
 
             {/* Modal */}
-            <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+            <div className="relative overflow-auto h-[53rem] bg-white w-full max-w-md my-2 rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <div className="flex items-center gap-3">
@@ -2369,24 +2249,39 @@ const finalTotal = totalAfterDiscount + gstAmount;
                     <option value="Cash">Cash</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Building className="w-4 h-4 inline mr-2" />
-                    Received Amount Status
-                  </label>
-                  <select
-                    name="tag_received_amt"
-                    value={formData.tag_received_amt}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  >
-                    <option value="" className="text-gray-500">
-                      Select Status
-                    </option>
+             
+     <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    <IndianRupeeIcon className="w-4 h-4 inline mr-2" />
+    Received Amount
+  </label>
+  <input
+    type="number"
+    name="received_amt"
+    max={currentTotalAmount || 0}
+    value={formData.received_amt}
+    onChange={handleChange}
+    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+    placeholder="Enter received amount"
+  />
 
-                    <option value="received">Received</option>
-                  </select>
-                </div>
+  {/* Dynamic status label */}
+  {formData.received_amt && (
+    <p className="mt-2 text-sm font-medium">
+      Status:{" "}
+      <span
+        className={
+          formData.tag_received_amt === "received"
+            ? "text-green-600"
+            : "text-orange-500"
+        }
+      >
+      Payment Amount is {currentTotalAmount} 
+      </span>
+    </p>
+  )}
+</div>
+
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2432,7 +2327,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
                     disabled={loading}
                     className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
                   >
-                    {loading ? "Saving..." : "Save Client"}
+                    {loading ? "Saving..." : "Save "}
                   </button>
                 </div>
               </form>
@@ -2720,7 +2615,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
                     disabled={loading}
                     className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
                   >
-                    {loading ? "Saving..." : "Save Client"}
+                    {loading ? "Saving..." : "Save"}
                   </button>
                 </div>
               </form>

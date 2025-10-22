@@ -230,8 +230,8 @@ exports.updateClientDetails = async (req, res) => {
   try {
     const updatedAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-    // First update client details
-    const query1 = `
+    // ✅ Step 1: Always update dm_calculator_client_details
+    const updateClientQuery = `
       UPDATE dm_calculator_client_details
       SET client_name = ?, client_organization = ?, email = ?, phone = ?, address = ?, created_at = ?
       WHERE id = ?
@@ -239,60 +239,87 @@ exports.updateClientDetails = async (req, res) => {
 
     const values = [
       client_name,
-      client_organization,
-      email,
+      client_organization || null,
+      email || null,
       phone,
-      address,
+      address || null,
       updatedAt,
       clientId,
     ];
 
-    db.query(query1, values, (err, result1) => {
+    db.query(updateClientQuery, values, (err, clientResult) => {
       if (err) {
-        return res
-          .status(500)
-          .json({ status: "Failure", message: "Database error", error: err });
+        console.error("Error updating dm_calculator_client_details:", err);
+        return res.status(500).json({
+          status: "Failure",
+          message: "Database error while updating client details",
+          error: err,
+        });
       }
 
-      if (result1.affectedRows === 0) {
+      if (clientResult.affectedRows === 0) {
         return res.status(404).json({
           status: "Failure",
           message: "Client not found in dm_calculator_client_details.",
         });
       }
 
-      // Then update invoice table
-      const query2 = `
-        UPDATE invoice
-        SET client_name = ?, client_organization = ?, email = ?, phone = ?, address = ?, created_at = ?
-        WHERE client_id = ?
-      `;
-
-      db.query(query2, values, (err, result2) => {
-        if (err) {
-          return res
-            .status(500)
-            .json({ status: "Failure", message: "Database error", error: err });
-        }
-
-        if (result2.affectedRows === 0) {
-          return res.status(404).json({
+      // ✅ Step 2: Check if client exists in invoice
+      const checkInvoiceQuery = `SELECT id FROM invoice WHERE client_id = ? LIMIT 1`;
+      db.query(checkInvoiceQuery, [clientId], (checkErr, invoiceRows) => {
+        if (checkErr) {
+          console.error("Error checking invoice:", checkErr);
+          return res.status(500).json({
             status: "Failure",
-            message: "Client not found in invoice.",
+            message: "Error checking invoice data",
+            error: checkErr,
           });
         }
 
-        // ✅ Single response after both updates
-        res.status(200).json({
-          status: "Success",
-          message: "Client details updated successfully in both tables.",
+        if (invoiceRows.length === 0) {
+          // ✅ No invoice exists → update client only
+          return res.status(200).json({
+            status: "Success",
+            message:
+              "Client updated successfully in dm_calculator_client_details (no invoice found).",
+          });
+        }
+
+        // ✅ Step 3: Update invoice details if present
+        const updateInvoiceQuery = `
+          UPDATE invoice
+          SET client_name = ?, client_organization = ?, email = ?, phone = ?, address = ?, created_at = ?
+          WHERE client_id = ?
+        `;
+
+        db.query(updateInvoiceQuery, values, (invErr, invoiceResult) => {
+          if (invErr) {
+            console.error("Error updating invoice:", invErr);
+            return res.status(500).json({
+              status: "Failure",
+              message: "Database error while updating invoice data",
+              error: invErr,
+            });
+          }
+
+          return res.status(200).json({
+            status: "Success",
+            message:
+              "Client details updated successfully in both tables (client + invoice).",
+          });
         });
       });
     });
   } catch (error) {
-    res.status(500).json({ status: "Failure", message: "Server error", error });
+    console.error("Server error:", error);
+    return res.status(500).json({
+      status: "Failure",
+      message: "Server error",
+      error,
+    });
   }
 };
+
 
 exports.updatePlanNameDetail = async (req, res) => {
   const { id } = req.params;
@@ -1055,6 +1082,8 @@ exports.updateInvoiceClientDataById = (req, res) => {
     client_gst_no,
     client_pan_no,
     tag_received_amt,
+    received_amt,
+    current_amt,
   } = req.body;
 
   const query = `
@@ -1066,7 +1095,9 @@ exports.updateInvoiceClientDataById = (req, res) => {
       payment_mode = ?,
       client_gst_no = ?,
       client_pan_no = ?,
-      tag_received_amt = ?
+      tag_received_amt = ?,
+      received_amt = ?,
+      current_amt= ?
     WHERE id = ?
   `;
 
@@ -1078,6 +1109,8 @@ exports.updateInvoiceClientDataById = (req, res) => {
     client_gst_no,
     client_pan_no,
     tag_received_amt,
+    received_amt,
+    current_amt,
     id, // add id at the end
   ];
 

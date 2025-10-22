@@ -82,7 +82,8 @@ const [openDropdown, setOpenDropdown] = useState(null); // track which row is op
   const searchTerm = keyword.trim().toLowerCase();
   return (
     (row?.txn_id && row.txn_id.toLowerCase().includes(searchTerm)) ||
-    (row?.client_name && row.client_name.toLowerCase().includes(searchTerm))
+    (row?.client_name && row.client_name.toLowerCase().includes(searchTerm)) ||
+    (row?.client_organization && row.client_organization.toLowerCase().includes(searchTerm))
   );
 });
 
@@ -299,7 +300,7 @@ const handleNavigateInovice = (selectedTxn,selectedClient,billType) =>{
         {/* Main Table */}
         <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl overflow-hidden">
           <div className="p-8">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto h-[40rem]">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700/50">
@@ -414,7 +415,7 @@ const handleNavigateInovice = (selectedTxn,selectedClient,billType) =>{
                     }}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-blue-600"
                   >
-                      <Copy size={14} className="inline mr-2" /> Copy
+                      <Copy size={14} className="inline mr-2" /> New
                   </button>
                 </li>
                   {item.tag_received_amt === "received" ? (

@@ -3839,198 +3839,249 @@ exports.saveInvoiceClientIdwiseNotes = (req, res) => {
 exports.copyInvoiceByTxnId = (req, res) => {
   const { txn_id } = req.params;
   if (!txn_id) {
-    return res
-      .status(400)
-      .json({ status: "Failure", message: "txn_id is required" });
+    return res.status(400).json({
+      status: "Failure",
+      message: "txn_id is required",
+    });
   }
 
-  const newTxnId = Date.now(); // new txn id
+  const newTxnId = Date.now(); // new unique txn_id
   const createdAt = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-  // 1. Fetch old invoice
-  db.query(
-    "SELECT * FROM invoice WHERE txn_id = ?",
-    [txn_id],
-    (err, invoiceRows) => {
-      if (err) {
-        console.error("Fetch Invoice Error:", err);
-        return res
-          .status(500)
-          .json({ status: "Failure", message: "DB fetch error" });
-      }
-      if (!invoiceRows.length) {
-        return res
-          .status(404)
-          .json({ status: "Failure", message: "Invoice not found" });
-      }
+  // 1️⃣ Fetch original invoice
+  const getInvoiceQuery = "SELECT * FROM invoice WHERE txn_id = ?";
+  db.query(getInvoiceQuery, [txn_id], (err, invoiceRows) => {
+    if (err) {
+      console.error("Fetch Invoice Error:", err);
+      return res.status(500).json({
+        status: "Failure",
+        message: "Error fetching original invoice",
+      });
+    }
 
-      const oldInvoice = invoiceRows[0];
+    if (!invoiceRows.length) {
+      return res
+        .status(404)
+        .json({ status: "Failure", message: "Invoice not found" });
+    }
 
-      // Insert new invoice
-      const invoiceInsertQuery = `
-      INSERT INTO invoice 
-      (txn_id, client_id, client_name, client_organization, email, phone, address, dg_employee, duration_start_date, duration_end_date, payment_mode, client_gst_no, client_pan_no, created_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    const oldInvoice = invoiceRows[0];
+    const bill_type = oldInvoice.bill_type || "GST"; // fallback to GST if undefined
+
+    // 2️⃣ Get last bill number for this bill type
+    const getLastBillQuery = `
+      SELECT bill_number FROM invoice WHERE bill_type = ? ORDER BY id DESC LIMIT 1
     `;
+    db.query(getLastBillQuery, [bill_type], (err2, results) => {
+      if (err2) {
+        console.error("Error fetching last bill number:", err2);
+        return res.status(500).json({
+          status: "Failure",
+          message: "Error fetching last bill number",
+        });
+      }
 
-      db.query(
-        invoiceInsertQuery,
-        [
-          newTxnId,
-          oldInvoice.client_id,
-          oldInvoice.client_name,
-          oldInvoice.client_organization,
-          oldInvoice.email,
-          oldInvoice.phone,
-          oldInvoice.address,
-          oldInvoice.dg_employee,
-          oldInvoice.duration_start_date,
-          oldInvoice.duration_end_date,
-          oldInvoice.payment_mode,
-          oldInvoice.client_gst_no,
-          oldInvoice.client_pan_no,
-          createdAt,
-        ],
-        (err2) => {
-          if (err2) {
-            console.error("Insert Invoice Error:", err2);
-            return res
-              .status(500)
-              .json({ status: "Failure", message: "DB insert error" });
-          }
+      let newBillNumber;
+      if (results.length > 0 && results[0].bill_number) {
+        const lastBill = results[0].bill_number;
+        const lastNumber = parseInt(lastBill.split("-").pop());
+        const nextNumber = lastNumber + 1;
+        newBillNumber =
+          bill_type === "GST"
+            ? `GST-${nextNumber.toString().padStart(3, "0")}`
+            : `N-GST-${nextNumber.toString().padStart(3, "0")}`;
+      } else {
+        newBillNumber = bill_type === "GST" ? "GST-001" : "N-GST-001";
+      }
 
-          // --- 2. Copy invoice_graphic ---
-          db.query(
-            "SELECT * FROM invoice_graphic WHERE txn_id = ?",
-            [txn_id],
-            (err, graphicRows) => {
-              if (!err && graphicRows.length > 0) {
-                const values = graphicRows.map((r) => [
-                  newTxnId,
-                  r.client_id,
-                  r.service_name,
-                  r.category_name,
-                  r.editing_type_name,
-                  r.editing_type_amount,
-                  r.quantity,
-                  r.include_content_posting,
-                  r.include_thumbnail_creation,
-                  r.total_amount,
-                  r.employee,
-                  r.plan_name,
-                  createdAt,
-                ]);
-                db.query(
-                  `INSERT INTO invoice_graphic 
-              (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at) 
-             VALUES ?`,
-                  [values],
-                  (e) => {
-                    if (e) console.error("Insert Graphic Error:", e);
-                  }
-                );
-              }
-            }
-          );
+      // 3️⃣ Insert new invoice record
+      const insertInvoiceQuery = `
+        INSERT INTO invoice 
+        (txn_id, client_id, bill_type, bill_number, client_name, client_organization, email, phone, address, dg_employee, duration_start_date, duration_end_date, payment_mode, client_gst_no, client_pan_no, previous_amt, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
-          // --- 3. Copy ads_campaign_details_invoice ---
-          db.query(
-            "SELECT * FROM ads_campaign_details_invoice WHERE txn_id = ?",
-            [txn_id],
-            (err, adsRows) => {
-              if (!err && adsRows.length > 0) {
-                const values = adsRows.map((r) => [
-                  newTxnId,
-                  r.client_id,
-                  r.unique_id,
-                  r.category,
-                  r.amount,
-                  r.percent,
-                  r.charge,
-                  r.total,
-                  r.employee,
-                  createdAt,
-                ]);
-                db.query(
-                  `INSERT INTO ads_campaign_details_invoice 
-              (txn_id, client_id, unique_id, category, amount, percent, charge, total, employee, created_at) 
-             VALUES ?`,
-                  [values],
-                  (e) => {
-                    if (e) console.error("Insert Ads Error:", e);
-                  }
-                );
-              }
-            }
-          );
+      const invoiceValues = [
+        newTxnId,
+        oldInvoice.client_id,
+        bill_type,
+        newBillNumber,
+        oldInvoice.client_name,
+        oldInvoice.client_organization,
+        oldInvoice.email,
+        oldInvoice.phone,
+        oldInvoice.address,
+        oldInvoice.dg_employee,
+        oldInvoice.duration_start_date,
+        oldInvoice.duration_end_date,
+        oldInvoice.payment_mode,
+        oldInvoice.client_gst_no,
+        oldInvoice.client_pan_no,
+        oldInvoice.current_amt,
+        createdAt,
+      ];
 
-          // --- 4. Copy complimentary_invoice ---
-          db.query(
-            "SELECT * FROM complimentary_invoice WHERE txn_id = ?",
-            [txn_id],
-            (err, compRows) => {
-              if (!err && compRows.length > 0) {
-                const values = compRows.map((r) => [
-                  newTxnId,
-                  r.client_id,
-                  r.service_name,
-                  r.category_name,
-                  r.editing_type_name,
-                  r.editing_type_amount,
-                  r.quantity,
-                  r.include_content_posting,
-                  r.include_thumbnail_creation,
-                  r.total_amount,
-                  r.employee,
-                  createdAt,
-                ]);
-                db.query(
-                  `INSERT INTO complimentary_invoice 
-              (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, created_at) 
-             VALUES ?`,
-                  [values],
-                  (e) => {
-                    if (e) console.error("Insert Complimentary Error:", e);
-                  }
-                );
-              }
-            }
-          );
-
-          // --- 5. Copy invoice_client_notes ---
-          db.query(
-            "SELECT * FROM invoice_client_notes WHERE txn_id = ?",
-            [txn_id],
-            (err, notesRows) => {
-              if (!err && notesRows.length > 0) {
-                const values = notesRows.map((r) => [
-                  newTxnId,
-                  r.client_id,
-                  r.note_name,
-                  createdAt,
-                ]);
-                db.query(
-                  `INSERT INTO invoice_client_notes (txn_id, client_id, note_name, created_at) VALUES ?`,
-                  [values],
-                  (e) => {
-                    if (e) console.error("Insert Client Notes Error:", e);
-                  }
-                );
-              }
-            }
-          );
-
-          // ✅ Final Response
-          return res.status(200).json({
-            status: "Success",
-            message: "Invoice copied successfully",
-            new_txn_id: newTxnId,
+      db.query(insertInvoiceQuery, invoiceValues, (err3) => {
+        if (err3) {
+          console.error("Insert Invoice Error:", err3);
+          return res.status(500).json({
+            status: "Failure",
+            message: "Error inserting new invoice",
           });
         }
-      );
-    }
-  );
+
+        // --- 4️⃣ Copy related invoice data ---
+
+        // invoice_graphic
+        db.query(
+          "SELECT * FROM invoice_graphic WHERE txn_id = ?",
+          [txn_id],
+          (err4, rows) => {
+            if (!err4 && rows.length > 0) {
+              const values = rows.map((r) => [
+                newTxnId,
+                r.client_id,
+                r.service_name,
+                r.category_name,
+                r.editing_type_name,
+                r.editing_type_amount,
+                r.quantity,
+                r.include_content_posting,
+                r.include_thumbnail_creation,
+                r.total_amount,
+                r.employee,
+                r.plan_name,
+                createdAt,
+              ]);
+              db.query(
+                `INSERT INTO invoice_graphic 
+                 (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, plan_name, created_at)
+                 VALUES ?`,
+                [values],
+                (e) => e && console.error("Insert invoice_graphic Error:", e)
+              );
+            }
+          }
+        );
+
+        // ads_campaign_details_invoice
+        db.query(
+          "SELECT * FROM ads_campaign_details_invoice WHERE txn_id = ?",
+          [txn_id],
+          (err5, rows) => {
+            if (!err5 && rows.length > 0) {
+              const values = rows.map((r) => [
+                newTxnId,
+                r.client_id,
+                r.unique_id,
+                r.category,
+                r.amount,
+                r.percent,
+                r.charge,
+                r.total,
+                r.employee,
+                createdAt,
+              ]);
+              db.query(
+                `INSERT INTO ads_campaign_details_invoice 
+                 (txn_id, client_id, unique_id, category, amount, percent, charge, total, employee, created_at)
+                 VALUES ?`,
+                [values],
+                (e) => e && console.error("Insert ads_campaign_details_invoice Error:", e)
+              );
+            }
+          }
+        );
+
+        // complimentary_invoice
+        db.query(
+          "SELECT * FROM complimentary_invoice WHERE txn_id = ?",
+          [txn_id],
+          (err6, rows) => {
+            if (!err6 && rows.length > 0) {
+              const values = rows.map((r) => [
+                newTxnId,
+                r.client_id,
+                r.service_name,
+                r.category_name,
+                r.editing_type_name,
+                r.editing_type_amount,
+                r.quantity,
+                r.include_content_posting,
+                r.include_thumbnail_creation,
+                r.total_amount,
+                r.employee,
+                createdAt,
+              ]);
+              db.query(
+                `INSERT INTO complimentary_invoice 
+                 (txn_id, client_id, service_name, category_name, editing_type_name, editing_type_amount, quantity, include_content_posting, include_thumbnail_creation, total_amount, employee, created_at)
+                 VALUES ?`,
+                [values],
+                (e) => e && console.error("Insert complimentary_invoice Error:", e)
+              );
+            }
+          }
+        );
+
+        // invoice_client_notes
+        db.query(
+          "SELECT * FROM invoice_client_notes WHERE txn_id = ?",
+          [txn_id],
+          (err7, rows) => {
+            if (!err7 && rows.length > 0) {
+              const values = rows.map((r) => [
+                newTxnId,
+                r.client_id,
+                r.note_name,
+                createdAt,
+              ]);
+              db.query(
+                `INSERT INTO invoice_client_notes (txn_id, client_id, note_name, created_at) VALUES ?`,
+                [values],
+                (e) => e && console.error("Insert invoice_client_notes Error:", e)
+              );
+            }
+          }
+        );
+        // discount
+       // discount
+db.query("SELECT * FROM discount WHERE txn_id = ?", [txn_id], (err8, rows) => {
+  if (err8) {
+    console.error("Fetch discount Error:", err8);
+    return; // Don’t break main flow, just log
+  }
+
+  if (rows && rows.length > 0) {
+    const values = rows.map((r) => [
+      newTxnId,
+      r.client_id,
+      r.discount_type,
+      r.discount_per,
+      r.discount_amt,
+      createdAt,
+    ]);
+
+    db.query(
+      `INSERT INTO discount (txn_id, client_id, discount_type, discount_per, discount_amt, created_at) VALUES ?`,
+      [values],
+      (e) => e && console.error("Insert discount Error:", e)
+    );
+  }
+});
+
+        // ✅ Final response
+        return res.status(200).json({
+          status: "Success",
+          message: "Invoice copied successfully",
+          new_txn_id: newTxnId,
+          new_bill_number: newBillNumber,
+        });
+      });
+    });
+  });
 };
+
 
 exports.saveAdditionalData = (req, res) => {
   const {

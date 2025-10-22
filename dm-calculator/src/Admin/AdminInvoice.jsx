@@ -22,6 +22,7 @@ import {
   Notebook,
   ChevronUp,
   ChevronDown,
+  IndianRupeeIcon,
 } from "lucide-react";
 import axios from "axios";
 import moment from "moment";
@@ -85,6 +86,9 @@ export default function AdminInvoice() {
     client_gst_no: "",
     client_pan_no: "",
     tag_received_amt: "",
+    received_amt: "",
+    current_amt:"",
+    previous_amt:"",
   });
   const [formDataRemaining, setFormDataRemaining] = useState({
     service_name: "",
@@ -602,6 +606,7 @@ export default function AdminInvoice() {
       duration_end_date: clientData?.duration_end_date,
       payment_mode: clientData?.payment_mode,
       client_gst_no: clientData?.client_gst_no,
+      tag_received_amt: clientData?.tag_received_amt,
       client_pan_no: clientData?.client_pan_no,
     });
     setShowModalInvoiceClient(true);
@@ -616,13 +621,29 @@ export default function AdminInvoice() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  setFormData((prev) => {
+    let updated = { ...prev, [name]: value };
+
+    // Auto-update tag_received_amt when received_amt changes
+    if (name === "received_amt") {
+      const amt = Number(value);
+      const total = currentTotalAmount;
+
+      if (amt >= total) {
+        updated.tag_received_amt = "received";
+      } else if (amt > 0 && amt < total) {
+        updated.tag_received_amt = "partial";
+      } else {
+        updated.tag_received_amt = "";
+      }
+    }
+
+    return updated;
+  });
+};
+
   const handleChangeRemaining = (e) => {
     const { name, value } = e.target;
 
@@ -631,6 +652,7 @@ export default function AdminInvoice() {
       [name]: value,
     }));
   };
+
   const handleEditInvoice = async (e) => {
     e.preventDefault();
     try {
@@ -644,6 +666,9 @@ export default function AdminInvoice() {
         client_gst_no: formData?.client_gst_no,
         client_pan_no: formData?.client_pan_no,
         tag_received_amt: formData?.tag_received_amt,
+        received_amt: formData?.received_amt,
+        current_amt: PreviousAmt,
+    
       };
 
       const payload = { ...clientDetail };
@@ -1018,11 +1043,6 @@ const discountAmount = selecteddiscount
     : 0
   : 0;
 
-  
-const remainingTotal = remainingAmountData.reduce(
-                                (sum, e) => sum + Number(e.price || 0),
-                                0
-                              );
 
 // Grand total after discount
 const totalAfterDiscount = grandTotal - discountAmount;
@@ -1030,13 +1050,19 @@ const totalAfterDiscount = grandTotal - discountAmount;
 // GST on discounted total if applicable
 const gstAmount = isGST ? (grandTotalAds - discountAmount) * 0.18 : 0;
 
-// Final total including GST
+
+const currentAmtPreviousAmt = gstAmount + totalAfterDiscount;
+console.log(currentAmtPreviousAmt);
+
+
+
 const totalgstamount =  gstAmount + totalAfterDiscount;
 
-const amountInWords =
-   isGST ? numberToWords.toWords(totalgstamount + remainingTotal).replace(/\b\w/g, (c) => c.toUpperCase()) + " Rupees": numberToWords.toWords(totalAfterDiscount + remainingTotal).replace(/\b\w/g, (c) => c.toUpperCase()) + " Rupees";
+const currentTotalAmount = totalgstamount + Number(clientData.previous_amt || 0);
 
 
+const amountInWords = numberToWords.toWords(totalgstamount).replace(/\b\w/g, (c) => c.toUpperCase()) + " Rupees"
+  
   if (loading) {
     return (
       <div className="text-center p-10 font-semibold text-gray-700">
@@ -1044,7 +1070,22 @@ const amountInWords =
       </div>
     );
   }
-  const handleDelete = async (entryId) => {
+
+    const previousBalance = Number(clientData.previous_amt || 0);
+const receivedAmount = Number(formData.received_amt || 0);
+const currentInvoiceTotal = totalgstamount;
+
+
+
+// ✅ Calculate Current Amount (Outstanding)
+const PreviousAmt = clientData.previous_amt > 0
+  ? (currentTotalAmount - receivedAmount)
+  : currentInvoiceTotal - receivedAmount;
+console.log(`${currentTotalAmount} - ${receivedAmount}`);
+
+  console.log(PreviousAmt);
+  
+    const handleDelete = async (entryId) => {
     const confirm = await Swal.fire({
       title: "Are you sure?",
       text: "Do you really want to delete this entry?",
@@ -1164,6 +1205,7 @@ const amountInWords =
       client_gst_no: "",
       client_pan_no: "",
       tag_received_amt: "",
+       received_amt: "",
     });
   };
   const handleClosesetRemaining = () => {
@@ -1305,7 +1347,7 @@ const amountInWords =
 
                       <div className="space-y-1 text-xs">
                         <p>
-                          <strong>Invoice No:</strong> {clientData.id}
+                          <strong>Invoice No: </strong> {clientData?.bill_number}
                         </p>
                         <p>
                           <strong>Date:</strong>{" "}
@@ -1317,8 +1359,9 @@ const amountInWords =
                     <div className="grid grid-cols-2 gap-2 mb-2 text-xs">
                       {/* Client Info */}
                       <div className="border p-2 rounded-lg">
-                        <p className=" font-bold">
-                          BILL TO: {clientData.client_organization}{" "}
+                       
+                        <p>
+                          <strong>BILL TO:</strong> {clientData.client_organization}
                         </p>
                         <p>
                           <strong>Name:</strong> {clientData?.client_name}
@@ -1346,10 +1389,11 @@ const amountInWords =
 
                       {/* Company Info */}
                       <div className="border p-2 rounded-lg">
-                        <p className="font-bold">
-                          FROM: DOAGuru Infosystems
-                        </p>
+                       
 
+                        <p>
+                          <strong> FROM:</strong> {isGST ? "DOAGuru InfoSystems" : "DOAGuru IT Solutions"}
+                        </p>
                         <p>
                           <strong>Email:</strong> info@doaguru.com
                         </p>
@@ -1368,8 +1412,7 @@ const amountInWords =
                     {/* ==================== COMBINED SERVICES TABLE ==================== */}
                     {(graphicData.length > 0 ||
                       complimentaryData.length > 0 ||
-                      additionalServiceData.length > 0 ||
-                      remainingAmountData.length > 0) && (
+                      additionalServiceData.length > 0) && (
                       <section className="mb-2 text-sm">
                         <table className="w-full border text-xs">
                           <thead className="bg-indigo-100">
@@ -1583,7 +1626,7 @@ const amountInWords =
                             })}
 
                             {/* ================= REMAINING AMOUNT ================= */}
-                            {remainingAmountData.map((edit, eidx) => (
+                            {/* {remainingAmountData.map((edit, eidx) => (
                               <tr key={`remain-${eidx}`} className="bg-gray-50">
                                 {eidx === 0 ? (
                                   <td
@@ -1631,7 +1674,7 @@ const amountInWords =
                                   </td>
                                 )}
                               </tr>
-                            ))}
+                            ))} */}
 
                             {/* ================= DM SERVICE TOTAL ================= */}
                             {(() => {
@@ -1681,17 +1724,17 @@ const amountInWords =
                                     Number(e.quantity),
                                 0
                               );
-                              const remainingTotal = remainingAmountData.reduce(
-                                (sum, e) => sum + Number(e.price || 0),
-                                0
-                              );
+                              // const remainingTotal = remainingAmountData.reduce(
+                              //   (sum, e) => sum + Number(e.price || 0),
+                              //   0
+                              // );
 
                               const dmServiceTotal =
                                 graphicTotal +
                                 thumbTotal +
                                 postTotal +
-                                addTotal +
-                                remainingTotal;
+                                addTotal;
+                                // remainingTotal;
 
                               return (
                                 <tr className=" font-semibold">
@@ -1835,17 +1878,17 @@ const amountInWords =
                                 0
                               );
 
-                              const remainingTotal = remainingAmountData.reduce(
-                                (sum, e) => sum + Number(e.price || 0),
-                                0
-                              );
+                              // const remainingTotal = remainingAmountData.reduce(
+                              //   (sum, e) => sum + Number(e.price || 0),
+                              //   0
+                              // );
 
                               const dmServiceTotal =
                                 graphicTotal +
                                 thumbTotal +
                                 postTotal +
-                                addTotal +
-                                remainingTotal;
+                                addTotal;
+                                // remainingTotal;
 
                               return (
                                 <tr className="bg-indigo-50 font-semibold">
@@ -1951,12 +1994,12 @@ const amountInWords =
                         >
                           + Additional Service
                         </button>
-                        <button
+                        {/* <button
                           onClick={handleRemainingShow}
                           className="px-2 py-1 mx-1 print:hidden mb-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
                         >
                           + Remaining Amount
-                        </button>
+                        </button> */}
                       </div>
                     )}
 
@@ -1969,9 +2012,10 @@ const amountInWords =
               <section className="flex justify-between border-t pt-4  text-sm text-gray-800">
   {/* LEFT SECTION - Terms & Conditions & Bank Details */}
   <div className="w-1/2 pr-4 border-r border-gray-300">
-    <h2 className="font-bold mb-2 text-gray-800">Terms & Conditions</h2>
 
     {notesData?.length > 0 ? (
+      <>
+       <h2 className="font-bold mb-2 text-gray-800">Terms & Conditions</h2>
       <ul className="list-decimal ml-5 space-y-1 text-gray-700">
         {notesData.map((note) => (
           <li key={note.id} className="leading-snug">
@@ -1979,6 +2023,8 @@ const amountInWords =
           </li>
         ))}
       </ul>
+      </>
+   
     ) : (
       null
     )}
@@ -2029,11 +2075,38 @@ const amountInWords =
     {/* Totals (always visible) */}
     <div className="mt-1 border-t space-y-1 text-gray-800 font-medium">
       <p>
-        <span className="font-semibold ">Total Amount</span> ₹ {totalgstamount}
+        <span className="font-semibold ">Total Amount</span> ₹ {(currentAmtPreviousAmt).toLocaleString()}
       </p>
-      <p className="border-t">Previous Balance ₹ {remainingTotal.toLocaleString()}</p>
-      <p className="">Current Balance ₹ {(totalgstamount +  remainingTotal).toLocaleString()}</p>
-    </div>
+      {/* <p className="border-t">Previous Balance ₹ {remainingTotal.toLocaleString()}</p> */}
+   {/* When amount is received but not fully (partial or other status) */}
+{clientData.received_amt && clientData.tag_received_amt !== "received" && (
+  <>
+      {clientData.previous_amt > 0 ? <p>Previous Amount ₹ {Number(clientData.previous_amt || 0).toLocaleString()}</p>:null}
+    <p>Received Amount ₹ {Number(clientData.received_amt || 0).toLocaleString()}</p>
+    <p>Current Balance ₹ {Number(clientData.current_amt || 0).toLocaleString()}</p>
+  </>
+)}
+
+{/* When amount is fully received */}
+{clientData.received_amt && clientData.tag_received_amt === "received" && (
+  <>
+   {clientData.previous_amt > 0 ? <p>Previous Amount ₹ {Number(clientData.previous_amt || 0).toLocaleString()}</p>:null}
+
+    <p>Received Amount ₹ {Number(clientData.received_amt || 0).toLocaleString()}</p>
+    <p>Current Balance ₹ {Number(clientData.current_amt || 0).toLocaleString()}</p>
+  </>
+)}
+
+{/* When previous amount exists and status is partial received */}
+{clientData.tag_received_amt === "pending" && (
+  <>
+ {clientData.previous_amt > 0 ? <p>Previous Amount ₹ {Number(clientData.previous_amt || 0).toLocaleString()}</p>:null}
+
+       <p>Current Balance ₹ {currentTotalAmount.toLocaleString()}</p>
+  </>
+)}
+
+      </div>
 
     {/* Total in Words */}
     <p className="mt-1 italic border-t text-gray-700 text-sm leading-snug">
@@ -2042,7 +2115,7 @@ const amountInWords =
     </p>
 
     {/* Signature */}
-    <div className="mt-6 text-center border border-black-400 rounded-md p-2 inline-block ml-auto">
+    <div className="mt-6 text-center border border-black-400 rounded-md p-2 inline-block ml-auto ">
       <img
         src={isGST ? img4 : img3}
         alt="Authorized Signature"
@@ -2053,6 +2126,7 @@ const amountInWords =
     </div>
   </div>
 </section>
+    <div className="border-t mt-1"></div>
 
 
                 <div className="h-[50rem]"></div>
@@ -2084,7 +2158,7 @@ const amountInWords =
             />
 
             {/* Modal */}
-            <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+            <div className="relative overflow-auto h-[53rem] bg-white w-full max-w-md my-2 rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <div className="flex items-center gap-3">
@@ -2173,24 +2247,39 @@ const amountInWords =
                     <option value="Cash">Cash</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Building className="w-4 h-4 inline mr-2" />
-                    Received Amount Status
-                  </label>
-                  <select
-                    name="tag_received_amt"
-                    value={formData.tag_received_amt}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  >
-                    <option value="" className="text-gray-500">
-                      Select Status
-                    </option>
+             
+     <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    <IndianRupeeIcon className="w-4 h-4 inline mr-2" />
+    Received Amount
+  </label>
+  <input
+    type="number"
+    name="received_amt"
+    max={currentTotalAmount || 0}
+    value={formData.received_amt}
+    onChange={handleChange}
+    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+    placeholder="Enter received amount"
+  />
 
-                    <option value="received">Received</option>
-                  </select>
-                </div>
+  {/* Dynamic status label */}
+  {formData.received_amt && (
+    <p className="mt-2 text-sm font-medium">
+      Status:{" "}
+      <span
+        className={
+          formData.tag_received_amt === "received"
+            ? "text-green-600"
+            : "text-orange-500"
+        }
+      >
+      Payment Amount is {currentTotalAmount} 
+      </span>
+    </p>
+  )}
+</div>
+
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2236,7 +2325,7 @@ const amountInWords =
                     disabled={loading}
                     className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
                   >
-                    {loading ? "Saving..." : "Save Client"}
+                    {loading ? "Saving..." : "Save "}
                   </button>
                 </div>
               </form>
@@ -2524,7 +2613,7 @@ const amountInWords =
                     disabled={loading}
                     className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
                   >
-                    {loading ? "Saving..." : "Save Client"}
+                    {loading ? "Saving..." : "Save"}
                   </button>
                 </div>
               </form>
