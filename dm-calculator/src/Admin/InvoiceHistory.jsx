@@ -316,7 +316,7 @@ const handleNavigateInovice = (selectedTxn,selectedClient,billType) =>{
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       TXN ID
                     </th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
+                    <th className="text-left py-4  font-semibold text-gray-200 uppercase tracking-wider text-sm">
   Bill Number
 </th>
 
@@ -365,15 +365,15 @@ const handleNavigateInovice = (selectedTxn,selectedClient,billType) =>{
                             {item.txn_id ? item.txn_id : "N/A"}
                           </div>
                         </td>
-                 <td className="py-5 px-6">
+                 <td className="py-5 ">
   <div
     className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
       item.bill_type === "GST"
-        ? "bg-green-500/20 text-green-400"
+        ? `bg-green-500/20 text-green-400`
         : "bg-gray-500/20 text-gray-300"
     }`}
   >
-    {item.bill_number || "N/A"}
+     {item.bill_type === "GST" ? `GST-${item.bill_number}` : `N-GST-${item.bill_number}`}
   </div>
 </td>
 

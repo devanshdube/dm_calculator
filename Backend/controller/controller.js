@@ -3478,10 +3478,10 @@ exports.saveInvoiceGD = (req, res) => {
       const nextNumber = lastNumber + 1;
       newBillNumber =
         bill_type === "GST"
-          ? `GST-${nextNumber.toString().padStart(3, "0")}`
-          : `N-GST-${nextNumber.toString().padStart(3, "0")}`;
+          ? `${nextNumber.toString().padStart(2, "0")}`
+          : `${nextNumber.toString().padStart(2, "0")}`;
     } else {
-      newBillNumber = bill_type === "GST" ? "GST-001" : "N-GST-001";
+      newBillNumber = bill_type === "GST" ? "01" : "01";
     }
 
     // ✅ Step 2: Insert into invoice table
@@ -3883,16 +3883,16 @@ exports.copyInvoiceByTxnId = (req, res) => {
 
       let newBillNumber;
       if (results.length > 0 && results[0].bill_number) {
-        const lastBill = results[0].bill_number;
-        const lastNumber = parseInt(lastBill.split("-").pop());
-        const nextNumber = lastNumber + 1;
-        newBillNumber =
-          bill_type === "GST"
-            ? `GST-${nextNumber.toString().padStart(3, "0")}`
-            : `N-GST-${nextNumber.toString().padStart(3, "0")}`;
-      } else {
-        newBillNumber = bill_type === "GST" ? "GST-001" : "N-GST-001";
-      }
+      const lastBill = results[0].bill_number;
+      const lastNumber = parseInt(lastBill.split("-").pop());
+      const nextNumber = lastNumber + 1;
+      newBillNumber =
+        bill_type === "GST"
+          ? `${nextNumber.toString().padStart(2, "0")}`
+          : `${nextNumber.toString().padStart(2, "0")}`;
+    } else {
+      newBillNumber = bill_type === "GST" ? "01" : "01";
+    }
 
       // 3️⃣ Insert new invoice record
       const insertInvoiceQuery = `

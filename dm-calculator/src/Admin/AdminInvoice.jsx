@@ -271,21 +271,7 @@ export default function AdminInvoice() {
     }
   };
 
-  // const fetchPredefinedNotes = async () => {
-  //   try {
-  //     const { data } = await axios.get(
-  //       `${baseURL}/auth/api/calculator/getInvoiceNoteData`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-  //     setPredefinedNotes(data.data || []);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
+
 
   const fetchAdditionservice = async () => {
     try {
@@ -629,7 +615,7 @@ export default function AdminInvoice() {
     // Auto-update tag_received_amt when received_amt changes
     if (name === "received_amt") {
       const amt = Number(value);
-      const total = currentTotalAmount;
+      const total = clientData.current_amt > 0 ? totalcurrentamount  : currentInvoiceTotal;
 
       if (amt >= total) {
         updated.tag_received_amt = "received";
@@ -1015,23 +1001,37 @@ export default function AdminInvoice() {
   );
   console.log(remainingAmountData);
 
-  const adsTotal = adsData.reduce((sum, ad) => {
-    const amount = Number(ad.amount || 0);
-    const totalBudget = Number(ad.total_amount || 0);
-    const gstTotal = (amount * 18) / 100;
-    return sum + totalBudget + gstTotal;
-  }, 0);
-  const adsTotalBudget = adsData.reduce((sum, ad) => {
-    const amount = Number(ad.amount || 0);
+  // const adsTotal = adsData.reduce((sum, ad) => {
+  //   const amount = Number(ad.amount || 0);
+  //   const totalBudget = Number(ad.total_amount || 0);
+  //   const gstTotal = (amount * 18) / 100;
+  //   return sum + totalBudget + gstTotal;
+  // }, 0);
+  // const adsTotalBudget = adsData.reduce((sum, ad) => {
+  //   const amount = Number(ad.amount || 0);
 
-    const gstTotal = (amount * 18) / 100;
-    return sum + amount + gstTotal;
+  //   const gstTotal = (amount * 18) / 100;
+  //   return sum + amount + gstTotal;
+  // }, 0);
+  // const grandTotalAds =
+  //   graphicTotal + adsTotal + additionalTotal - adsTotalBudget;
+
+  // const grandTotal =
+  //   graphicTotal + adsTotal + additionalTotal;
+
+ const adsTotal = adsData.reduce((sum, ad) => {
+  
+    const totalBudget = Number(ad.charge || 0);
+
+    return sum + totalBudget;
   }, 0);
+
+
   const grandTotalAds =
-    graphicTotal + adsTotal + additionalTotal - adsTotalBudget;
+    graphicTotal + additionalTotal + adsTotal;
 
   const grandTotal =
-    graphicTotal + adsTotal + additionalTotal;
+    graphicTotal + additionalTotal + adsTotal;
 
   // Apply discount percentage only for display
  // Compute discounted amount based on type
@@ -1075,12 +1075,14 @@ const amountInWords = numberToWords.toWords(totalgstamount).replace(/\b\w/g, (c)
 const receivedAmount = Number(formData.received_amt || 0);
 const currentInvoiceTotal = totalgstamount;
 
+const totalcurrentamount = Number(clientData.current_amt || 0);
+
 
 
 // ✅ Calculate Current Amount (Outstanding)
 const PreviousAmt = clientData.previous_amt > 0
-  ? (currentTotalAmount - receivedAmount)
-  : currentInvoiceTotal - receivedAmount;
+  ? clientData.current_amt > 0 ? totalcurrentamount - receivedAmount  : (currentTotalAmount - receivedAmount)
+  : clientData.current_amt > 0 ? totalcurrentamount - receivedAmount  : currentInvoiceTotal - receivedAmount;
 console.log(`${currentTotalAmount} - ${receivedAmount}`);
 
   console.log(PreviousAmt);
@@ -1261,7 +1263,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
           >
             🖨️ Print
           </button>
-          {clientData.tag_received_amt === "received" ? null : (
+          {clientData.tag_received_amt === "received" || clientData.tag_received_amt === "partial" ? null : (
             <button
               onClick={() => navigate(`/admin/invoice-edit/${id}/${txn_id}`)}
               className="bg-orange-600 text-white rounded-full px-4 py-2"
@@ -1347,7 +1349,20 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
 
                       <div className="space-y-1 text-xs">
                         <p>
-                          <strong>Invoice No: </strong> {clientData?.bill_number}
+                          {isGST > 0 &&(
+                            <>
+                          <strong>GST Invoice No: </strong> {clientData?.bill_number}
+                            </>
+                          
+                          )
+                          }
+                          {isGST < 1 &&(
+                            <>
+                          <strong>N-GST Invoice No: </strong> {clientData?.bill_number}
+                            </>
+                          
+                          )
+                          }
                         </p>
                         <p>
                           <strong>Date:</strong>{" "}
@@ -1400,9 +1415,14 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                         <p>
                           <strong>Phone:</strong> +91 74409 92424
                         </p>
+                          {isGST ? 
                         <p>
                           <strong>GST No:</strong> 23AGLPP2890G1Z7
+                        </p> :
+                        <p>
+                          <strong>Pan Card No:</strong>  ASTPT3654Q
                         </p>
+}
                         <p>
                           <strong>Address:</strong> 1815, Wright Town, Jabalpur
                         </p>
@@ -1412,7 +1432,8 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                     {/* ==================== COMBINED SERVICES TABLE ==================== */}
                     {(graphicData.length > 0 ||
                       complimentaryData.length > 0 ||
-                      additionalServiceData.length > 0) && (
+                      additionalServiceData.length > 0||
+                      adsData.length > 0) && (
                       <section className="mb-2 text-sm">
                         <table className="w-full border text-xs">
                           <thead className="bg-indigo-100">
@@ -1567,6 +1588,27 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                                 </tr>
                               );
                             })()}
+                            {adsData.map((ad, idx) => {
+                              
+                              const totalBudget = Number(ad.charge || 0);
+                           
+
+                              return (
+                                <React.Fragment key={idx}>
+                         
+                                  
+                                  <tr className="bg-gray-50">
+                                    <td className="border px-2 py-1" colSpan={4}>
+                                      {ad.category_name} Charges
+                                    </td>
+                                    
+                                    <td className="border px-2 py-1 text-right">
+                                      {totalBudget.toLocaleString()}
+                                    </td>
+                                  </tr>
+                                </React.Fragment>
+                              );
+                            })}
 
                             {/* ================= ADDITIONAL SERVICES ================= */}
                             {additionalServiceData.map((edit, eidx) => {
@@ -1724,6 +1766,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                                     Number(e.quantity),
                                 0
                               );
+
                               // const remainingTotal = remainingAmountData.reduce(
                               //   (sum, e) => sum + Number(e.price || 0),
                               //   0
@@ -1733,7 +1776,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                                 graphicTotal +
                                 thumbTotal +
                                 postTotal +
-                                addTotal;
+                                addTotal + adsTotal;
                                 // remainingTotal;
 
                               return (
@@ -1745,7 +1788,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                                     DM Service Total
                                   </td>
                                   <td className="border px-2 py-1 text-right">
-                                    ₹{dmServiceTotal.toLocaleString()}
+                                    ₹{dmServiceTotal.toFixed(0).toLocaleString()}
                                   </td>
                                 </tr>
                               );
@@ -1786,6 +1829,9 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                                 </tr>
                               );
                             })}
+                            {complimentaryData.length > 0 ?
+                            <>
+                            
                             <tr className=" font-semibold">
                               <td
                                 className="border px-2 py-1 text-right"
@@ -1797,7 +1843,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                                 ₹{complimentaryTotal.toLocaleString()}
                               </td>
                             </tr>
-                            {/* ================= COMPLIMENTARY TOTAL ================= */}
+                         
                             {(() => {
                               const complimentaryTotal =
                                 complimentaryData.reduce(
@@ -1822,6 +1868,8 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                                 </tr>
                               );
                             })()}
+                            </>
+                            : null }
 
                             {/* ================= DM SERVICE TOTAL ================= */}
                             {(() => {
@@ -1887,7 +1935,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                                 graphicTotal +
                                 thumbTotal +
                                 postTotal +
-                                addTotal;
+                                addTotal + adsTotal;
                                 // remainingTotal;
 
                               return (
@@ -1899,7 +1947,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                                     SubTotal
                                   </td>
                                   <td className="border px-2 py-1 text-right">
-                                    ₹{dmServiceTotal.toLocaleString()}
+                                    ₹{dmServiceTotal.toFixed(0).toLocaleString()}
                                   </td>
                                 </tr>
                               );
@@ -1910,7 +1958,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                     )}
 
                     {/* ==================== ADS SERVICES TABLE ==================== */}
-                    {adsData.length > 0 && (
+                    {/* {adsData.length > 0 && (
                       <section className="mb-2 text-xs">
                         <table className="w-full border text-xs">
                           <thead className="bg-indigo-100">
@@ -1985,8 +2033,8 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                             .toLocaleString()}
                         </p>
                       </section>
-                    )}
-                    {clientData.tag_received_amt !== "received" && (
+                    )} */}
+                    {clientData.tag_received_amt === "pending" && (
                       <div className="mt-1">
                         <button
                           onClick={handleShow}
@@ -2009,6 +2057,91 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                   </div>
                
                 </div>
+                 <div className="space-y-4 print:hidden">
+                        <div className="relative w-full" ref={dropdownRef}>
+
+         <div
+          className="flex items-center justify-between w-full p-2 bg-white rounded-lg border border-gray-300 text-black cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span className="truncate">
+            {selectedNote ? selectedNote.note_text : "-- Select Predefined Note --"}
+          </span>
+          {isOpen ? (
+            <ChevronUp className="w-5 h-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-500" />
+          )}
+        </div>
+  
+        {isOpen && (
+          <div className="absolute z-10 bg-white w-full mt-1 max-h-60 overflow-auto border rounded-lg text-black focus:ring-2 focus:ring-purple-500">
+            {uniquePredefinedNotes.map((note) => (
+              <div
+                key={note.id}
+                onClick={() => handleSelect(note)}
+                className="p-2 m-1 border rounded-lg bg-gray-100 hover:bg-purple-100 cursor-pointer break-words"
+              >
+                {note.note_text}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+                        {/* Manual Note Input */}
+                        <div className="flex flex-wrap gap-2">
+                      <textarea
+                        type="text"
+                        value={manualNote}
+                        onChange={(e) => setManualNote(e.target.value)}
+                        placeholder="Enter custom note"
+                        rows={1}
+                
+                        className="flex-1 p-2 rounded-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                      <button
+                        onClick={handleAddManualNote}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
+                      >
+                        + Add
+                      </button>
+                    </div>
+
+                        {/* Selected Notes List */}
+                        <div className="space-y-2">
+                      {selectedNotes.map((note) => (
+                        <div
+                          key={note.id}
+                          className="p-3 bg-gray-100 rounded-lg gap-5 flex justify-between items-center border border-gray-300"
+                        >
+                          <span className="text-gray-800 font-medium">
+                            {note.note_name}
+                          </span>
+                          <div className="">
+                          <button
+                            onClick={() => handleRemoveNote(note.id)}
+                            className="bg-red-500 mx-2 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold transition"
+                            title="Remove"
+                          >
+                            ×
+                          </button></div>
+                        </div>
+                      ))}
+                    </div>
+
+                        {/* Save Button */}
+                        <button
+                      onClick={handleSaveNotes}
+                      className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition"
+                    >
+                      💾 Save Notes
+                    </button>
+                      </div>
+
+                      
+                
+
               <section className="flex justify-between border-t pt-4  text-sm text-gray-800">
   {/* LEFT SECTION - Terms & Conditions & Bank Details */}
   <div className="w-1/2 pr-4 border-r border-gray-300">
@@ -2020,7 +2153,34 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
         {notesData.map((note) => (
           <li key={note.id} className="leading-snug">
             {note.note_name}
+                                    <div className="flex items-center gap-1 sm:gap-2 print:hidden">
+            <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // prevent card onClick
+                              setSelectedNotesId(note);
+                                  setFormDataNote({
+                                note_name: note.note_name,
+                                plan: note.plan,
+                              });
+                              setIsEditing(true);
+                              setShowModal(true);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                            title="Edit"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClientNote(note.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold"
+                            title="Delete"
+                          >
+                            ×
+                          </button>
+                          </div>
+
           </li>
+       
         ))}
       </ul>
       </>
@@ -2066,7 +2226,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
     {/* GST Breakdown (only for GST invoice) */}
     {isGST && (
       <div className="space-y-1 text-gray-700">
-        <p>Taxable Amount ₹ {totalAfterDiscount.toLocaleString()}</p>
+        <p>Taxable Amount ₹ {totalAfterDiscount.toFixed(0).toLocaleString()}</p>
         <p>CGST @9% ₹ {(gstAmount / 2).toFixed(2)}</p>
         <p>SGST @9% ₹ {(gstAmount / 2).toFixed(2)}</p>
       </div>
@@ -2075,7 +2235,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
     {/* Totals (always visible) */}
     <div className="mt-1 border-t space-y-1 text-gray-800 font-medium">
       <p>
-        <span className="font-semibold ">Total Amount</span> ₹ {(currentAmtPreviousAmt).toLocaleString()}
+        <span className="font-semibold ">Total Amount</span> ₹ {(currentAmtPreviousAmt).toFixed(0).toLocaleString()}
       </p>
       {/* <p className="border-t">Previous Balance ₹ {remainingTotal.toLocaleString()}</p> */}
    {/* When amount is received but not fully (partial or other status) */}
@@ -2083,7 +2243,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
   <>
       {clientData.previous_amt > 0 ? <p>Previous Amount ₹ {Number(clientData.previous_amt || 0).toLocaleString()}</p>:null}
     <p>Received Amount ₹ {Number(clientData.received_amt || 0).toLocaleString()}</p>
-    <p>Current Balance ₹ {Number(clientData.current_amt || 0).toLocaleString()}</p>
+    <p>Current Balance ₹ {Number(clientData.current_amt || 0).toFixed(0).toLocaleString()}</p>
   </>
 )}
 
@@ -2093,7 +2253,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
    {clientData.previous_amt > 0 ? <p>Previous Amount ₹ {Number(clientData.previous_amt || 0).toLocaleString()}</p>:null}
 
     <p>Received Amount ₹ {Number(clientData.received_amt || 0).toLocaleString()}</p>
-    <p>Current Balance ₹ {Number(clientData.current_amt || 0).toLocaleString()}</p>
+    <p>Current Balance ₹ {Number(clientData.current_amt || 0).toFixed(0).toLocaleString()}</p>
   </>
 )}
 
@@ -2102,7 +2262,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
   <>
  {clientData.previous_amt > 0 ? <p>Previous Amount ₹ {Number(clientData.previous_amt || 0).toLocaleString()}</p>:null}
 
-       <p>Current Balance ₹ {currentTotalAmount.toLocaleString()}</p>
+       <p>Current Balance ₹ {currentTotalAmount.toFixed(0).toLocaleString()}</p>
   </>
 )}
 
@@ -2274,27 +2434,31 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
             : "text-orange-500"
         }
       >
-      Payment Amount is {currentTotalAmount} 
+      Payment Amount is {clientData.current_amt > 0 ? totalcurrentamount  : currentInvoiceTotal} 
       </span>
     </p>
   )}
 </div>
 
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Mail className="w-4 h-4 inline mr-2" />
-                    GST Number (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="client_gst_no"
-                    value={formData.client_gst_no}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="Enter GST Number"
-                  />
-                </div>
+{ isGST > 0 && (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      <Mail className="w-4 h-4 inline mr-2" />
+      GST Number (Required for GST Bill)
+    </label>
+    <input
+      type="text"
+      name="client_gst_no"
+      value={formData.client_gst_no}
+      onChange={handleChange}
+      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+      placeholder="Enter GST Number"
+      required={formData.bill_type === "GST"} // make required only for GST
+      maxLength={15}
+    />
+  </div>
+)}
+            { isGST < 1  && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Mail className="w-4 h-4 inline mr-2" />
@@ -2309,7 +2473,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                     placeholder="Enter Pan Card Number"
                   />
                 </div>
-
+)}
                 {/* Buttons */}
                 <div className="flex justify-end gap-3 pt-4">
                   <button
@@ -2620,6 +2784,80 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
             </div>
           </div>
         )}
+         {showModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                      className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+                      onClick={handleCloseNote}
+                    />
+
+                    {/* Modal */}
+                    <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                      {/* Header */}
+                      <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <StickyNote className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <h2 className="text-xl font-semibold text-gray-900">
+                            {isEditing ? "Edit Note" : "Add New Note"}
+                          </h2>
+                        </div>
+                        <button
+                          onClick={handleCloseNote}
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      {/* Form */}
+                      <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        {/* Note */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <Notebook className="w-4 h-4 inline mr-2" />
+                            Note
+                          </label>
+                          <textarea
+                            name="note_name"
+                            value={formDataNote.note_name}
+                            onChange={handleChangeNote}
+                            className="w-full text-black px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                            placeholder="Enter note details"
+                            rows={4} // number of visible lines
+                            required
+                          ></textarea>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex justify-end gap-3 pt-4">
+                          <button
+                            type="button"
+                            onClick={handleCloseNote}
+                            className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                          >
+                            {loading
+                              ? isEditing
+                                ? "Updating..."
+                                : "Saving..."
+                              : isEditing
+                              ? "Update Note"
+                              : "Save Note"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
         {showModalRemaining && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}

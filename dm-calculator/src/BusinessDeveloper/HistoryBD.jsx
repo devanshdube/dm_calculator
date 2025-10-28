@@ -365,6 +365,7 @@ const fetchClientReceived = async (txnId) => {
       payment_mode:"",
       client_gst_no:"",
       client_pan_no:"",
+       bill_type: "NON_GST",
     })
     setShowModalInvoiceClient(true);
   };
@@ -645,10 +646,14 @@ setCreatedInvoices((prev) => {
 
     
   };
-  const handleNavigateInovice = (selectedTxn) =>{
-    const isGST = invoiceData.bill_type === "GST";
+
+ const handleNavigateInovice = (selectedTxn,billtype) =>{
+  console.log(selectedTxn,billtype);
+
+  
+    const isGST = billtype === "GST";
     navigate(
-      `/admin/invoice/${id}/${selectedTxn}?gst=${isGST ? 1 : 0}`
+      `/BD/invoice/${id}/${selectedTxn}?gst=${isGST ? 1 : 0}`
     );
 }
   return (
@@ -819,7 +824,7 @@ setCreatedInvoices((prev) => {
         // ✅ Only Preview if received
         <button
           onClick={() => {
-           handleNavigateInovice(item.txn_id)
+            handleNavigateInovice(clientDataReceived[item.txn_id]?.txn_id,clientDataReceived[item.txn_id]?.bill_type);
           }}
           className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
         >
@@ -829,9 +834,9 @@ setCreatedInvoices((prev) => {
         // ✅ Show Invoice Created + Delete if pending
         <>
           <button
-            onClick={() => {
-              handleNavigateInovice(item.txn_id)
-            }}
+          onClick={() => {
+            handleNavigateInovice(clientDataReceived[item.txn_id]?.txn_id,clientDataReceived[item.txn_id]?.bill_type);
+          }}
             className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
           >
             Invoice Created
@@ -1062,36 +1067,42 @@ setCreatedInvoices((prev) => {
                 </div>
               
                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Mail className="w-4 h-4 inline mr-2" />
-                   GST Number (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="client_gst_no"
-                    value={formData.client_gst_no}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="Enter GST Number"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Mail className="w-4 h-4 inline mr-2" />
-                   Pan Card Number (Optional)
-                  </label>
-                  <input
-                     type="text"
-                    name="client_pan_no"
-                    maxLength={10}
-                    value={formData.client_pan_no}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="Enter Pan Card Number"
-                  />
-                </div>
-
+                 {formData.bill_type === "GST" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <Mail className="w-4 h-4 inline mr-2" />
+                      GST Number (Required for GST Bill)
+                    </label>
+                    <input
+                      type="text"
+                      name="client_gst_no"
+                      value={formData.client_gst_no}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      placeholder="Enter GST Number"
+                      required={formData.bill_type === "GST"} // make required only for GST
+                      maxLength={15}
+                    />
+                  </div>
+                )}
+                
+                                 {formData.bill_type === "NON_GST" && ( 
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <Mail className="w-4 h-4 inline mr-2" />
+                                   Pan Card Number (Optional)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    name="client_pan_no"
+                                    maxLength={10}
+                                    value={formData.client_pan_no}                
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                    placeholder="Enter Pan Card Number"
+                                  />
+                                </div>
+                )}
          
 
                 {/* Buttons */}

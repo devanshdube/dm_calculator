@@ -119,6 +119,8 @@ const fetchAllInvoiceServices = async (txnID) => {
     );
 
     if (res.data.status === "Success") {
+      console.log(res.data.data);
+      
     
       const hasInvoices = res.data.data && res.data.data.length > 0;
 
@@ -127,6 +129,8 @@ const fetchAllInvoiceServices = async (txnID) => {
         [txnID]: hasInvoices, // true if invoice exists
       }));
     }
+    console.log(createdInvoices);
+    
   } catch (error) {
     console.log(error);
     if (error.response && error.response.status === 401) {
@@ -653,8 +657,11 @@ setCreatedInvoices((prev) => {
 
     
   };
-const handleNavigateInovice = (selectedTxn) =>{
-    const isGST = invoiceData.bill_type === "GST";
+const handleNavigateInovice = (selectedTxn,billtype) =>{
+  console.log(selectedTxn,billtype);
+
+  
+    const isGST = billtype === "GST";
     navigate(
       `/admin/invoice/${id}/${selectedTxn}?gst=${isGST ? 1 : 0}`
     );
@@ -852,7 +859,7 @@ const handleNavigateInovice = (selectedTxn) =>{
         // ✅ Only Preview if received
         <button
           onClick={() => {
-            handleNavigateInovice(item.txn_id)
+            handleNavigateInovice(clientDataReceived[item.txn_id]?.txn_id,clientDataReceived[item.txn_id]?.bill_type);
           }}
           className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
         >
@@ -863,7 +870,7 @@ const handleNavigateInovice = (selectedTxn) =>{
         <>
           <button
             onClick={() => {
-             handleNavigateInovice(item.txn_id)
+              handleNavigateInovice(clientDataReceived[item.txn_id]?.txn_id,clientDataReceived[item.txn_id]?.bill_type);
             }}
             className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
           >
@@ -1165,7 +1172,7 @@ const handleNavigateInovice = (selectedTxn) =>{
   </div>
 )}
 
-                
+                 {formData.bill_type === "NON_GST" && ( 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Mail className="w-4 h-4 inline mr-2" />
@@ -1181,7 +1188,7 @@ const handleNavigateInovice = (selectedTxn) =>{
                     placeholder="Enter Pan Card Number"
                   />
                 </div>
-
+)}
          
 
                 {/* Buttons */}
