@@ -1061,7 +1061,10 @@ const totalgstamount =  gstAmount + totalAfterDiscount;
 const currentTotalAmount = totalgstamount + Number(clientData.previous_amt || 0);
 
 
-const amountInWords = numberToWords.toWords(totalgstamount).replace(/\b\w/g, (c) => c.toUpperCase()) + " Rupees"
+const amountInWords = numberToWords
+  .toWords(Number(totalgstamount.toFixed(0)))
+  .replace(/\b\w/g, (c) => c.toUpperCase()) + " Rupees";
+
   
   if (loading) {
     return (
@@ -1794,41 +1797,109 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                               );
                             })()}
                             {/* ================= COMPLIMENTARY SERVICES ================= */}
-                            {complimentaryData.map((edit, eidx) => {
-                              const qty = Number(edit.quantity);
-                              const base = Number(edit.editing_type_amount);
-                              const totalBase = base * qty;
+                 {complimentaryData.length > 0 && (
+  <>
+    {/* Complimentary Services + Totals */}
+    {(() => {
+      // ✅ Totals inside Complimentary Service
+      const thumbEdits = complimentaryData.filter(
+        (item) => Number(item.include_thumbnail_creation) > 0
+      );
+      const postEdits = complimentaryData.filter(
+        (item) => Number(item.include_content_posting) > 0
+      );
 
-                              // For the first complimentary service, show "Complimentary Service" once
-                              return (
-                                <tr
-                                  key={`compl-${eidx}`}
-                                  className="bg-gray-50"
-                                >
-                                  {eidx === 0 ? (
-                                    <td
-                                      className="border px-2 py-1 align-center"
-                                      rowSpan={complimentaryData.length}
-                                    >
-                                      Complimentary Service
-                                    </td>
-                                  ) : null}
+      const totalThumbQty = thumbEdits.reduce(
+        (sum, item) => sum + Number(item.quantity),
+        0
+      );
+      const pricePerThumb = thumbEdits[0]?.include_thumbnail_creation || 0;
+      const totalThumbAmount = thumbEdits.reduce(
+        (sum, item) =>
+          sum + Number(item.include_thumbnail_creation) * Number(item.quantity),
+        0
+      );
 
-                                  <td className="border px-2 py-1">
-                                    {edit.editing_type_name}
-                                  </td>
-                                  <td className="border px-2 py-1 text-right">
-                                    {qty}
-                                  </td>
-                                  <td className="border px-2 py-1 text-right">
-                                    ₹{base}
-                                  </td>
-                                  <td className="border px-2 py-1 text-right">
-                                    ₹{totalBase}
-                                  </td>
-                                </tr>
-                              );
-                            })}
+      const totalPostQty = postEdits.reduce(
+        (sum, item) => sum + Number(item.quantity),
+        0
+      );
+      const pricePerPost = postEdits[0]?.include_content_posting || 0;
+      const totalPostAmount = postEdits.reduce(
+        (sum, item) =>
+          sum + Number(item.include_content_posting) * Number(item.quantity),
+        0
+      );
+
+      return (
+        <>
+          {complimentaryData.map((edit, eidx) => {
+            const qty = Number(edit.quantity);
+            const base = Number(edit.editing_type_amount);
+            const totalBase = base * qty;
+
+            return (
+              <tr key={`compl-${eidx}`} className="bg-gray-50">
+                {eidx === 0 && (
+                  <td
+                    className="border px-2 py-1 align-center"
+                    rowSpan={
+                      complimentaryData.length +
+                      (thumbEdits.length > 0 ? 1 : 0) +
+                      (postEdits.length > 0 ? 1 : 0)
+                    }
+                  >
+                    Complimentary Service
+                  </td>
+                )}
+                <td className="border px-2 py-1">{edit.editing_type_name}</td>
+                <td className="border px-2 py-1 text-right">{qty}</td>
+                <td className="border px-2 py-1 text-right">₹{base}</td>
+                <td className="border px-2 py-1 text-right">₹{totalBase}</td>
+              </tr>
+            );
+          })}
+
+          {/* ✅ Thumbnail Creation Total inside Complimentary Service */}
+          {thumbEdits.length > 0 && (
+            <tr className="bg-gray-50">
+              <td className="border px-2 py-1" colSpan={0}>
+                Thumbnail Creation Total
+              </td>
+              <td className="border px-2 py-1 text-right">{totalThumbQty}</td>
+              <td className="border px-2 py-1 text-right">
+                ₹{pricePerThumb.toLocaleString()}
+              </td>
+              <td className="border px-2 py-1 text-right">
+                ₹{totalThumbAmount.toLocaleString()}
+              </td>
+            </tr>
+          )}
+
+          {/* ✅ Content Posting Total inside Complimentary Service */}
+          {postEdits.length > 0 && (
+            <tr className="bg-gray-50">
+              <td className="border px-2 py-1" colSpan={0}>
+                Content Posting Total
+              </td>
+              <td className="border px-2 py-1 text-right">{totalPostQty}</td>
+              <td className="border px-2 py-1 text-right">
+                ₹{pricePerPost.toLocaleString()}
+              </td>
+              <td className="border px-2 py-1 text-right">
+                ₹{totalPostAmount.toLocaleString()}
+              </td>
+            </tr>
+          )}
+        </>
+      );
+    })()}
+  </>
+)}
+
+
+                            
+
                             {complimentaryData.length > 0 ?
                             <>
                             

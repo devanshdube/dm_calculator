@@ -1132,6 +1132,73 @@ const finalTotal = totalAfterDiscount + gstAmount;
                                 </tr>
                               );
                             })}
+                            {/* ✅ Thumbnail Creation Total */}
+    {(() => {
+      const thumbEdits = complimentaryData.filter(
+        (item) => Number(item.include_thumbnail_creation) > 0
+      );
+      if (thumbEdits.length === 0) return null;
+
+      const totalThumbQty = thumbEdits.reduce(
+        (sum, item) => sum + Number(item.quantity),
+        0
+      );
+      const pricePerThumb = Number(thumbEdits[0].include_thumbnail_creation) || 0;
+      const totalThumbAmount = thumbEdits.reduce(
+        (sum, item) =>
+          sum + Number(item.include_thumbnail_creation) * Number(item.quantity),
+        0
+      );
+
+      return (
+        <tr className="bg-gray-50">
+          <td className="border px-2 py-1" colSpan={2}>
+            Thumbnail Creation Total
+          </td>
+          <td className="border px-2 py-1 text-right">{totalThumbQty}</td>
+          <td className="border px-2 py-1 text-right">
+            ₹{pricePerThumb.toLocaleString()}
+          </td>
+          <td className="border px-2 py-1 text-right">
+            ₹{totalThumbAmount.toLocaleString()}
+          </td>
+        </tr>
+      );
+    })()}
+
+    {/* ✅ Content Posting Total */}
+    {(() => {
+      const postEdits = complimentaryData.filter(
+        (item) => Number(item.include_content_posting) > 0
+      );
+      if (postEdits.length === 0) return null;
+
+      const totalPostQty = postEdits.reduce(
+        (sum, item) => sum + Number(item.quantity),
+        0
+      );
+      const pricePerPost = Number(postEdits[0].include_content_posting) || 0;
+      const totalPostAmount = postEdits.reduce(
+        (sum, item) =>
+          sum + Number(item.include_content_posting) * Number(item.quantity),
+        0
+      );
+
+      return (
+        <tr className="bg-gray-50">
+          <td className="border px-2 py-1" colSpan={2}>
+            Content Posting Total
+          </td>
+          <td className="border px-2 py-1 text-right">{totalPostQty}</td>
+          <td className="border px-2 py-1 text-right">
+            ₹{pricePerPost.toLocaleString()}
+          </td>
+          <td className="border px-2 py-1 text-right">
+            ₹{totalPostAmount.toLocaleString()}
+          </td>
+        </tr>
+      );
+    })()}
                             <tr className=" font-semibold">
                               <td
                                 className="border px-2 py-1 text-right"
