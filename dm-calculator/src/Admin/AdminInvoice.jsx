@@ -2128,7 +2128,10 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                   </div>
                
                 </div>
-                 <div className="space-y-4 print:hidden">
+                {clientData.tag_received_amt === "received" ? (
+                    null
+                  ): (
+                 <div className="space-y-4 print:hidden p-2">
                         <div className="relative w-full" ref={dropdownRef}>
 
          <div
@@ -2209,11 +2212,12 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                       💾 Save Notes
                     </button>
                       </div>
+                            )}
 
                       
                 
 
-              <section className="flex justify-between border-t pt-4  text-sm text-gray-800">
+              <section className="flex justify-between border-t pt-4 p-2  text-sm text-gray-800">
   {/* LEFT SECTION - Terms & Conditions & Bank Details */}
   <div className="w-1/2 pr-4 border-r border-gray-300">
 
@@ -2224,6 +2228,9 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
         {notesData.map((note) => (
           <li key={note.id} className="leading-snug">
             {note.note_name}
+            {clientData.tag_received_amt === "received" ? (
+                    null
+                  ): (
                                     <div className="flex items-center gap-1 sm:gap-2 print:hidden">
             <button
                             onClick={(e) => {
@@ -2249,6 +2256,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                             ×
                           </button>
                           </div>
+                                )}
 
           </li>
        

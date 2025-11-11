@@ -656,6 +656,11 @@ setCreatedInvoices((prev) => {
       `/BD/invoice/${id}/${selectedTxn}?gst=${isGST ? 1 : 0}`
     );
 }
+const handleCreateProposal = () => {
+  
+                      const txn_id = Date.now(); 
+    navigate(`/BD/AddService/${id}/${txn_id}`);
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -689,6 +694,13 @@ setCreatedInvoices((prev) => {
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition mx-2"
             >
               Assign List
+            </button>
+
+             <button
+               onClick={handleCreateProposal}
+              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition mx-2"
+            >
+               New  Plan
             </button>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -749,7 +761,7 @@ setCreatedInvoices((prev) => {
                       Invoice
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                     Received Amount
+                    Amount Status
                     </th>
                   </tr>
                 </thead>
@@ -978,155 +990,168 @@ setCreatedInvoices((prev) => {
             </div>
           </div>
         )}
-           {showModalInvoiceClient && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
-              onClick={handleCloseInvoiceClient}
-            />
-
-            {/* Modal */}
-            <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <User className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {"Add Invoice Detail"}
-                  </h2>
-                </div>
-                <button
-                  onClick={handleCloseInvoiceClient}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleCreateInvoice} className="p-6 space-y-4">
-              
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Calendar1 className="w-4 h-4 inline mr-2" />
-                    Duration start date
-                  </label>
-                  <input
-                    type="date"
-                    name="duration_start_date"
-                    value={formData.duration_start_date}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="Enter Duration start date"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Calendar1 className="w-4 h-4 inline mr-2" />
-                    Duration end date
-                  </label>
-                  <input
-                    type="date"
-                    name="duration_end_date"
-                    value={formData.duration_end_date}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="Enter Duration end date"
-                    required
-                  />
-                </div>
-
-              
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Building className="w-4 h-4 inline mr-2" />
-                    Payment Mode
-                  </label>
-               <select
-  name="payment_mode"
-  value={formData.payment_mode}
-  onChange={handleChange}
-  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-  required
->
-  <option  value="" className="text-gray-500">
-   Select Payment Mode
-  </option>
-  <option value="Pending">Pending</option>
-
-  <option value="Payment Cheque">Payment Cheque</option>
-  <option value="Net Banking">Net Banking</option>
-  <option value="UPI">UPI</option>
-  <option value="Cash">Cash</option>
-</select>
-
-                </div>
-              
-               
-                 {formData.bill_type === "GST" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Mail className="w-4 h-4 inline mr-2" />
-                      GST Number (Required for GST Bill)
-                    </label>
-                    <input
-                      type="text"
-                      name="client_gst_no"
-                      value={formData.client_gst_no}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                      placeholder="Enter GST Number"
-                      required={formData.bill_type === "GST"} // make required only for GST
-                      maxLength={15}
-                    />
-                  </div>
-                )}
-                
-                                 {formData.bill_type === "NON_GST" && ( 
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    <Mail className="w-4 h-4 inline mr-2" />
-                                   Pan Card Number (Optional)
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="client_pan_no"
-                                    maxLength={10}
-                                    value={formData.client_pan_no}                
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                                    placeholder="Enter Pan Card Number"
-                                  />
-                                </div>
-                )}
-         
-
-                {/* Buttons */}
-                <div className="flex justify-end gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={handleCloseInvoiceClient}
-                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-                  >
-                    {loading ? "Saving..." : "Save Client"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+            {showModalInvoiceClient && (
+                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                       {/* Backdrop */}
+                       <div
+                         className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+                         onClick={handleCloseInvoiceClient}
+                       />
+           
+                       {/* Modal */}
+                       <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl transform transition-all animate-in fade-in-0 zoom-in-95 duration-200">
+                         {/* Header */}
+                         <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                           <div className="flex items-center gap-3">
+                             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                               <User className="w-5 h-5 text-blue-600" />
+                             </div>
+                             <h2 className="text-xl font-semibold text-gray-900">
+                               {"Add Invoice Detail"}
+                             </h2>
+                           </div>
+                           <button
+                             onClick={handleCloseInvoiceClient}
+                             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                           >
+                             <X className="w-5 h-5" />
+                           </button>
+                         </div>
+           
+                         {/* Form */}
+                         <form onSubmit={handleCreateInvoice} className="p-6 space-y-4">
+                         <div>
+             <label className="block text-sm font-medium text-gray-700 mb-2">
+               Bill Type
+             </label>
+             <select
+               name="bill_type"
+               value={formData.bill_type}
+               onChange={handleChange}
+               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+               required
+             >
+               <option value="NON_GST">Non-GST Bill</option>
+               <option value="GST">GST Bill</option>
+             </select>
+           </div>
+           
+                           <div>
+                             <label className="block text-sm font-medium text-gray-700 mb-2">
+                               <Calendar1 className="w-4 h-4 inline mr-2" />
+                               Duration start date
+                             </label>
+                             <input
+                               type="date"
+                               name="duration_start_date"
+                               value={formData.duration_start_date}
+                               onChange={handleChange}
+                               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                               placeholder="Enter Duration start date"
+                               required
+                             />
+                           </div>
+                           <div>
+                             <label className="block text-sm font-medium text-gray-700 mb-2">
+                               <Calendar1 className="w-4 h-4 inline mr-2" />
+                               Duration end date
+                             </label>
+                             <input
+                               type="date"
+                               name="duration_end_date"
+                               value={formData.duration_end_date}
+                               onChange={handleChange}
+                               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                               placeholder="Enter Duration end date"
+                               required
+                             />
+                           </div>
+           
+                         
+                           <div>
+                             <label className="block text-sm font-medium text-gray-700 mb-2">
+                               <Building className="w-4 h-4 inline mr-2" />
+                               Payment Mode
+                             </label>
+                          <select
+             name="payment_mode"
+             value={formData.payment_mode}
+             onChange={handleChange}
+             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+             required
+           >
+             <option  value="" className="text-gray-500">
+              Select Payment Mode
+             </option>
+             <option value="Pending">Pending</option>
+             <option value="Payment Cheque">Payment Cheque</option>
+             <option value="Net Banking">Net Banking</option>
+             <option value="UPI">UPI</option>
+             <option value="Cash">Cash</option>
+           </select>
+           
+                           </div>
+                         
+                         {formData.bill_type === "GST" && (
+             <div>
+               <label className="block text-sm font-medium text-gray-700 mb-2">
+                 <Mail className="w-4 h-4 inline mr-2" />
+                 GST Number (Required for GST Bill)
+               </label>
+               <input
+                 type="text"
+                 name="client_gst_no"
+                 value={formData.client_gst_no}
+                 onChange={handleChange}
+                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                 placeholder="Enter GST Number"
+                 required={formData.bill_type === "GST"} // make required only for GST
+                 maxLength={15}
+               />
+             </div>
+           )}
+           
+                            {formData.bill_type === "NON_GST" && ( 
+                           <div>
+                             <label className="block text-sm font-medium text-gray-700 mb-2">
+                               <Mail className="w-4 h-4 inline mr-2" />
+                              Pan Card Number (Optional)
+                             </label>
+                             <input
+                               type="text"
+                               name="client_pan_no"
+                               maxLength={10}
+                               value={formData.client_pan_no}                
+                               onChange={handleChange}
+                               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                               placeholder="Enter Pan Card Number"
+                             />
+                           </div>
+           )}
+                    
+           
+                           {/* Buttons */}
+                           <div className="flex justify-end gap-3 pt-4">
+                             <button
+                               type="button"
+                               onClick={handleCloseInvoiceClient}
+                               className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                             >
+                               Cancel
+                             </button>
+           
+                             <button
+                               type="submit"
+                               disabled={loading}
+                               className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                             >
+                               {loading ? "Saving..." : "Save Client"}
+                             </button>
+                           </div>
+                         </form>
+                       </div>
+                     </div>
+                   )}
         <PaginationContainer>
           <ReactPaginate
             previousLabel={"Previous"}

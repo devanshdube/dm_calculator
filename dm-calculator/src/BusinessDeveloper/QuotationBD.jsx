@@ -558,7 +558,7 @@ const fetchClientReceived = async () => {
   const grandTotalAds = graphicTotal + adsTotal - adsTotalBudget;
 
   const grandTotal = graphicTotal + adsTotal;
-
+// Compute discounted amount based on type
 const discountAmount = selecteddiscount
   ? selecteddiscount.discount_type === "percent"
     ? (grandTotalAds * Number(selecteddiscount.discount_per)) / 100
@@ -637,9 +637,12 @@ const finalTotal = totalAfterDiscount + gstAmount;
       document.title = clientOrganization ? `${clientOrganization} Quotation` :`${clientName} Quotation`;
     window.print();
   };
-    const handleCreateProposal = () => {
-    const txn_id = Date.now(); // generates unique number based on current time
-    navigate(`/admin/ServicesLanding/${id}/${txn_id}`);
+    const handleProposalHistory = () => {
+  
+                        navigate(
+                          `/BD/client/service/history/${id}`
+                        )
+                    
   };
 
   
@@ -670,8 +673,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
         {/* Hidden on print - Action Buttons */}
 
-   
- <div className="print:hidden flex justify-end gap-3 my-4">
+         <div className="print:hidden flex justify-end gap-3 my-4">
           <button
             onClick={handlePrintPage}
             className="bg-blue-600 text-white rounded-full px-4 py-2"
@@ -688,16 +690,12 @@ const finalTotal = totalAfterDiscount + gstAmount;
             ✏️ Edit
           </button>
            )}
-            {clientDataReceived.tag_received_amt === "received" ? (
-                    null
-                  ): (
-             <button
-                      onClick={handleCreateProposal}
-                      className=" px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+            <button
+                      onClick={handleProposalHistory}
+                      className=" px-4 py-2 bg-yellow-600 text-white rounded-full hover:bg-yellow-700 transition-colors"
                     >
-                      📝 New  Plan
+                      📝Proposal History
                     </button>
-           )}
           <button
             onClick={() => navigate("/BD/dashboard")}
             className="bg-teal-600 text-white rounded-full px-4 py-2"
@@ -1235,7 +1233,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
    )}
 
                     {/* Grand Total Section */}
-                      <section className="text-right border-t pt-1 mb-1">
+           <section className="text-right border-t pt-1 mb-1">
   {/* Subtotal */}
   <p className="text-sm text-gray-700">
     Subtotal: ₹{grandTotal.toLocaleString()}
@@ -1270,6 +1268,9 @@ const finalTotal = totalAfterDiscount + gstAmount;
   )}
 </section>
 
+{clientDataReceived.tag_received_amt === "received" ? (
+                    null
+                  ): (
 <div className=" print:hidden">
   <h3 className="text-xl font-bold  mb-4 flex items-center gap-2">
                   <Package className="w-5 h-5" />
@@ -1437,6 +1438,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
                   </div>
                 )}
                  </div>  
+                       )}
                    {notesData.length > 0 ? (<>
 
                     <p className="text-sm  font-bold">Notes</p>
@@ -1451,6 +1453,9 @@ const finalTotal = totalAfterDiscount + gstAmount;
                           >
                             {note.note_name}
                           </li>
+                          {clientDataReceived.tag_received_amt === "received" ? (
+                    null
+                  ): (
                            <div className="flex print:hidden items-center gap-2 sm:gap-4">
                           <button
                             onClick={(e) => {
@@ -1476,6 +1481,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
                             ×
                           </button>
                           </div>
+                                )}
                           </div>
                           </>
                           

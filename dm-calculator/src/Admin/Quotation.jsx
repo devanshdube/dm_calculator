@@ -637,9 +637,12 @@ const finalTotal = totalAfterDiscount + gstAmount;
       document.title = clientOrganization ? `${clientOrganization} Quotation` :`${clientName} Quotation`;
     window.print();
   };
-    const handleCreateProposal = () => {
-    const txn_id = Date.now(); // generates unique number based on current time
-    navigate(`/admin/ServicesLanding/${id}/${txn_id}`);
+    const handleProposalHistory = () => {
+  
+                        navigate(
+                          `/admin/client/service/history/${id}`
+                        )
+                    
   };
 
   
@@ -687,16 +690,12 @@ const finalTotal = totalAfterDiscount + gstAmount;
             ✏️ Edit
           </button>
            )}
-            {clientDataReceived.tag_received_amt === "received" ? (
-                    null
-                  ): (
-             <button
-                      onClick={handleCreateProposal}
-                      className=" px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+               <button
+                      onClick={handleProposalHistory}
+                      className=" px-4 py-2 bg-yellow-600 text-white rounded-full hover:bg-yellow-700 transition-colors"
                     >
-                      📝 New  Plan
+                      📝Proposal History
                     </button>
-           )}
           <button
             onClick={() => navigate("/admin/dashboard")}
             className="bg-teal-600 text-white rounded-full px-4 py-2"
@@ -1269,7 +1268,9 @@ const finalTotal = totalAfterDiscount + gstAmount;
   )}
 </section>
 
-
+{clientDataReceived.tag_received_amt === "received" ? (
+                    null
+                  ): (
 <div className=" print:hidden">
   <h3 className="text-xl font-bold  mb-4 flex items-center gap-2">
                   <Package className="w-5 h-5" />
@@ -1437,6 +1438,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
                   </div>
                 )}
                  </div>  
+                       )}
                    {notesData.length > 0 ? (<>
 
                     <p className="text-sm  font-bold">Notes</p>
@@ -1451,6 +1453,9 @@ const finalTotal = totalAfterDiscount + gstAmount;
                           >
                             {note.note_name}
                           </li>
+                          {clientDataReceived.tag_received_amt === "received" ? (
+                    null
+                  ): (
                            <div className="flex print:hidden items-center gap-2 sm:gap-4">
                           <button
                             onClick={(e) => {
@@ -1476,6 +1481,7 @@ const finalTotal = totalAfterDiscount + gstAmount;
                             ×
                           </button>
                           </div>
+                                )}
                           </div>
                           </>
                           

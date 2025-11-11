@@ -1064,6 +1064,7 @@ const currentTotalAmount = totalgstamount + Number(clientData.previous_amt || 0)
 const amountInWords = numberToWords
   .toWords(Number(totalgstamount.toFixed(0)))
   .replace(/\b\w/g, (c) => c.toUpperCase()) + " Rupees";
+
   
   if (loading) {
     return (
@@ -1258,7 +1259,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
       <div className="page-wrapper w-[210mm] h-[297mm] flex flex-col justify-between p-4  mx-auto bg-white print:break-after-page">
         {/* Hidden on print - Action Buttons */}
 
-       <div className="print:hidden flex justify-end gap-3 my-4">
+        <div className="print:hidden flex justify-end gap-3 my-4">
           <button
             onClick={handlePrintPage}
             className="bg-blue-600 text-white rounded-full px-4 py-2"
@@ -1798,87 +1799,34 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                               );
                             })()}
                             {/* ================= COMPLIMENTARY SERVICES ================= */}
-                            {complimentaryData.map((edit, eidx) => {
-                              const qty = Number(edit.quantity);
-                              const base = Number(edit.editing_type_amount);
-                              const totalBase = base * qty;
-
-                              // For the first complimentary service, show "Complimentary Service" once
-                              return (
-                                <tr
-                                  key={`compl-${eidx}`}
-                                  className="bg-gray-50"
-                                >
-                                  {eidx === 0 ? (
-                                    <td
-                                      className="border px-2 py-1 align-center"
-                                      rowSpan={complimentaryData.length}
-                                    >
-                                      Complimentary Service
-                                    </td>
-                                  ) : null}
-
-                                  <td className="border px-2 py-1">
-                                    {edit.editing_type_name}
-                                  </td>
-                                  <td className="border px-2 py-1 text-right">
-                                    {qty}
-                                  </td>
-                                  <td className="border px-2 py-1 text-right">
-                                    ₹{base}
-                                  </td>
-                                  <td className="border px-2 py-1 text-right">
-                                    ₹{totalBase}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-{/* ✅ Thumbnail Creation Total */}
+                 {complimentaryData.length > 0 && (
+  <>
+    {/* Complimentary Services + Totals */}
     {(() => {
+      // ✅ Totals inside Complimentary Service
       const thumbEdits = complimentaryData.filter(
         (item) => Number(item.include_thumbnail_creation) > 0
       );
-      if (thumbEdits.length === 0) return null;
+      const postEdits = complimentaryData.filter(
+        (item) => Number(item.include_content_posting) > 0
+      );
 
       const totalThumbQty = thumbEdits.reduce(
         (sum, item) => sum + Number(item.quantity),
         0
       );
-      const pricePerThumb = Number(thumbEdits[0].include_thumbnail_creation) || 0;
+      const pricePerThumb = thumbEdits[0]?.include_thumbnail_creation || 0;
       const totalThumbAmount = thumbEdits.reduce(
         (sum, item) =>
           sum + Number(item.include_thumbnail_creation) * Number(item.quantity),
         0
       );
 
-      return (
-        <tr className="bg-gray-50">
-          <td className="border px-2 py-1" colSpan={2}>
-            Thumbnail Creation Total
-          </td>
-          <td className="border px-2 py-1 text-right">{totalThumbQty}</td>
-          <td className="border px-2 py-1 text-right">
-            ₹{pricePerThumb.toLocaleString()}
-          </td>
-          <td className="border px-2 py-1 text-right">
-            ₹{totalThumbAmount.toLocaleString()}
-          </td>
-        </tr>
-      );
-    })()}
-
-    {/* ✅ Content Posting Total */}
-    {(() => {
-      const postEdits = complimentaryData.filter(
-        (item) => Number(item.include_content_posting) > 0
-      );
-      if (postEdits.length === 0) return null;
-
       const totalPostQty = postEdits.reduce(
         (sum, item) => sum + Number(item.quantity),
         0
       );
-      const pricePerPost = Number(postEdits[0].include_content_posting) || 0;
+      const pricePerPost = postEdits[0]?.include_content_posting || 0;
       const totalPostAmount = postEdits.reduce(
         (sum, item) =>
           sum + Number(item.include_content_posting) * Number(item.quantity),
@@ -1886,21 +1834,73 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
       );
 
       return (
-        <tr className="bg-gray-50">
-          <td className="border px-2 py-1" colSpan={2}>
-            Content Posting Total
-          </td>
-          <td className="border px-2 py-1 text-right">{totalPostQty}</td>
-          <td className="border px-2 py-1 text-right">
-            ₹{pricePerPost.toLocaleString()}
-          </td>
-          <td className="border px-2 py-1 text-right">
-            ₹{totalPostAmount.toLocaleString()}
-          </td>
-        </tr>
+        <>
+          {complimentaryData.map((edit, eidx) => {
+            const qty = Number(edit.quantity);
+            const base = Number(edit.editing_type_amount);
+            const totalBase = base * qty;
+
+            return (
+              <tr key={`compl-${eidx}`} className="bg-gray-50">
+                {eidx === 0 && (
+                  <td
+                    className="border px-2 py-1 align-center"
+                    rowSpan={
+                      complimentaryData.length +
+                      (thumbEdits.length > 0 ? 1 : 0) +
+                      (postEdits.length > 0 ? 1 : 0)
+                    }
+                  >
+                    Complimentary Service
+                  </td>
+                )}
+                <td className="border px-2 py-1">{edit.editing_type_name}</td>
+                <td className="border px-2 py-1 text-right">{qty}</td>
+                <td className="border px-2 py-1 text-right">₹{base}</td>
+                <td className="border px-2 py-1 text-right">₹{totalBase}</td>
+              </tr>
+            );
+          })}
+
+          {/* ✅ Thumbnail Creation Total inside Complimentary Service */}
+          {thumbEdits.length > 0 && (
+            <tr className="bg-gray-50">
+              <td className="border px-2 py-1" colSpan={0}>
+                Thumbnail Creation Total
+              </td>
+              <td className="border px-2 py-1 text-right">{totalThumbQty}</td>
+              <td className="border px-2 py-1 text-right">
+                ₹{pricePerThumb.toLocaleString()}
+              </td>
+              <td className="border px-2 py-1 text-right">
+                ₹{totalThumbAmount.toLocaleString()}
+              </td>
+            </tr>
+          )}
+
+          {/* ✅ Content Posting Total inside Complimentary Service */}
+          {postEdits.length > 0 && (
+            <tr className="bg-gray-50">
+              <td className="border px-2 py-1" colSpan={0}>
+                Content Posting Total
+              </td>
+              <td className="border px-2 py-1 text-right">{totalPostQty}</td>
+              <td className="border px-2 py-1 text-right">
+                ₹{pricePerPost.toLocaleString()}
+              </td>
+              <td className="border px-2 py-1 text-right">
+                ₹{totalPostAmount.toLocaleString()}
+              </td>
+            </tr>
+          )}
+        </>
       );
     })()}
+  </>
+)}
 
+
+                            
 
                             {complimentaryData.length > 0 ?
                             <>
@@ -2130,7 +2130,10 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                   </div>
                
                 </div>
-                 <div className="space-y-4 print:hidden">
+                {clientData.tag_received_amt === "received" ? (
+                    null
+                  ): (
+                 <div className="space-y-4 print:hidden p-2">
                         <div className="relative w-full" ref={dropdownRef}>
 
          <div
@@ -2211,11 +2214,12 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                       💾 Save Notes
                     </button>
                       </div>
+                            )}
 
                       
                 
 
-              <section className="flex justify-between border-t pt-4  text-sm text-gray-800">
+              <section className="flex justify-between border-t pt-4 p-2  text-sm text-gray-800">
   {/* LEFT SECTION - Terms & Conditions & Bank Details */}
   <div className="w-1/2 pr-4 border-r border-gray-300">
 
@@ -2226,6 +2230,9 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
         {notesData.map((note) => (
           <li key={note.id} className="leading-snug">
             {note.note_name}
+            {clientData.tag_received_amt === "received" ? (
+                    null
+                  ): (
                                     <div className="flex items-center gap-1 sm:gap-2 print:hidden">
             <button
                             onClick={(e) => {
@@ -2251,6 +2258,7 @@ console.log(`${currentTotalAmount} - ${receivedAmount}`);
                             ×
                           </button>
                           </div>
+                                )}
 
           </li>
        

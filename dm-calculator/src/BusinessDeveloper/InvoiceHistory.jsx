@@ -225,7 +225,7 @@ const handleCopyInvoice = async (txnId) => {
 const handleNavigateInovice = (selectedTxn,selectedClient,billType) =>{
     const isGST = billType === "GST";
      navigate(
-                      `/admin/invoice/${selectedClient}/${selectedTxn}?gst=${isGST ? 1 : 0}`
+                      `/BD/invoice/${selectedClient}/${selectedTxn}?gst=${isGST ? 1 : 0}`
                     );
 }
   return (
@@ -311,8 +311,8 @@ const handleNavigateInovice = (selectedTxn,selectedClient,billType) =>{
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
                       Action
                     </th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                      Received Amount
+                   <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
+                    Amount Status
                     </th>
                   </tr>
                 </thead>

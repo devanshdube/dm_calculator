@@ -666,6 +666,11 @@ const handleNavigateInovice = (selectedTxn,billtype) =>{
       `/admin/invoice/${id}/${selectedTxn}?gst=${isGST ? 1 : 0}`
     );
 }
+const handleCreateProposal = () => {
+  
+                      const txn_id = Date.now(); 
+    navigate(`/admin/ServicesLanding/${id}/${txn_id}`);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -700,6 +705,12 @@ const handleNavigateInovice = (selectedTxn,billtype) =>{
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition mx-2"
             >
               Assign List
+            </button>
+            <button
+               onClick={handleCreateProposal}
+              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition mx-2"
+            >
+               New  Plan
             </button>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -760,7 +771,7 @@ const handleNavigateInovice = (selectedTxn,billtype) =>{
                       Invoice
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-200 uppercase tracking-wider text-sm">
-                     Received Amount
+                    Amount Status
                     </th>
                   </tr>
                 </thead>
